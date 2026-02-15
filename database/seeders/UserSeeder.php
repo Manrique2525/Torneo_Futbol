@@ -6,18 +6,15 @@ use Illuminate\Database\Seeder;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 
-class DatabaseSeeder extends Seeder
+class UserSeeder extends Seeder
 {
-    /**
-     * Seed the application's database.
-     */
     public function run(): void
     {
         User::updateOrCreate(
-            ['email' => 'programadores@gmail.com'],
+            ['email' => 'desarrollo@gmail.com'],
             [
-                'name' => 'admin',
-                'password' => Hash::make('programadores2026'),
+                'name' => 'Desarrollo',
+                'password' => Hash::make('password123'),
             ]
         );
     }
