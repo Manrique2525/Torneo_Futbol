@@ -18,95 +18,99 @@ const submit = () => {
         onFinish: () => form.reset('password', 'password_confirmation'),
     });
 };
+
+
 </script>
 
 <template>
     <GuestLayout>
-        <Head title="Register" />
+        <Head title="Registro de Capitán" />
 
-        <form @submit.prevent="submit">
+        <div class="mb-8 text-center">
+
+            <p class="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500 mt-2">
+                Únete a la plataforma de gestión
+            </p>
+        </div>
+
+        <form @submit.prevent="submit" class="space-y-4">
             <div>
-                <InputLabel for="name" value="Name" />
-
+                <InputLabel for="name" value="Nombre Completo" class="text-[10px] font-black uppercase tracking-widest ml-1" />
                 <TextInput
                     id="name"
                     type="text"
-                    class="mt-1 block w-full"
+                    class="mt-1 block w-full bg-slate-50 dark:bg-white/5 border-none rounded-2xl focus:ring-2 focus:ring-primary transition-all"
                     v-model="form.name"
                     required
                     autofocus
                     autocomplete="name"
+                    placeholder="Escribe tu nombre"
                 />
-
-                <InputError class="mt-2" :message="form.errors.name" />
+                <InputError class="mt-2 ml-1" :message="form.errors.name" />
             </div>
 
-            <div class="mt-4">
-                <InputLabel for="email" value="Email" />
-
+            <div>
+                <InputLabel for="email" value="Correo Electrónico" class="text-[10px] font-black uppercase tracking-widest ml-1" />
                 <TextInput
                     id="email"
                     type="email"
-                    class="mt-1 block w-full"
+                    class="mt-1 block w-full bg-slate-50 dark:bg-white/5 border-none rounded-2xl focus:ring-2 focus:ring-primary transition-all"
                     v-model="form.email"
                     required
                     autocomplete="username"
+                    placeholder="email@ejemplo.com"
                 />
-
-                <InputError class="mt-2" :message="form.errors.email" />
+                <InputError class="mt-2 ml-1" :message="form.errors.email" />
             </div>
 
-            <div class="mt-4">
-                <InputLabel for="password" value="Password" />
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                    <InputLabel for="password" value="Contraseña" class="text-[10px] font-black uppercase tracking-widest ml-1" />
+                    <TextInput
+                        id="password"
+                        type="password"
+                        class="mt-1 block w-full bg-slate-50 dark:bg-white/5 border-none rounded-2xl focus:ring-2 focus:ring-primary transition-all"
+                        v-model="form.password"
+                        required
+                        autocomplete="new-password"
+                        placeholder="••••••••"
+                    />
+                    <InputError class="mt-2 ml-1" :message="form.errors.password" />
+                </div>
 
-                <TextInput
-                    id="password"
-                    type="password"
-                    class="mt-1 block w-full"
-                    v-model="form.password"
-                    required
-                    autocomplete="new-password"
-                />
-
-                <InputError class="mt-2" :message="form.errors.password" />
+                <div>
+                    <InputLabel for="password_confirmation" value="Confirmar" class="text-[10px] font-black uppercase tracking-widest ml-1" />
+                    <TextInput
+                        id="password_confirmation"
+                        type="password"
+                        class="mt-1 block w-full bg-slate-50 dark:bg-white/5 border-none rounded-2xl focus:ring-2 focus:ring-primary transition-all"
+                        v-model="form.password_confirmation"
+                        required
+                        autocomplete="new-password"
+                        placeholder="••••••••"
+                    />
+                    <InputError class="mt-2 ml-1" :message="form.errors.password_confirmation" />
+                </div>
             </div>
 
-            <div class="mt-4">
-                <InputLabel
-                    for="password_confirmation"
-                    value="Confirm Password"
-                />
-
-                <TextInput
-                    id="password_confirmation"
-                    type="password"
-                    class="mt-1 block w-full"
-                    v-model="form.password_confirmation"
-                    required
-                    autocomplete="new-password"
-                />
-
-                <InputError
-                    class="mt-2"
-                    :message="form.errors.password_confirmation"
-                />
-            </div>
-
-            <div class="mt-4 flex items-center justify-end">
-                <Link
-                    :href="route('login')"
-                    class="rounded-md text-sm text-gray-600 underline hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-                >
-                    Already registered?
-                </Link>
-
-                <PrimaryButton
-                    class="ms-4"
+            <div class="pt-6 space-y-4">
+                <PrimaryButton type="submit"
+                    class="w-full justify-center py-4 rounded-2xl shadow-lg shadow-primary/20"
                     :class="{ 'opacity-25': form.processing }"
                     :disabled="form.processing"
                 >
-                    Register
+                    <span v-if="form.processing">Inscribiendo...</span>
+                    <span v-else>Crear</span>
                 </PrimaryButton>
+
+                <div class="text-center">
+                    <Link
+                        :href="route('login')"
+                        class="text-[11px] font-bold uppercase tracking-wider text-slate-500 hover:text-primary transition-colors"
+                    >
+                        ¿Ya tienes cuenta? <span class="text-primary underline">Inicia sesión</span>
+                    </Link>
+                </div>
             </div>
         </form>
     </GuestLayout>

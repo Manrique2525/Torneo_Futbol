@@ -23,38 +23,48 @@ const verificationLinkSent = computed(
 
 <template>
     <GuestLayout>
-        <Head title="Email Verification" />
+        <Head title="Verificar Email" />
 
-        <div class="mb-4 text-sm text-gray-600">
-            Thanks for signing up! Before getting started, could you verify your
-            email address by clicking on the link we just emailed to you? If you
-            didn't receive the email, we will gladly send you another.
+        <div class="mb-8 text-center">
+            <div class="inline-flex h-16 w-16 items-center justify-center rounded-3xl bg-primary/10 text-primary mb-4 animate-pulse">
+                <span class="material-symbols-outlined !text-4xl">mark_email_read</span>
+            </div>
+            <h2 class="text-2xl font-black uppercase tracking-tighter text-slate-900 dark:text-white">
+                Casi <span class="text-primary">Listo</span>
+            </h2>
+            <p class="mt-3 text-[11px] font-bold uppercase tracking-widest text-slate-500 leading-relaxed">
+                ¡Gracias por unirte! Antes de empezar la temporada, por favor verifica tu correo haciendo clic en el enlace que te enviamos.
+            </p>
         </div>
 
         <div
-            class="mb-4 text-sm font-medium text-green-600"
+            class="mb-6 rounded-2xl bg-green-50 p-4 text-[10px] font-black uppercase tracking-widest text-green-600 border border-green-100 dark:bg-primary/10 dark:text-primary dark:border-primary/20 text-center"
             v-if="verificationLinkSent"
         >
-            A new verification link has been sent to the email address you
-            provided during registration.
+            Se ha enviado un nuevo enlace de verificación a tu correo.
         </div>
 
         <form @submit.prevent="submit">
-            <div class="mt-4 flex items-center justify-between">
+            <div class="flex flex-col gap-4">
                 <PrimaryButton
+                    class="w-full justify-center py-4 rounded-2xl shadow-lg shadow-primary/20"
                     :class="{ 'opacity-25': form.processing }"
                     :disabled="form.processing"
                 >
-                    Resend Verification Email
+                    <span v-if="form.processing">Reenviando...</span>
+                    <span v-else>Reenviar Correo de Verificación</span>
                 </PrimaryButton>
 
-                <Link
-                    :href="route('logout')"
-                    method="post"
-                    as="button"
-                    class="rounded-md text-sm text-gray-600 underline hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-                    >Log Out</Link
-                >
+                <div class="flex items-center justify-center mt-2">
+                    <Link
+                        :href="route('logout')"
+                        method="post"
+                        as="button"
+                        class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 hover:text-red-500 transition-colors"
+                    >
+                        Cerrar Sesión
+                    </Link>
+                </div>
             </div>
         </form>
     </GuestLayout>

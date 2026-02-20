@@ -13,12 +13,8 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        User::updateOrCreate(
-            ['email' => 'programadores@gmail.com'],
-            [
-                'name' => 'admin',
-                'password' => Hash::make('programadores2026'),
-            ]
-        );
+        $this->call([
+            UserSeeder::class,
+        ]);
     }
 }

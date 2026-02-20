@@ -14,43 +14,37 @@ defineProps({
     },
 });
 </script>
-
 <template>
-    <Head title="Profile" />
+    <Head title="Mi Perfil" />
 
     <AuthenticatedLayout>
-        <template #header>
-            <h2
-                class="text-xl font-semibold leading-tight text-gray-800"
-            >
-                Profile
+        <div class="mb-8 border-b border-slate-200 dark:border-slate-800 pb-6">
+            <h2 class="text-3xl font-extrabold text-slate-900 dark:text-white uppercase tracking-tight">
+                Configuración del Perfil
             </h2>
-        </template>
+            <p class="mt-2 text-base text-slate-500 dark:text-slate-400">
+                Gestiona la información de tu cuenta, seguridad y preferencias de acceso.
+            </p>
+        </div>
 
-        <div class="py-12">
-            <div class="mx-auto max-w-7xl space-y-6 sm:px-6 lg:px-8">
-                <div
-                    class="bg-white p-4 shadow sm:rounded-lg sm:p-8"
-                >
-                    <UpdateProfileInformationForm
-                        :must-verify-email="mustVerifyEmail"
-                        :status="status"
-                        class="max-w-xl"
-                    />
-                </div>
+        <div class="space-y-8 pb-12">
 
-                <div
-                    class="bg-white p-4 shadow sm:rounded-lg sm:p-8"
-                >
-                    <UpdatePasswordForm class="max-w-xl" />
-                </div>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
 
-                <div
-                    class="bg-white p-4 shadow sm:rounded-lg sm:p-8"
-                >
-                    <DeleteUserForm class="max-w-xl" />
-                </div>
+                <UpdateProfileInformationForm
+                    :must-verify-email="mustVerifyEmail"
+                    :status="status"
+                    class="h-full"
+                />
+
+                <UpdatePasswordForm class="h-full" />
+
             </div>
+
+            <div class="pt-4">
+                <DeleteUserForm />
+            </div>
+
         </div>
     </AuthenticatedLayout>
 </template>
