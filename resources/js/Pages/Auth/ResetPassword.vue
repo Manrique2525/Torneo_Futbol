@@ -91,16 +91,21 @@ const submit = () => {
                 <InputError class="mt-2 ml-1" :message="form.errors.password_confirmation" />
             </div>
 
-            <div class="pt-4">
-                <PrimaryButton
-                    class="w-full justify-center py-4 rounded-2xl shadow-lg shadow-primary/20"
-                    :class="{ 'opacity-25': form.processing }"
-                    :disabled="form.processing"
-                >
-                    <span v-if="form.processing">Actualizando...</span>
-                    <span v-else>Guardar Nueva Clave</span>
-                </PrimaryButton>
-            </div>
+         <div class="pt-4">
+    <PrimaryButton
+        type="submit"
+        class="w-full justify-center py-4 rounded-2xl shadow-lg shadow-primary/20"
+        :class="{ 'opacity-25': form.processing }"
+        :disabled="form.processing"
+    >
+        <span v-if="form.processing">
+            Actualizando...
+        </span>
+        <span v-else>
+            Guardar Nueva Clave
+        </span>
+    </PrimaryButton>
+</div>
         </form>
     </GuestLayout>
 </template>
