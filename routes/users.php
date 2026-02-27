@@ -14,6 +14,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/users/{user}/edit', [UserController::class, 'edit'])->name('users.edit');
     Route::get('/users/create', [UserController::class, 'create'])->name('users.create');
 
+
     // Puedes agregar más rutas para eliminar usuarios, etc.
 
 });

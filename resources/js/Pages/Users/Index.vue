@@ -2,10 +2,9 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
 import Modal from '@/Components/Modal.vue';
-import UserModal from './Partials/UserModal.vue';
 import Pagination from '@/Components/Pagination.vue';
 import { ref, watch } from 'vue';
-import { Head, router, Link } from '@inertiajs/vue3'; // Importación unificada
+import { Head, router, Link } from '@inertiajs/vue3';
 
 const props = defineProps({
     users: Object,
@@ -13,9 +12,7 @@ const props = defineProps({
     filters: Object
 });
 
-// --- ESTADOS DE UI ---
-const isUserModalOpen = ref(false);
-const selectedUser = ref(null);
+// --- ESTADOS DE CONFIRMACIÓN ---
 const confirmModal = ref({ show: false, title: '', message: '', type: 'primary', action: null });
 
 // --- ESTADOS DE BÚSQUEDA ---
@@ -43,11 +40,6 @@ watch([searchQuery, filterRole], () => {
 });
 
 // --- ACCIONES ---
-const openUserModal = (user = null) => {
-    selectedUser.value = user;
-    isUserModalOpen.value = true;
-};
-
 const triggerResetPassword = (user) => {
     confirmModal.value = {
         show: true,
@@ -86,35 +78,26 @@ const getRoleBadge = (slug) => {
 
     <AuthenticatedLayout>
         <div class="space-y-6">
-<div class="flex flex-col md:flex-row md:items-end justify-between gap-4">
-    <div>
-        <h2 class="text-3xl font-black uppercase tracking-tighter text-slate-900 dark:text-white leading-none">
-            Gestión de <span class="text-primary">Personal</span>
-        </h2>
-        <p class="text-[10px] font-bold uppercase tracking-widest text-slate-500 mt-2">
-            {{ users.total }} registros encontrados
-        </p>
-    </div>
+            <div class="flex flex-col md:flex-row md:items-end justify-between gap-4">
+                <div>
+                    <h2 class="text-3xl font-black uppercase tracking-tighter text-slate-900 dark:text-white leading-none">
+                        Gestión de <span class="text-primary">Personal</span>
+                    </h2>
+                    <p class="text-[10px] font-bold uppercase tracking-widest text-slate-500 mt-2">
+                        {{ users.total }} registros encontrados
+                    </p>
+                </div>
 
-    <div class="flex items-center gap-2">
-        <button
-            @click="openUserModal()"
-            class="flex items-center px-4 py-4 bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-slate-300 font-bold uppercase text-[10px] tracking-widest rounded-2xl hover:bg-slate-200 transition-all"
-            title="Registro rápido en modal"
-        >
-            <span class="material-symbols-outlined !text-sm mr-2">bolt</span>
-            Modal
-        </button>
-
-        <Link
-            :href="route('users.create')"
-            class="flex items-center px-6 py-4 bg-primary text-white font-black uppercase text-[11px] tracking-[0.15em] rounded-2xl shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-95 transition-all"
-        >
-            <span class="material-symbols-outlined !text-sm mr-2">person_add</span>
-            Nuevo Usuario
-        </Link>
-    </div>
-</div>
+                <div class="flex items-center gap-2">
+                    <Link
+                        :href="route('users.create')"
+                        class="flex items-center px-3 py-3 bg-primary text-white font-black uppercase text-[11px] tracking-[0.15em] rounded-2xl shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-95 transition-all"
+                    >
+                        <span class="material-symbols-outlined !text-sm mr-2">person_add</span>
+                        Nuevo Usuario
+                    </Link>
+                </div>
+            </div>
 
             <div class="grid grid-cols-1 md:grid-cols-4 gap-4 bg-white dark:bg-[#1A2C26] p-4 rounded-[2rem] border border-slate-100 dark:border-slate-800 shadow-sm">
                 <div class="md:col-span-2 relative">
@@ -180,10 +163,6 @@ const getRoleBadge = (slug) => {
                                             <span class="material-symbols-outlined !text-lg">lock_reset</span>
                                         </button>
 
-                                        <button @click="openUserModal(user)" title="Edición Rápida" class="p-2.5 rounded-xl bg-blue-500/10 text-blue-600 hover:bg-blue-600 hover:text-white transition-all shadow-sm">
-                                            <span class="material-symbols-outlined !text-lg">edit</span>
-                                        </button>
-
                                         <Link :href="route('users.edit', user.id)" title="Ver Perfil Completo" class="p-2.5 rounded-xl bg-primary/10 text-primary hover:bg-primary hover:text-white transition-all shadow-sm flex items-center justify-center">
                                             <span class="material-symbols-outlined !text-lg">open_in_new</span>
                                         </Link>
@@ -209,8 +188,9 @@ const getRoleBadge = (slug) => {
             </div>
         </div>
 
+        <!-- Modal de confirmación (reset/delete) -->
         <Modal :show="confirmModal.show" maxWidth="md" @close="closeConfirm">
-             <div class="p-8">
+            <div class="p-8">
                 <div class="flex items-center gap-5 mb-8">
                     <div :class="[
                         'h-14 w-14 rounded-3xl flex items-center justify-center shrink-0 shadow-lg',
@@ -238,7 +218,5 @@ const getRoleBadge = (slug) => {
                 </div>
             </div>
         </Modal>
-
-        <UserModal v-if="isUserModalOpen" :show="isUserModalOpen" :user="selectedUser" :roles="roles" @close="isUserModalOpen = false" />
     </AuthenticatedLayout>
 </template>

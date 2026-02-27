@@ -15,10 +15,7 @@ use Inertia\Response;
 
 class UserController extends Controller
 {
-    /**
-     * Display the user's profile form.
-     */
-    // UsersController.php
+
     public function index(Request $request)
     {
         return Inertia::render('Users/Index', [
@@ -115,4 +112,6 @@ class UserController extends Controller
         return redirect()->route('users.index')
             ->with('success', 'Usuario eliminado correctamente');
     }
+
+
 }
