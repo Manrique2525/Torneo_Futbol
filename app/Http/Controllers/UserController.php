@@ -41,7 +41,7 @@ class UserController extends Controller
 
     public function create()
     {
-        return Inertia::render('Users/Form', [
+        return Inertia::render('Users/Create', [
             'roles' => config('constants'),
             'isEditing' => false
         ]);
@@ -49,7 +49,7 @@ class UserController extends Controller
 
     public function edit(User $user)
     {
-        return Inertia::render('Users/Form', [
+        return Inertia::render('Users/Edit', [
             'user' => $user,
             'roles' => config('constants'),
             'isEditing' => true
