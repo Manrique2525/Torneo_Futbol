@@ -10,9 +10,9 @@ const props = defineProps({
 });
 
 const form = useForm({
-    name: props.user.name ?? '',
-    email: props.user.email ?? '',
-    perfil: props.user.perfil ?? '',
+    name: props.user?.name ?? '',
+    email: props.user?.email ?? '',
+    perfil: props.user?.perfil ?? '',
     password: '',
 });
 
@@ -25,83 +25,148 @@ const submit = () => {
     <Head title="Editar Usuario" />
 
     <AuthenticatedLayout>
-        <div class="max-w-4xl mx-auto">
-            <Link :href="route('users.index')" class="inline-flex items-center text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 hover:text-primary transition-colors mb-6">
-                <span class="material-symbols-outlined mr-2 !text-lg">arrow_back</span>
+        <div class="w-full">
+
+            <!-- Back link con focus verde -->
+            <Link
+                :href="route('users.index')"
+                class="inline-flex items-center text-[10px] font-black uppercase tracking-[0.2em]
+                       text-slate-400 hover:text-primary
+                       focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50
+                       active:scale-95 active:text-primary
+                       transition-all duration-150
+                       mb-6 rounded-lg px-2 py-1"
+            >
+                <span class="material-symbols-outlined mr-2 !text-lg">
+                    arrow_back
+                </span>
                 Volver al listado
             </Link>
 
-            <div class="bg-white dark:bg-[#1A2C26] rounded-[3rem] shadow-2xl shadow-slate-200/50 dark:shadow-none border border-slate-100 dark:border-slate-800 overflow-hidden">
-                <div class="flex flex-col md:flex-row">
-                    <!-- Panel lateral -->
-                    <div class="md:w-1/3 bg-slate-50 dark:bg-black/20 p-10 border-r border-slate-100 dark:border-slate-800">
-                        <div class="h-16 w-16 rounded-3xl bg-primary flex items-center justify-center text-white mb-6 shadow-lg shadow-primary/30">
-                            <span class="material-symbols-outlined text-3xl">manage_accounts</span>
-                        </div>
-                        <h2 class="text-2xl font-black uppercase tracking-tighter text-slate-900 dark:text-white leading-tight">
-                            Actualizar <br/>
-                            <span class="text-primary">Usuario</span>
+            <!-- Card -->
+            <div class="bg-white dark:bg-[#1A2C26] rounded-3xl shadow-xl shadow-slate-200/60 dark:shadow-none border border-slate-100 dark:border-slate-800 overflow-hidden">
+
+                <!-- Card Header (IGUAL QUE CREATE) -->
+                <div class="flex items-center gap-4 px-8 py-5 border-b border-slate-100 dark:border-slate-800">
+                    <div class="h-10 w-10 rounded-2xl bg-primary flex items-center justify-center text-white shadow-md shadow-primary/30 flex-shrink-0">
+                        <span class="material-symbols-outlined text-xl">
+                            manage_accounts
+                        </span>
+                    </div>
+                    <div>
+                        <h2 class="text-base font-black uppercase tracking-tight text-slate-900 dark:text-white leading-none">
+                            Editar Usuario
                         </h2>
-                        <p class="text-xs text-slate-500 mt-4 leading-relaxed font-medium">
-                            Modifica los permisos o datos básicos del perfil seleccionado.
+                        <p class="text-[11px] text-slate-400 font-medium mt-0.5">
+                            Modifica los datos o permisos del perfil seleccionado.
                         </p>
                     </div>
-
-                    <!-- Formulario -->
-                    <div class="md:w-2/3 p-10">
-                        <form @submit.prevent="submit" class="space-y-6">
-                            <div>
-                                <label class="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2 ml-1">Nombre Completo</label>
-                                <input v-model="form.name" type="text"
-                                    class="w-full bg-slate-50 dark:bg-white/5 border-none rounded-2xl py-4 px-6 text-sm focus:ring-2 focus:ring-primary transition-all text-slate-700 dark:text-slate-200"
-                                    placeholder="Ej. Juan Pérez">
-                                <InputError :message="form.errors.name" class="mt-2" />
-                            </div>
-
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div>
-                                    <label class="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2 ml-1">Correo Electrónico</label>
-                                    <input v-model="form.email" type="email"
-                                        class="w-full bg-slate-50 dark:bg-white/5 border-none rounded-2xl py-4 px-6 text-sm focus:ring-2 focus:ring-primary transition-all text-slate-700 dark:text-slate-200"
-                                        placeholder="correo@ejemplo.com">
-                                    <InputError :message="form.errors.email" class="mt-2" />
-                                </div>
-
-                                <div>
-                                    <label class="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2 ml-1">Perfil / Rol</label>
-                                    <select v-model="form.perfil"
-                                        class="w-full bg-slate-50 dark:bg-white/5 border-none rounded-2xl py-4 px-6 text-sm focus:ring-2 focus:ring-primary transition-all text-slate-700 dark:text-slate-200 appearance-none">
-                                        <option value="" disabled>Seleccionar...</option>
-                                        <option v-for="(info, key) in roles" :key="key" :value="info.slug">
-                                            {{ key.toUpperCase() }}
-                                        </option>
-                                    </select>
-                                    <InputError :message="form.errors.perfil" class="mt-2" />
-                                </div>
-                            </div>
-
-                            <div>
-                                <label class="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2 ml-1">Nueva Contraseña (Opcional)</label>
-                                <input v-model="form.password" type="password"
-                                    class="w-full bg-slate-50 dark:bg-white/5 border-none rounded-2xl py-4 px-6 text-sm focus:ring-2 focus:ring-primary transition-all text-slate-700 dark:text-slate-200"
-                                    placeholder="••••••••">
-                                <p class="text-[9px] text-slate-400 mt-2 italic font-bold">Deja en blanco para mantener la actual</p>
-                                <InputError :message="form.errors.password" class="mt-2" />
-                            </div>
-
-                            <div class="pt-6 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
-                                <div v-if="form.recentlySuccessful" class="text-green-500 text-xs font-bold animate-pulse">
-                                    ¡Datos guardados con éxito!
-                                </div>
-                                <div v-else></div>
-
-                                <PrimaryButton type="submit" :class="{ 'opacity-25': form.processing }" :disabled="form.processing" class="px-10 py-4 rounded-2xl shadow-xl shadow-primary/20">
-                                    Guardar Cambios
-                                </PrimaryButton>
-                            </div>
-                        </form>
-                    </div>
                 </div>
+
+                <!-- Form Body -->
+                <form @submit.prevent="submit" class="px-8 py-7">
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-7">
+
+                        <!-- Nombre -->
+                        <div>
+                            <label class="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2 ml-1">
+                                Nombre Completo
+                            </label>
+                            <input
+                                v-model="form.name"
+                                type="text"
+                                class="w-full bg-slate-50 dark:bg-white/5 border border-transparent
+                                       focus:border-primary focus:ring-2 focus:ring-primary/20
+                                       rounded-xl py-3 px-4 text-sm transition-all
+                                       text-slate-700 dark:text-slate-200
+                                       outline-none"
+                                placeholder="Ej. Juan Pérez"
+                            >
+                            <InputError :message="form.errors.name" class="mt-1.5" />
+                        </div>
+
+                        <!-- Email -->
+                        <div>
+                            <label class="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2 ml-1">
+                                Correo Electrónico
+                            </label>
+                            <input
+                                v-model="form.email"
+                                type="email"
+                                class="w-full bg-slate-50 dark:bg-white/5 border border-transparent
+                                       focus:border-primary focus:ring-2 focus:ring-primary/20
+                                       rounded-xl py-3 px-4 text-sm transition-all
+                                       text-slate-700 dark:text-slate-200
+                                       outline-none"
+                                placeholder="correo@ejemplo.com"
+                            >
+                            <InputError :message="form.errors.email" class="mt-1.5" />
+                        </div>
+
+                        <!-- Rol -->
+                        <div>
+                            <label class="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2 ml-1">
+                                Perfil / Rol
+                            </label>
+                            <select
+                                v-model="form.perfil"
+                                class="w-full bg-slate-50 dark:bg-white/5 border border-transparent
+                                       focus:border-primary focus:ring-2 focus:ring-primary/20
+                                       rounded-xl py-3 px-4 text-sm transition-all
+                                       text-slate-700 dark:text-slate-200
+                                       outline-none appearance-none cursor-pointer"
+                            >
+                                <option value="" disabled>Seleccionar...</option>
+                                <option v-for="(info, key) in roles" :key="key" :value="info.slug">
+                                    {{ key.toUpperCase() }}
+                                </option>
+                            </select>
+                            <InputError :message="form.errors.perfil" class="mt-1.5" />
+                        </div>
+
+                        <!-- Password -->
+                        <div>
+                            <label class="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2 ml-1">
+                                Nueva Contraseña (Opcional)
+                            </label>
+                            <input
+                                v-model="form.password"
+                                type="password"
+                                class="w-full bg-slate-50 dark:bg-white/5 border border-transparent
+                                       focus:border-primary focus:ring-2 focus:ring-primary/20
+                                       rounded-xl py-3 px-4 text-sm transition-all
+                                       text-slate-700 dark:text-slate-200
+                                       outline-none"
+                                placeholder="••••••••"
+                            >
+                            <p class="text-[9px] text-slate-400 mt-1.5 italic font-bold ml-1">
+                                Deja en blanco para mantener la actual
+                            </p>
+                            <InputError :message="form.errors.password" class="mt-1.5" />
+                        </div>
+
+                    </div>
+
+                    <!-- Footer -->
+                    <div class="pt-5 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
+                        <div v-if="form.recentlySuccessful" class="flex items-center gap-2 text-emerald-500 text-xs font-bold">
+                            <span class="material-symbols-outlined !text-base">check_circle</span>
+                            ¡Datos guardados con éxito!
+                        </div>
+                        <div v-else />
+
+                        <PrimaryButton
+                            type="submit"
+                            :class="{ 'opacity-50 pointer-events-none': form.processing }"
+                            :disabled="form.processing"
+                            class="px-8 py-3 rounded-xl shadow-lg shadow-primary/20 text-sm font-bold uppercase tracking-wider"
+                        >
+                            Guardar Cambios
+                        </PrimaryButton>
+                    </div>
+
+                </form>
             </div>
         </div>
     </AuthenticatedLayout>

@@ -9,7 +9,8 @@ import { Head, router, Link } from '@inertiajs/vue3';
 const props = defineProps({
     users: Object,
     roles: Object,
-    filters: Object
+    filters: Object,
+    flash: Object
 });
 
 // --- ESTADOS DE CONFIRMACIÓN ---
@@ -19,7 +20,7 @@ const confirmModal = ref({ show: false, title: '', message: '', type: 'primary',
 const searchQuery = ref(props.filters.search || '');
 const filterRole = ref(props.filters.perfil || 'todos');
 
-// --- DEBOUNCE NATIVA ---
+// --- DEBOUNCE ---
 const customDebounce = (fn, delay) => {
     let timeoutId;
     return (...args) => {
@@ -78,6 +79,10 @@ const getRoleBadge = (slug) => {
 
     <AuthenticatedLayout>
         <div class="space-y-6">
+
+          
+
+            <!-- HEADER -->
             <div class="flex flex-col md:flex-row md:items-end justify-between gap-4">
                 <div>
                     <h2 class="text-3xl font-black uppercase tracking-tighter text-slate-900 dark:text-white leading-none">
@@ -88,39 +93,59 @@ const getRoleBadge = (slug) => {
                     </p>
                 </div>
 
-                <div class="flex items-center gap-2">
-                    <Link
-                        :href="route('users.create')"
-                        class="flex items-center px-3 py-3 bg-primary text-white font-black uppercase text-[11px] tracking-[0.15em] rounded-2xl shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-95 transition-all"
-                    >
-                        <span class="material-symbols-outlined !text-sm mr-2">person_add</span>
-                        Nuevo Usuario
-                    </Link>
-                </div>
+                <Link
+                    :href="route('users.create')"
+                    class="flex items-center px-3 py-3 bg-primary text-white font-black uppercase text-[11px] tracking-[0.15em] rounded-2xl shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-95 transition-all"
+                >
+                    <span class="material-symbols-outlined !text-sm mr-2">person_add</span>
+                    Nuevo Usuario
+                </Link>
             </div>
 
+            <!-- FILTROS -->
             <div class="grid grid-cols-1 md:grid-cols-4 gap-4 bg-white dark:bg-[#1A2C26] p-4 rounded-[2rem] border border-slate-100 dark:border-slate-800 shadow-sm">
                 <div class="md:col-span-2 relative">
                     <span class="absolute inset-y-0 left-4 flex items-center text-slate-400">
                         <span class="material-symbols-outlined text-xl">search</span>
                     </span>
-                    <input v-model="searchQuery" type="text" placeholder="Buscar..." class="w-full pl-12 pr-4 py-3 bg-slate-50 dark:bg-white/5 border-none rounded-2xl text-sm focus:ring-2 focus:ring-primary transition-all">
+                    <input v-model="searchQuery" type="text" placeholder="Buscar..."
+                        class="w-full pl-12 pr-4 py-3 bg-slate-50 dark:bg-white/5 border-none rounded-2xl text-sm focus:ring-2 focus:ring-primary transition-all">
                 </div>
 
-                <div class="relative">
-                    <select v-model="filterRole" class="w-full py-3 bg-slate-50 dark:bg-white/5 border-none rounded-2xl text-sm font-bold text-slate-600 dark:text-slate-300 focus:ring-2 focus:ring-primary appearance-none">
+                <div>
+                    <select v-model="filterRole"
+                        class="w-full py-3 bg-slate-50 dark:bg-white/5 border-none rounded-2xl text-sm font-bold text-slate-600 dark:text-slate-300 focus:ring-2 focus:ring-primary appearance-none">
                         <option value="todos">Todos los Perfiles</option>
-                        <option v-for="(info, key) in roles" :key="key" :value="info.slug">{{ key.toUpperCase() }}</option>
+                        <option v-for="(info, key) in roles" :key="key" :value="info.slug">
+                            {{ key.toUpperCase() }}
+                        </option>
                     </select>
                 </div>
 
                 <div class="flex items-center justify-center bg-primary/5 rounded-2xl border border-dashed border-primary/20">
-                    <span class="text-[9px] font-black uppercase tracking-[0.2em] text-primary">Búsqueda Global</span>
+                    <span class="text-[9px] font-black uppercase tracking-[0.2em] text-primary">
+                        Búsqueda Global
+                    </span>
                 </div>
             </div>
+  <!-- FLASH SUCCESS -->
+            <div v-if="flash?.success"
+                class="bg-green-500/10 border border-green-500/20 text-green-700 dark:text-green-400
+                       px-6 py-4 rounded-2xl flex items-center gap-3 shadow-sm">
 
+                <span class="material-symbols-outlined text-green-600">
+                    check_circle
+                </span>
+
+                <span class="text-sm font-bold uppercase tracking-wide">
+                    {{ flash.success }}
+                </span>
+            </div>
+            <!-- TABLA -->
             <div class="bg-white dark:bg-[#1A2C26] rounded-[2.5rem] border border-slate-100 dark:border-slate-800 shadow-sm overflow-hidden">
+            
                 <div class="overflow-x-auto">
+                
                     <table class="w-full text-left">
                         <thead>
                             <tr class="bg-slate-50/50 dark:bg-black/10 border-b border-slate-100 dark:border-slate-800">
@@ -130,8 +155,11 @@ const getRoleBadge = (slug) => {
                                 <th class="p-6"></th>
                             </tr>
                         </thead>
+
                         <tbody class="divide-y divide-slate-50 dark:divide-slate-800/50">
-                            <tr v-for="user in users.data" :key="user.id" class="group hover:bg-slate-50/80 dark:hover:bg-white/5 transition-all">
+                            <tr v-for="user in users.data" :key="user.id"
+                                class="group hover:bg-slate-50/80 dark:hover:bg-white/5 transition-all">
+
                                 <td class="p-6">
                                     <div class="flex items-center gap-4">
                                         <div class="h-12 w-12 rounded-2xl bg-gradient-to-br from-primary to-green-600 p-[2px] shrink-0">
@@ -139,46 +167,51 @@ const getRoleBadge = (slug) => {
                                                 {{ user.name.substring(0, 2) }}
                                             </div>
                                         </div>
-                                        <div class="flex flex-col truncate">
+                                        <div>
                                             <span class="text-sm font-black text-slate-900 dark:text-white">{{ user.name }}</span>
-                                            <span class="text-xs text-slate-500">{{ user.email }}</span>
+                                            <p class="text-xs text-slate-500">{{ user.email }}</p>
                                         </div>
                                     </div>
                                 </td>
+
                                 <td class="p-6">
                                     <span :class="['px-4 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-tighter border-b-2', getRoleBadge(user.perfil)]">
                                         {{ user.perfil }}
                                     </span>
                                 </td>
+
                                 <td class="p-6 text-center">
-                                    <div class="flex flex-col items-center">
-                                        <span class="text-[11px] font-bold text-slate-700 dark:text-slate-300">Activo</span>
-                                        <span class="text-[9px] uppercase font-bold text-slate-400">Verificado</span>
-                                    </div>
+                                    <span class="text-[11px] font-bold text-slate-700 dark:text-slate-300">
+                                        Activo
+                                    </span>
                                 </td>
 
                                 <td class="p-6 text-right">
-                                    <div class="flex justify-end gap-2 items-center">
-                                        <button @click="triggerResetPassword(user)" title="Resetear Clave" class="p-2.5 rounded-xl bg-orange-500/10 text-orange-600 hover:bg-orange-600 hover:text-white transition-all shadow-sm">
+                                    <div class="flex justify-end gap-2">
+                                        <button @click="triggerResetPassword(user)"
+                                            class="p-2.5 rounded-xl bg-orange-500/10 text-orange-600 hover:bg-orange-600 hover:text-white transition-all">
                                             <span class="material-symbols-outlined !text-lg">lock_reset</span>
                                         </button>
 
-                                        <Link :href="route('users.edit', user.id)" title="Ver Perfil Completo" class="p-2.5 rounded-xl bg-primary/10 text-primary hover:bg-primary hover:text-white transition-all shadow-sm flex items-center justify-center">
+                                        <Link :href="route('users.edit', user.id)"
+                                            class="p-2.5 rounded-xl bg-primary/10 text-primary hover:bg-primary hover:text-white transition-all">
                                             <span class="material-symbols-outlined !text-lg">open_in_new</span>
                                         </Link>
 
-                                        <button @click="triggerDeleteUser(user)" title="Dar de Baja" class="p-2.5 rounded-xl bg-red-500/10 text-red-600 hover:bg-red-600 hover:text-white transition-all shadow-sm">
+                                        <button @click="triggerDeleteUser(user)"
+                                            class="p-2.5 rounded-xl bg-red-500/10 text-red-600 hover:bg-red-600 hover:text-white transition-all">
                                             <span class="material-symbols-outlined !text-lg">person_remove</span>
                                         </button>
                                     </div>
                                 </td>
+
                             </tr>
                         </tbody>
                     </table>
                 </div>
 
-                <div class="p-6 border-t border-slate-100 dark:border-slate-800/50 bg-slate-50/30 dark:bg-black/5">
-                    <div class="flex flex-col md:flex-row items-center justify-between gap-4">
+                <div class="p-6 border-t border-slate-100 dark:border-slate-800/50">
+                    <div class="flex justify-between items-center">
                         <span class="text-[10px] font-bold uppercase tracking-widest text-slate-500">
                             Mostrando {{ users.from || 0 }} - {{ users.to || 0 }} de {{ users.total }} registros
                         </span>
@@ -186,37 +219,33 @@ const getRoleBadge = (slug) => {
                     </div>
                 </div>
             </div>
+
         </div>
 
-        <!-- Modal de confirmación (reset/delete) -->
+        <!-- MODAL -->
         <Modal :show="confirmModal.show" maxWidth="md" @close="closeConfirm">
             <div class="p-8">
-                <div class="flex items-center gap-5 mb-8">
-                    <div :class="[
-                        'h-14 w-14 rounded-3xl flex items-center justify-center shrink-0 shadow-lg',
-                        confirmModal.type === 'danger' ? 'bg-red-500 text-white shadow-red-500/20' : 'bg-orange-500 text-white shadow-orange-500/20'
-                    ]">
-                        <span class="material-symbols-outlined text-3xl">
-                            {{ confirmModal.type === 'danger' ? 'warning' : 'security' }}
-                        </span>
-                    </div>
-                    <div>
-                        <h3 class="text-xl font-black uppercase tracking-tighter text-slate-900 dark:text-white">
-                            {{ confirmModal.title }}
-                        </h3>
-                        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Acción del Sistema</p>
-                    </div>
-                </div>
-                <p class="text-sm text-slate-600 dark:text-slate-400 leading-relaxed mb-10 p-4 bg-slate-50 dark:bg-white/5 rounded-2xl border border-slate-100 dark:border-slate-800">
+                <h3 class="text-xl font-black uppercase tracking-tighter mb-4">
+                    {{ confirmModal.title }}
+                </h3>
+
+                <p class="mb-6 text-sm text-slate-600 dark:text-slate-400">
                     {{ confirmModal.message }}
                 </p>
+
                 <div class="flex flex-col gap-3">
-                    <button @click="confirmModal.action" :class="confirmModal.type === 'danger' ? 'bg-red-600 hover:bg-red-700' : 'bg-orange-600 hover:bg-orange-700'" class="w-full py-4 rounded-2xl text-white font-black uppercase tracking-[0.2em] text-[11px] transition-all">
-                        Confirmar Acción
+                    <button @click="confirmModal.action"
+                        class="w-full py-3 rounded-2xl text-white font-black uppercase tracking-widest bg-red-600 hover:bg-red-700 transition-all">
+                        Confirmar
                     </button>
-                    <button @click="closeConfirm" class="py-3 text-[10px] font-black uppercase tracking-widest text-slate-400">Cancelar</button>
+
+                    <button @click="closeConfirm"
+                        class="py-2 text-xs font-bold uppercase tracking-widest text-slate-400">
+                        Cancelar
+                    </button>
                 </div>
             </div>
         </Modal>
+
     </AuthenticatedLayout>
 </template>
