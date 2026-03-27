@@ -3,6 +3,7 @@ import { ref } from 'vue'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import InputError from '@/Components/InputError.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
+import VSelectCustom from '@/Components/VSelectCustom.vue';  // ← único cambio
 import { Head, useForm, Link } from '@inertiajs/vue3';
 
 const props = defineProps({
@@ -11,12 +12,25 @@ const props = defineProps({
     isEditing: Boolean
 });
 
+const roleOptions = Object.entries(props.roles ?? {}).map(([key, info]) => ({
+    label: key.toUpperCase(),
+    value: info.slug,
+}));
+
+const selectedRole = ref(
+    roleOptions.find(r => r.value === (props.user?.perfil ?? '')) ?? null
+);
+
 const form = useForm({
     name: props.user?.name ?? '',
     email: props.user?.email ?? '',
     perfil: props.user?.perfil ?? '',
     password: '',
 });
+
+const onRoleChange = (option) => {
+    form.perfil = option?.value ?? '';
+};
 
 const submit = () => {
     if (props.isEditing) {
@@ -33,26 +47,19 @@ const submit = () => {
     <AuthenticatedLayout>
         <div class="w-full">
 
-            <!-- Back link con focus verde -->
             <Link
                 :href="route('users.index')"
                 class="inline-flex items-center text-[10px] font-black uppercase tracking-[0.2em]
-                       text-slate-400 hover:text-primary
-                       focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50
-                       active:scale-95 active:text-primary
-                       transition-all duration-150
-                       mb-6 rounded-lg px-2 py-1"
+                       text-slate-400 hover:text-primary focus:outline-none focus-visible:ring-2
+                       focus-visible:ring-primary/50 active:scale-95 active:text-primary
+                       transition-all duration-150 mb-6 rounded-lg px-2 py-1"
             >
-                <span class="material-symbols-outlined mr-2 !text-lg">
-                    arrow_back
-                </span>
+                <span class="material-symbols-outlined mr-2 !text-lg">arrow_back</span>
                 Volver al listado
             </Link>
 
-            <!-- Card -->
             <div class="bg-white dark:bg-[#1A2C26] rounded-3xl shadow-xl shadow-slate-200/60 dark:shadow-none border border-slate-100 dark:border-slate-800 overflow-hidden">
 
-                <!-- Card Header -->
                 <div class="flex items-center gap-4 px-8 py-5 border-b border-slate-100 dark:border-slate-800">
                     <div class="h-10 w-10 rounded-2xl bg-primary flex items-center justify-center text-white shadow-md shadow-primary/30 flex-shrink-0">
                         <span class="material-symbols-outlined text-xl">
@@ -72,10 +79,7 @@ const submit = () => {
                     </div>
                 </div>
 
-                <!-- Form Body -->
                 <form @submit.prevent="submit" class="px-8 py-7">
-
-                    <!-- Grid -->
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-7">
 
                         <!-- Nombre -->
@@ -90,8 +94,7 @@ const submit = () => {
                                        focus:border-primary focus:ring-2 focus:ring-primary/20
                                        rounded-xl py-3 px-4 text-sm transition-all
                                        text-slate-700 dark:text-slate-200
-                                       placeholder-slate-300 dark:placeholder-slate-600
-                                       outline-none"
+                                       placeholder-slate-300 dark:placeholder-slate-600 outline-none"
                                 placeholder="Ej. Juan Pérez"
                             >
                             <InputError :message="form.errors.name" class="mt-1.5" />
@@ -109,31 +112,26 @@ const submit = () => {
                                        focus:border-primary focus:ring-2 focus:ring-primary/20
                                        rounded-xl py-3 px-4 text-sm transition-all
                                        text-slate-700 dark:text-slate-200
-                                       placeholder-slate-300 dark:placeholder-slate-600
-                                       outline-none"
+                                       placeholder-slate-300 dark:placeholder-slate-600 outline-none"
                                 placeholder="correo@ejemplo.com"
                             >
                             <InputError :message="form.errors.email" class="mt-1.5" />
                         </div>
 
-                        <!-- Rol -->
+                        <!-- Perfil / Rol -->
                         <div>
                             <label class="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2 ml-1">
                                 Perfil / Rol
                             </label>
-                            <select
-                                v-model="form.perfil"
-                                class="w-full bg-slate-50 dark:bg-white/5 border border-transparent
-                                       focus:border-primary focus:ring-2 focus:ring-primary/20
-                                       rounded-xl py-3 px-4 text-sm transition-all
-                                       text-slate-700 dark:text-slate-200
-                                       outline-none appearance-none cursor-pointer"
-                            >
-                                <option value="" disabled>Seleccionar...</option>
-                                <option v-for="(info, key) in roles" :key="key" :value="info.slug">
-                                    {{ key.toUpperCase() }}
-                                </option>
-                            </select>
+                            <VSelectCustom
+                                v-model="selectedRole"
+                                :options="roleOptions"
+                                label="label"
+                                :clearable="false"
+                                :append-to-body="true"
+                                placeholder="Seleccionar..."
+                                @update:modelValue="onRoleChange"
+                            />
                             <InputError :message="form.errors.perfil" class="mt-1.5" />
                         </div>
 
@@ -148,8 +146,7 @@ const submit = () => {
                                 class="w-full bg-slate-50 dark:bg-white/5 border border-transparent
                                        focus:border-primary focus:ring-2 focus:ring-primary/20
                                        rounded-xl py-3 px-4 text-sm transition-all
-                                       text-slate-700 dark:text-slate-200
-                                       outline-none"
+                                       text-slate-700 dark:text-slate-200 outline-none"
                                 placeholder="••••••••"
                             >
                             <p v-if="isEditing" class="text-[9px] text-slate-400 mt-1.5 italic font-bold ml-1">
@@ -160,7 +157,6 @@ const submit = () => {
 
                     </div>
 
-                    <!-- Footer -->
                     <div class="pt-5 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
                         <div v-if="form.recentlySuccessful" class="flex items-center gap-2 text-emerald-500 text-xs font-bold">
                             <span class="material-symbols-outlined !text-base">check_circle</span>
@@ -177,7 +173,6 @@ const submit = () => {
                             {{ isEditing ? 'Guardar Cambios' : 'Crear Usuario' }}
                         </PrimaryButton>
                     </div>
-
                 </form>
             </div>
         </div>

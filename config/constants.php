@@ -37,6 +37,7 @@ return [
         'slug' => 'jugador',
         'descripcion' => 'Usuario que solo consulta estadísticas y calendarios.',
     ],
+   
 
 
 ];

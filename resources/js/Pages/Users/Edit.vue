@@ -2,12 +2,25 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import InputError from '@/Components/InputError.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
+import VSelectCustom from '@/Components/VSelectCustom.vue'; // ← added import
 import { Head, useForm, Link } from '@inertiajs/vue3';
+import { ref } from 'vue'; // ← added ref
 
 const props = defineProps({
     user: Object,
     roles: Object
 });
+
+// Transform roles for VSelectCustom
+const roleOptions = Object.entries(props.roles ?? {}).map(([key, info]) => ({
+    label: key.toUpperCase(),
+    value: info.slug,
+}));
+
+// Set initial selected role based on user's current perfil
+const selectedRole = ref(
+    roleOptions.find(r => r.value === (props.user?.perfil ?? '')) ?? null
+);
 
 const form = useForm({
     name: props.user?.name ?? '',
@@ -15,6 +28,11 @@ const form = useForm({
     perfil: props.user?.perfil ?? '',
     password: '',
 });
+
+// Handle role change
+const onRoleChange = (option) => {
+    form.perfil = option?.value ?? '';
+};
 
 const submit = () => {
     form.put(route('users.update', props.user.id));
@@ -104,24 +122,20 @@ const submit = () => {
                             <InputError :message="form.errors.email" class="mt-1.5" />
                         </div>
 
-                        <!-- Rol -->
+                        <!-- Rol with VSelectCustom -->
                         <div>
                             <label class="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2 ml-1">
                                 Perfil / Rol
                             </label>
-                            <select
-                                v-model="form.perfil"
-                                class="w-full bg-slate-50 dark:bg-white/5 border border-transparent
-                                       focus:border-primary focus:ring-2 focus:ring-primary/20
-                                       rounded-xl py-3 px-4 text-sm transition-all
-                                       text-slate-700 dark:text-slate-200
-                                       outline-none appearance-none cursor-pointer"
-                            >
-                                <option value="" disabled>Seleccionar...</option>
-                                <option v-for="(info, key) in roles" :key="key" :value="info.slug">
-                                    {{ key.toUpperCase() }}
-                                </option>
-                            </select>
+                            <VSelectCustom
+                                v-model="selectedRole"
+                                :options="roleOptions"
+                                label="label"
+                                :clearable="false"
+                                :append-to-body="true"
+                                placeholder="Seleccionar..."
+                                @update:modelValue="onRoleChange"
+                            />
                             <InputError :message="form.errors.perfil" class="mt-1.5" />
                         </div>
 
