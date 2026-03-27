@@ -3,6 +3,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
 import Modal from '@/Components/Modal.vue';
 import Pagination from '@/Components/Pagination.vue';
+import VSelectCustom from '@/Components/VSelectCustom.vue'; // ← added import
 import { ref, watch } from 'vue';
 import { Head, router, Link } from '@inertiajs/vue3';
 
@@ -12,6 +13,15 @@ const props = defineProps({
     filters: Object,
     flash: Object
 });
+
+// Transform roles for VSelectCustom
+const roleOptions = [
+    { label: 'Todos los Perfiles', value: 'todos' },
+    ...Object.entries(props.roles ?? {}).map(([key, info]) => ({
+        label: key.toUpperCase(),
+        value: info.slug,
+    }))
+];
 
 // --- ESTADOS DE CONFIRMACIÓN ---
 const confirmModal = ref({ show: false, title: '', message: '', type: 'primary', action: null });
@@ -39,6 +49,11 @@ const performSearch = customDebounce(() => {
 watch([searchQuery, filterRole], () => {
     performSearch();
 });
+
+// Handle role change
+const onRoleChange = (option) => {
+    filterRole.value = option?.value ?? 'todos';
+};
 
 // --- ACCIONES ---
 const triggerResetPassword = (user) => {
@@ -80,8 +95,6 @@ const getRoleBadge = (slug) => {
     <AuthenticatedLayout>
         <div class="space-y-6">
 
-          
-
             <!-- HEADER -->
             <div class="flex flex-col md:flex-row md:items-end justify-between gap-4">
                 <div>
@@ -112,14 +125,18 @@ const getRoleBadge = (slug) => {
                         class="w-full pl-12 pr-4 py-3 bg-slate-50 dark:bg-white/5 border-none rounded-2xl text-sm focus:ring-2 focus:ring-primary transition-all">
                 </div>
 
+                <!-- Role filter with VSelectCustom -->
                 <div>
-                    <select v-model="filterRole"
-                        class="w-full py-3 bg-slate-50 dark:bg-white/5 border-none rounded-2xl text-sm font-bold text-slate-600 dark:text-slate-300 focus:ring-2 focus:ring-primary appearance-none">
-                        <option value="todos">Todos los Perfiles</option>
-                        <option v-for="(info, key) in roles" :key="key" :value="info.slug">
-                            {{ key.toUpperCase() }}
-                        </option>
-                    </select>
+                    <VSelectCustom
+                        v-model="filterRole"
+                        :options="roleOptions"
+                        label="label"
+                        :clearable="false"
+                        :append-to-body="true"
+                        placeholder="Seleccionar perfil..."
+                        @update:modelValue="onRoleChange"
+                        class="w-full"
+                    />
                 </div>
 
                 <div class="flex items-center justify-center bg-primary/5 rounded-2xl border border-dashed border-primary/20">
@@ -128,24 +145,22 @@ const getRoleBadge = (slug) => {
                     </span>
                 </div>
             </div>
-  <!-- FLASH SUCCESS -->
+            
+            <!-- FLASH SUCCESS -->
             <div v-if="flash?.success"
                 class="bg-green-500/10 border border-green-500/20 text-green-700 dark:text-green-400
                        px-6 py-4 rounded-2xl flex items-center gap-3 shadow-sm">
-
                 <span class="material-symbols-outlined text-green-600">
                     check_circle
                 </span>
-
                 <span class="text-sm font-bold uppercase tracking-wide">
                     {{ flash.success }}
                 </span>
             </div>
+            
             <!-- TABLA -->
             <div class="bg-white dark:bg-[#1A2C26] rounded-[2.5rem] border border-slate-100 dark:border-slate-800 shadow-sm overflow-hidden">
-            
                 <div class="overflow-x-auto">
-                
                     <table class="w-full text-left">
                         <thead>
                             <tr class="bg-slate-50/50 dark:bg-black/10 border-b border-slate-100 dark:border-slate-800">
@@ -159,7 +174,6 @@ const getRoleBadge = (slug) => {
                         <tbody class="divide-y divide-slate-50 dark:divide-slate-800/50">
                             <tr v-for="user in users.data" :key="user.id"
                                 class="group hover:bg-slate-50/80 dark:hover:bg-white/5 transition-all">
-
                                 <td class="p-6">
                                     <div class="flex items-center gap-4">
                                         <div class="h-12 w-12 rounded-2xl bg-gradient-to-br from-primary to-green-600 p-[2px] shrink-0">
@@ -204,7 +218,6 @@ const getRoleBadge = (slug) => {
                                         </button>
                                     </div>
                                 </td>
-
                             </tr>
                         </tbody>
                     </table>
