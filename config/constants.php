@@ -7,37 +7,66 @@ return [
     | Perfiles de Usuario - Sistema de Torneos
     |--------------------------------------------------------------------------
     */
+    'roles' => [
 
-    'admin' => [
-        'slug' => 'administrador',
-        'descripcion' => 'Control total del sistema y gestión de usuarios.',
+        'admin' => [
+            'slug' => 'admin',
+            'descripcion' => 'Control total del sistema SaaS y gestión global de usuarios.',
+        ],
+
+        'organizador' => [
+            'slug' => 'organizador',
+            'descripcion' => 'Crea y administra torneos, equipos, reglas y configuraciones.',
+        ],
+
+        'entrenador' => [
+            'slug' => 'entrenador',
+            'descripcion' => 'Gestiona su equipo, registra jugadores y consulta partidos.',
+        ],
+
+        'jugador' => [
+            'slug' => 'jugador',
+            'descripcion' => 'Consulta estadísticas, partidos y su información personal.',
+        ],
+
+        'arbitro' => [
+            'slug' => 'arbitro',
+            'descripcion' => 'Registra resultados, tarjetas y reportes de partidos.',
+        ],
+
     ],
 
-    'organizador' => [
-        'slug' => 'organizador',
-        'descripcion' => 'Creación de torneos, gestión de sedes y sorteos.',
+    /*
+    |--------------------------------------------------------------------------
+    | Tipos de Torneo
+    |--------------------------------------------------------------------------
+    */
+    'tipos_torneo' => [
+        'liga' => 'Liga',
+        'copa' => 'Copa',
+        'relampago' => 'Relámpago',
     ],
 
-    'arbitro' => [
-        'slug' => 'arbitro',
-        'descripcion' => 'Carga de resultados, tarjetas y actas de partidos.',
+    /*
+    |--------------------------------------------------------------------------
+    | Categorías
+    |--------------------------------------------------------------------------
+    */
+    'categorias' => [
+        'libre' => 'Libre',
+        'infantil' => 'Infantil',
+        'veteranos' => 'Veteranos',
     ],
 
-    'capitan' => [
-        'slug' => 'capitan',
-        'descripcion' => 'Gestión de su equipo, inscripción de jugadores y pagos.',
+    /*
+    |--------------------------------------------------------------------------
+    | Ramas
+    |--------------------------------------------------------------------------
+    */
+    'ramas' => [
+        'varonil' => 'Varonil',
+        'femenil' => 'Femenil',
+        'mixta' => 'Mixta',
     ],
-
-    'espectador' => [
-        'slug' => 'espectador',
-        'descripcion' => 'Usuario que solo consulta estadísticas y calendarios.',
-    ],
-
-    'jugador' => [
-        'slug' => 'jugador',
-        'descripcion' => 'Usuario que solo consulta estadísticas y calendarios.',
-    ],
-   
-
 
 ];
