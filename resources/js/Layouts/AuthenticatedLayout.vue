@@ -79,6 +79,29 @@ const isRouteActive = (routeName) => {
                     </span>
                 </Link>
 
+                <Link :href="route('torneos.index')"
+    :class="[isRouteActive('torneos.*')
+        ? 'bg-primary/10 text-primary border border-primary/20 shadow-sm shadow-primary/5'
+        : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5']"
+    class="flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all group">
+
+    <div class="relative">
+        <span class="material-symbols-outlined shrink-0 group-hover:rotate-12 transition-transform">
+            emoji_events
+        </span>
+
+        <span v-if="isRouteActive('torneos.*')" class="absolute -top-1 -right-1 flex h-2 w-2">
+            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+            <span class="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
+        </span>
+    </div>
+
+    <span :class="[isCollapsed ? 'opacity-0 translate-x-4' : 'opacity-100 translate-x-0']"
+        class="text-sm font-semibold whitespace-nowrap transition-all duration-300">
+        Torneos
+    </span>
+</Link>
+
                 <div class="pt-4 pb-2">
                     <p :class="[isCollapsed ? 'opacity-0' : 'opacity-100']"
                        class="px-3 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest transition-opacity duration-300 whitespace-nowrap">
