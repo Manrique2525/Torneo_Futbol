@@ -30,7 +30,7 @@ class UserController extends Controller
                 ->latest()
                 ->paginate(4)
                 ->withQueryString(), // mantiene los parámetros en los links de paginación
-            'roles' => config('constants'),
+            'roles' => config('constants.roles'),
             'filters' => $request->only(['search', 'perfil']) // Devolvemos los filtros para que no se borren del input
         ]);
     }
@@ -39,7 +39,7 @@ class UserController extends Controller
     public function create()
     {
         return Inertia::render('Users/Create', [
-            'roles' => config('constants'),
+            'roles' => config('constants.roles'),
             'isEditing' => false
         ]);
     }
@@ -48,7 +48,7 @@ class UserController extends Controller
     {
         return Inertia::render('Users/Edit', [
             'user' => $user,
-            'roles' => config('constants'),
+            'roles' => config('constants.roles'),
             'isEditing' => true
         ]);
     }
