@@ -13,6 +13,7 @@ import { useCan } from '@/Shared/Composables/useCan'
 const { isDark, toggleDark } = useDarkMode()
 const isCollapsed = ref(false)
     const page = usePage()
+const { can } = useCan()
 
 
 const openMenus = ref({

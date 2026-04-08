@@ -18,6 +18,8 @@ const tabs = [
     { id: 'Finished', label: 'Finalizados' }
 ];
 
+
+
 // Datos de ejemplo optimizados
 const recentMatches = ref([
     {
