@@ -1,14 +1,19 @@
 <script setup>
+//Layouts/AuthenticatedLayout.vue
 import { ref, computed } from 'vue'
 import { useDarkMode } from '@/Composables/useDarkMode'
-import { Link, usePage } from '@inertiajs/vue3'
+import { Link} from '@inertiajs/vue3'
+import { usePage } from '@inertiajs/vue3'
 
 import Dropdown from '@/Components/Dropdown.vue'
 import DropdownLink from '@/Components/DropdownLink.vue'
+import { useCan } from '@/Shared/Composables/useCan'
+
 
 const { isDark, toggleDark } = useDarkMode()
 const isCollapsed = ref(false)
-const page = usePage()
+    const page = usePage()
+
 
 const openMenus = ref({
     torneos: false,
