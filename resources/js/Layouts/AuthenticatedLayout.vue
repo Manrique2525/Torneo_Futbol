@@ -2,19 +2,17 @@
 //Layouts/AuthenticatedLayout.vue
 import { ref, computed } from 'vue'
 import { useDarkMode } from '@/Composables/useDarkMode'
-import { Link} from '@inertiajs/vue3'
+import { Link } from '@inertiajs/vue3'
 import { usePage } from '@inertiajs/vue3'
 
 import Dropdown from '@/Components/Dropdown.vue'
 import DropdownLink from '@/Components/DropdownLink.vue'
 import { useCan } from '@/Shared/Composables/useCan'
 
-
 const { isDark, toggleDark } = useDarkMode()
 const isCollapsed = ref(false)
-    const page = usePage()
+const page = usePage()
 const { can } = useCan()
-
 
 const openMenus = ref({
     torneos: false,
@@ -28,13 +26,12 @@ const toggleMenu = (menu) => {
 }
 
 const isRouteActive = (routeName) => {
-    return route().current(routeName);
+    return route().current(routeName)
 }
 </script>
 
 <template>
     <div class="relative flex h-screen w-full overflow-hidden bg-slate-50 dark:bg-[#0F1A16]">
-
         <aside
             :class="[isCollapsed ? 'w-20' : 'w-72']"
             class="flex flex-col bg-white dark:bg-[#1A2C26] border-r border-slate-200 dark:border-slate-800 transition-[width] duration-300 ease-in-out shrink-0 z-50 overflow-hidden"
@@ -43,7 +40,6 @@ const isRouteActive = (routeName) => {
                 <div class="bg-primary flex items-center justify-center rounded-xl h-10 w-10 shrink-0 shadow-lg shadow-primary/20 text-white">
                     <span class="material-symbols-outlined text-2xl">sports_soccer</span>
                 </div>
-
                 <div :class="[isCollapsed ? 'opacity-0 -translate-x-4 pointer-events-none' : 'opacity-100 translate-x-0']"
                      class="flex flex-col transition-all duration-300 whitespace-nowrap">
                     <h1 class="text-slate-900 dark:text-white text-sm font-black uppercase tracking-widest leading-none">
@@ -54,7 +50,6 @@ const isRouteActive = (routeName) => {
             </div>
 
             <nav class="flex-1 overflow-y-auto p-4 space-y-2 custom-scrollbar overflow-x-hidden">
-
                 <Link :href="route('dashboard')"
                     :class="[isRouteActive('dashboard')
                         ? 'bg-primary text-white shadow-md shadow-primary/20'
@@ -86,27 +81,46 @@ const isRouteActive = (routeName) => {
                 </Link>
 
                 <Link :href="route('torneos.index')"
-    :class="[isRouteActive('torneos.*')
-        ? 'bg-primary/10 text-primary border border-primary/20 shadow-sm shadow-primary/5'
-        : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5']"
-    class="flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all group">
+                    :class="[isRouteActive('torneos.*')
+                        ? 'bg-primary/10 text-primary border border-primary/20 shadow-sm shadow-primary/5'
+                        : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5']"
+                    class="flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all group">
+                    <div class="relative">
+                        <span class="material-symbols-outlined shrink-0 group-hover:rotate-12 transition-transform">
+                            emoji_events
+                        </span>
+                        <span v-if="isRouteActive('torneos.*')" class="absolute -top-1 -right-1 flex h-2 w-2">
+                            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+                            <span class="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
+                        </span>
+                    </div>
+                    <span :class="[isCollapsed ? 'opacity-0 translate-x-4' : 'opacity-100 translate-x-0']"
+                        class="text-sm font-semibold whitespace-nowrap transition-all duration-300">
+                        Torneos
+                    </span>
+                </Link>
 
-    <div class="relative">
-        <span class="material-symbols-outlined shrink-0 group-hover:rotate-12 transition-transform">
-            emoji_events
-        </span>
-
-        <span v-if="isRouteActive('torneos.*')" class="absolute -top-1 -right-1 flex h-2 w-2">
-            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
-            <span class="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
-        </span>
-    </div>
-
-    <span :class="[isCollapsed ? 'opacity-0 translate-x-4' : 'opacity-100 translate-x-0']"
-        class="text-sm font-semibold whitespace-nowrap transition-all duration-300">
-        Torneos
-    </span>
-</Link>
+                <!-- Nuevo enlace: Roles y Permisos (solo visible con permiso roles.view) -->
+                <Link v-if="can('roles.view')"
+                    :href="route('roles.index')"
+                    :class="[isRouteActive('roles.*')
+                        ? 'bg-primary/10 text-primary border border-primary/20 shadow-sm shadow-primary/5'
+                        : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5']"
+                    class="flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all group">
+                    <div class="relative">
+                        <span class="material-symbols-outlined shrink-0 group-hover:rotate-12 transition-transform">
+                            admin_panel_settings
+                        </span>
+                        <span v-if="isRouteActive('roles.*')" class="absolute -top-1 -right-1 flex h-2 w-2">
+                            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+                            <span class="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
+                        </span>
+                    </div>
+                    <span :class="[isCollapsed ? 'opacity-0 translate-x-4' : 'opacity-100 translate-x-0']"
+                          class="text-sm font-semibold whitespace-nowrap transition-all duration-300">
+                        Roles y Permisos
+                    </span>
+                </Link>
 
                 <div class="pt-4 pb-2">
                     <p :class="[isCollapsed ? 'opacity-0' : 'opacity-100']"

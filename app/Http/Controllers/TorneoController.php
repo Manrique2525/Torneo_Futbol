@@ -64,7 +64,8 @@ class TorneoController extends Controller
 
         Torneo::create([
             ...$validated,
-            'created_by' => auth()->id()
+            'created_by' => auth()->id(),
+
         ]);
 
         return redirect()->route('torneos.index')
