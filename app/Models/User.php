@@ -2,22 +2,29 @@
 
 namespace App\Models;
 
+use App\Models\Traits\BelongsToTenant;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-
-// 👇 IMPORTANTE: agregar esto
-use App\Notifications\CustomResetPasswordNotification;
+use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable
 {
-    use HasFactory, Notifiable;
+    use HasFactory, Notifiable, SoftDeletes, HasRoles, BelongsToTenant;
+
+    const STATUS_ACTIVE    = 'active';
+    const STATUS_INACTIVE  = 'inactive';
+    const STATUS_SUSPENDED = 'suspended';
 
     protected $fillable = [
+        'tenant_id',
         'name',
         'email',
+        'phone',
         'password',
-        'perfil',
+        'avatar',
+        'status',
     ];
 
     protected $hidden = [
@@ -29,16 +36,30 @@ class User extends Authenticatable
     {
         return [
             'email_verified_at' => 'datetime',
-            'password' => 'hashed',
+            'password'          => 'hashed',
         ];
     }
 
-    /**
-     * 👇 ESTE MÉTODO ES EL QUE HACE QUE
-     * Laravel use TU correo personalizado
-     */
-    public function sendPasswordResetNotification($token)
+    // ── Scopes ──────────────────────────────────────
+    public function scopeActive($query)
     {
-        $this->notify(new CustomResetPasswordNotification($token));
+        return $query->where('status', self::STATUS_ACTIVE);
+    }
+
+    // ── Helpers ─────────────────────────────────────
+    public function isSuperAdmin(): bool
+    {
+        return $this->hasRole(\App\Enums\RoleEnum::SUPER_ADMIN->value);
+    }
+
+    public function isAdmin(): bool
+    {
+        return $this->hasRole(\App\Enums\RoleEnum::ADMIN->value);
+    }
+
+    // ── Relationships ───────────────────────────────
+    public function tenant()
+    {
+        return $this->belongsTo(Tenant::class);
     }
 }

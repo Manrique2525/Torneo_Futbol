@@ -1,4 +1,5 @@
 <script setup>
+//Pages/Dashboard.vue
 import { ref, computed } from 'vue';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import MatchTable from '@/Components/MatchTable.vue';
@@ -16,6 +17,8 @@ const tabs = [
     { id: 'Scheduled', label: 'Próximos' },
     { id: 'Finished', label: 'Finalizados' }
 ];
+
+
 
 // Datos de ejemplo optimizados
 const recentMatches = ref([

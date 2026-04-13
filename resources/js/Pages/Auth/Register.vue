@@ -7,6 +7,7 @@ import TextInput from '@/Components/TextInput.vue';
 import { Head, Link, useForm } from '@inertiajs/vue3';
 
 const form = useForm({
+    organization_name: '',
     name: '',
     email: '',
     password: '',
@@ -91,6 +92,20 @@ const submit = () => {
                     />
                     <InputError class="mt-2 ml-1" :message="form.errors.password_confirmation" />
                 </div>
+
+                <!-- En tu Auth/Register.vue, agrega este campo -->
+<div>
+    <InputLabel for="organization_name" value="Nombre de tu liga / organización" />
+    <TextInput
+        id="organization_name"
+        type="text"
+        class="mt-1 block w-full"
+        v-model="form.organization_name"
+        required
+        autofocus
+    />
+    <InputError class="mt-2" :message="form.errors.organization_name" />
+</div>
             </div>
 
             <div class="pt-6 space-y-4">

@@ -1,42 +1,52 @@
 <script setup>
-import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
-import InputError from '@/Components/InputError.vue';
-import PrimaryButton from '@/Components/PrimaryButton.vue';
-import VSelectCustom from '@/Components/VSelectCustom.vue'; // ← added import
-import { Head, useForm, Link } from '@inertiajs/vue3';
-import { ref } from 'vue'; // ← added ref
+import { ref } from 'vue'
+import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
+import InputError from '@/Components/InputError.vue'
+import PrimaryButton from '@/Components/PrimaryButton.vue'
+import VSelectCustom from '@/Components/VSelectCustom.vue'
+import { Head, useForm, Link } from '@inertiajs/vue3'
 
 const props = defineProps({
-    user: Object,
-    roles: Object
-});
+    user: Object,  // {id, name, email, phone, status, role}
+    roles: Array,  // [{value, label}]
+})
 
-// Transform roles for VSelectCustom
-const roleOptions = Object.entries(props.roles ?? {}).map(([key, info]) => ({
-    label: key.toUpperCase(),
-    value: info.slug,
-}));
+const roleOptions = props.roles.map(r => ({ label: r.label, value: r.value }))
 
-// Set initial selected role based on user's current perfil
+const statusOptions = [
+    { label: 'Activo', value: 'active' },
+    { label: 'Inactivo', value: 'inactive' },
+    { label: 'Suspendido', value: 'suspended' },
+]
+
 const selectedRole = ref(
-    roleOptions.find(r => r.value === (props.user?.perfil ?? '')) ?? null
-);
+    roleOptions.find(r => r.value === props.user.role) ?? null
+)
+
+const selectedStatus = ref(
+    statusOptions.find(s => s.value === props.user.status) ?? statusOptions[0]
+)
 
 const form = useForm({
-    name: props.user?.name ?? '',
-    email: props.user?.email ?? '',
-    perfil: props.user?.perfil ?? '',
+    name:     props.user.name ?? '',
+    email:    props.user.email ?? '',
+    phone:    props.user.phone ?? '',
+    role:     props.user.role ?? '',
+    status:   props.user.status ?? 'active',
     password: '',
-});
+})
 
-// Handle role change
 const onRoleChange = (option) => {
-    form.perfil = option?.value ?? '';
-};
+    form.role = option?.value ?? ''
+}
+
+const onStatusChange = (option) => {
+    form.status = option?.value ?? 'active'
+}
 
 const submit = () => {
-    form.put(route('users.update', props.user.id));
-};
+    form.put(route('users.update', props.user.id))
+}
 </script>
 
 <template>
@@ -45,62 +55,44 @@ const submit = () => {
     <AuthenticatedLayout>
         <div class="w-full">
 
-            <!-- Back link con focus verde -->
             <Link
                 :href="route('users.index')"
                 class="inline-flex items-center text-[10px] font-black uppercase tracking-[0.2em]
-                       text-slate-400 hover:text-primary
-                       focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50
-                       active:scale-95 active:text-primary
-                       transition-all duration-150
-                       mb-6 rounded-lg px-2 py-1"
+                       text-slate-400 hover:text-primary focus:outline-none focus-visible:ring-2
+                       focus-visible:ring-primary/50 active:scale-95 active:text-primary
+                       transition-all duration-150 mb-6 rounded-lg px-2 py-1"
             >
-                <span class="material-symbols-outlined mr-2 !text-lg">
-                    arrow_back
-                </span>
+                <span class="material-symbols-outlined mr-2 !text-lg">arrow_back</span>
                 Volver al listado
             </Link>
 
-            <!-- Card -->
             <div class="bg-white dark:bg-[#1A2C26] rounded-3xl shadow-xl shadow-slate-200/60 dark:shadow-none border border-slate-100 dark:border-slate-800 overflow-hidden">
 
-                <!-- Card Header (IGUAL QUE CREATE) -->
                 <div class="flex items-center gap-4 px-8 py-5 border-b border-slate-100 dark:border-slate-800">
                     <div class="h-10 w-10 rounded-2xl bg-primary flex items-center justify-center text-white shadow-md shadow-primary/30 flex-shrink-0">
-                        <span class="material-symbols-outlined text-xl">
-                            manage_accounts
-                        </span>
+                        <span class="material-symbols-outlined text-xl">manage_accounts</span>
                     </div>
                     <div>
                         <h2 class="text-base font-black uppercase tracking-tight text-slate-900 dark:text-white leading-none">
                             Editar Usuario
                         </h2>
                         <p class="text-[11px] text-slate-400 font-medium mt-0.5">
-                            Modifica los datos o permisos del perfil seleccionado.
+                            Modifica los datos, rol o estado del usuario.
                         </p>
                     </div>
                 </div>
 
-                <!-- Form Body -->
                 <form @submit.prevent="submit" class="px-8 py-7">
-
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-7">
 
-                        <!-- Nombre -->
+                        <!-- Name -->
                         <div>
                             <label class="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2 ml-1">
                                 Nombre Completo
                             </label>
-                            <input
-                                v-model="form.name"
-                                type="text"
-                                class="w-full bg-slate-50 dark:bg-white/5 border border-transparent
-                                       focus:border-primary focus:ring-2 focus:ring-primary/20
-                                       rounded-xl py-3 px-4 text-sm transition-all
-                                       text-slate-700 dark:text-slate-200
-                                       outline-none"
-                                placeholder="Ej. Juan Pérez"
-                            >
+                            <input v-model="form.name" type="text"
+                                class="w-full bg-slate-50 dark:bg-white/5 border border-transparent focus:border-primary focus:ring-2 focus:ring-primary/20 rounded-xl py-3 px-4 text-sm transition-all text-slate-700 dark:text-slate-200 outline-none"
+                                placeholder="Ej. Juan Pérez" />
                             <InputError :message="form.errors.name" class="mt-1.5" />
                         </div>
 
@@ -109,23 +101,27 @@ const submit = () => {
                             <label class="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2 ml-1">
                                 Correo Electrónico
                             </label>
-                            <input
-                                v-model="form.email"
-                                type="email"
-                                class="w-full bg-slate-50 dark:bg-white/5 border border-transparent
-                                       focus:border-primary focus:ring-2 focus:ring-primary/20
-                                       rounded-xl py-3 px-4 text-sm transition-all
-                                       text-slate-700 dark:text-slate-200
-                                       outline-none"
-                                placeholder="correo@ejemplo.com"
-                            >
+                            <input v-model="form.email" type="email"
+                                class="w-full bg-slate-50 dark:bg-white/5 border border-transparent focus:border-primary focus:ring-2 focus:ring-primary/20 rounded-xl py-3 px-4 text-sm transition-all text-slate-700 dark:text-slate-200 outline-none"
+                                placeholder="correo@ejemplo.com" />
                             <InputError :message="form.errors.email" class="mt-1.5" />
                         </div>
 
-                        <!-- Rol with VSelectCustom -->
+                        <!-- Phone -->
                         <div>
                             <label class="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2 ml-1">
-                                Perfil / Rol
+                                Teléfono <span class="text-slate-300 normal-case">(opcional)</span>
+                            </label>
+                            <input v-model="form.phone" type="text"
+                                class="w-full bg-slate-50 dark:bg-white/5 border border-transparent focus:border-primary focus:ring-2 focus:ring-primary/20 rounded-xl py-3 px-4 text-sm transition-all text-slate-700 dark:text-slate-200 placeholder-slate-300 dark:placeholder-slate-600 outline-none"
+                                placeholder="9931234567" />
+                            <InputError :message="form.errors.phone" class="mt-1.5" />
+                        </div>
+
+                        <!-- Role -->
+                        <div>
+                            <label class="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2 ml-1">
+                                Rol
                             </label>
                             <VSelectCustom
                                 v-model="selectedRole"
@@ -133,27 +129,37 @@ const submit = () => {
                                 label="label"
                                 :clearable="false"
                                 :append-to-body="true"
-                                placeholder="Seleccionar..."
+                                placeholder="Seleccionar rol..."
                                 @update:modelValue="onRoleChange"
                             />
-                            <InputError :message="form.errors.perfil" class="mt-1.5" />
+                            <InputError :message="form.errors.role" class="mt-1.5" />
+                        </div>
+
+                        <!-- Status -->
+                        <div>
+                            <label class="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2 ml-1">
+                                Estado
+                            </label>
+                            <VSelectCustom
+                                v-model="selectedStatus"
+                                :options="statusOptions"
+                                label="label"
+                                :clearable="false"
+                                :append-to-body="true"
+                                placeholder="Seleccionar estado..."
+                                @update:modelValue="onStatusChange"
+                            />
+                            <InputError :message="form.errors.status" class="mt-1.5" />
                         </div>
 
                         <!-- Password -->
                         <div>
                             <label class="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2 ml-1">
-                                Nueva Contraseña (Opcional)
+                                Nueva Contraseña <span class="text-slate-300 normal-case">(opcional)</span>
                             </label>
-                            <input
-                                v-model="form.password"
-                                type="password"
-                                class="w-full bg-slate-50 dark:bg-white/5 border border-transparent
-                                       focus:border-primary focus:ring-2 focus:ring-primary/20
-                                       rounded-xl py-3 px-4 text-sm transition-all
-                                       text-slate-700 dark:text-slate-200
-                                       outline-none"
-                                placeholder="••••••••"
-                            >
+                            <input v-model="form.password" type="password"
+                                class="w-full bg-slate-50 dark:bg-white/5 border border-transparent focus:border-primary focus:ring-2 focus:ring-primary/20 rounded-xl py-3 px-4 text-sm transition-all text-slate-700 dark:text-slate-200 outline-none"
+                                placeholder="••••••••" />
                             <p class="text-[9px] text-slate-400 mt-1.5 italic font-bold ml-1">
                                 Deja en blanco para mantener la actual
                             </p>
@@ -162,7 +168,6 @@ const submit = () => {
 
                     </div>
 
-                    <!-- Footer -->
                     <div class="pt-5 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
                         <div v-if="form.recentlySuccessful" class="flex items-center gap-2 text-emerald-500 text-xs font-bold">
                             <span class="material-symbols-outlined !text-base">check_circle</span>
@@ -170,16 +175,13 @@ const submit = () => {
                         </div>
                         <div v-else />
 
-                        <PrimaryButton
-                            type="submit"
+                        <PrimaryButton type="submit"
                             :class="{ 'opacity-50 pointer-events-none': form.processing }"
                             :disabled="form.processing"
-                            class="px-8 py-3 rounded-xl shadow-lg shadow-primary/20 text-sm font-bold uppercase tracking-wider"
-                        >
+                            class="px-8 py-3 rounded-xl shadow-lg shadow-primary/20 text-sm font-bold uppercase tracking-wider">
                             Guardar Cambios
                         </PrimaryButton>
                     </div>
-
                 </form>
             </div>
         </div>
