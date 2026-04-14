@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Enums\RoleEnum;
+use App\Models\Plan;
+use App\Models\Subscription;
 use App\Models\Tenant;
 use App\Models\User;
 use App\Services\RolePermissionService;
@@ -79,6 +81,23 @@ class RegisteredUserController extends Controller
             // 4. Assign admin role
             setPermissionsTeamId($tenant->id);
             $user->assignRole(RoleEnum::ADMIN->value);
+
+
+            // 5. Create trial subscription
+            $plan = Plan::where('slug', 'basic')->first();
+
+            Subscription::create([
+                'tenant_id'      => $tenant->id,
+                'plan_id'        => $plan->id,
+                'status'         => Subscription::STATUS_TRIAL,
+                'billing_cycle'  => Subscription::BILLING_MONTHLY,
+                'price_paid'     => 0,
+                'discount_amount' => 0,
+                'starts_at'      => now(),
+                'trial_ends_at'  => now()->addDays(14),
+                'ends_at'        => now()->addDays(14),
+                'auto_renew'     => true,
+            ]);
 
             return [$tenant, $user];
         });

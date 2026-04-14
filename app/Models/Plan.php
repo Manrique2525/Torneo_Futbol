@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Plan extends Model
 {
@@ -115,6 +116,17 @@ class Plan extends Model
     public function scopeFeatured($query)
     {
         return $query->where('is_featured', true);
+    }
+
+        // ── Relationships ───────────────────────────────
+    public function tenants(): HasMany
+    {
+        return $this->hasMany(Tenant::class, 'plan', 'slug');
+    }
+
+     public function tenantsCount(): int
+    {
+        return $this->tenants()->count();
     }
 
     /*

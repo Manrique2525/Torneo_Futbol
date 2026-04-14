@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Traits\BelongsToTenant;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
@@ -63,5 +64,11 @@ class Tenant extends \Illuminate\Database\Eloquent\Model
     public function planConfig(): array
     {
         return config("plans.{$this->plan}", config('plans.basic'));
+    }
+
+
+    public function tenant()
+    {
+        return $this->belongsTo(Tenant::class);
     }
 }

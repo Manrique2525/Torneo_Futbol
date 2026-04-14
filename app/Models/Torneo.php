@@ -2,10 +2,13 @@
 
 namespace App\Models;
 
+use App\Models\Traits\BelongsToTenant;
 use Illuminate\Database\Eloquent\Model;
 
-class Torneo extends Model
-{
+class Torneo extends Model {
+
+use BelongsToTenant;
+
     protected $fillable = [
         'nombre',
         'tipo',

@@ -39,6 +39,8 @@ Route::middleware(['auth', 'verified', 'tenant'])->group(function () {
     // Route::group([], base_path('routes/players.php'));
     // Route::group([], base_path('routes/matches.php'));
 
+     Route::group([], base_path('routes/plans.php'));
+
 });
 
 // ── Auth routes (Breeze/Fortify) ────────────────────

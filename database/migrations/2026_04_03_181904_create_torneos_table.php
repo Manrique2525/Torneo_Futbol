@@ -13,6 +13,7 @@ return new class extends Migration
     {
         Schema::create('torneos', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('tenant_id')->constrained('tenants')->onDelete('cascade');
             $table->string('nombre');
             $table->string('tipo'); // liga, copa, relampago
             $table->string('categoria'); // libre, infantil, veteranos
