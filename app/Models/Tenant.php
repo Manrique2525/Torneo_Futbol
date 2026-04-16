@@ -67,8 +67,13 @@ class Tenant extends \Illuminate\Database\Eloquent\Model
     }
 
 
-    public function tenant()
-    {
-        return $this->belongsTo(Tenant::class);
-    }
+    // public function tenant()
+    // {
+    //     return $this->belongsTo(Tenant::class);
+    // }
+
+    public function planRelation()
+{
+    return $this->belongsTo(Plan::class, 'plan', 'slug');
+}
 }
