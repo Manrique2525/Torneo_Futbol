@@ -113,4 +113,30 @@ return [
         'internacional' => 'Internacional',
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Posiciones de Jugadores
+    |--------------------------------------------------------------------------
+    */
+    'posiciones_jugador' => [
+        'portero' => 'Portero',
+        'defensa' => 'Defensa',
+        'mediocampista' => 'Mediocampista',
+        'delantero' => 'Delantero',
+        'extremo' => 'Extremo',
+        'lateral' => 'Lateral',
+        'contencion' => 'Contención',
+        'enganche' => 'Enganche',
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Estados de Jugadores
+    |--------------------------------------------------------------------------
+    */
+    'estados_jugador' => [
+        'activo' => 'Activo',
+        'suspendido' => 'Suspendido',
+        'lesionado' => 'Lesionado',
+    ],
 ];
