@@ -121,6 +121,27 @@ const isRouteActive = (routeName) => {
                     </span>
                 </Link>
 
+                <!-- Enlace: Árbitros -->
+                <Link :href="route('arbitros.index')"
+                    :class="[isRouteActive('arbitros.*')
+                        ? 'bg-primary/10 text-primary border border-primary/20 shadow-sm shadow-primary/5'
+                        : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5']"
+                    class="flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all group">
+                    <div class="relative">
+                        <span class="material-symbols-outlined shrink-0 group-hover:rotate-12 transition-transform">
+                            sports_score
+                        </span>
+                        <span v-if="isRouteActive('arbitros.*')" class="absolute -top-1 -right-1 flex h-2 w-2">
+                            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+                            <span class="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
+                        </span>
+                    </div>
+                    <span :class="[isCollapsed ? 'opacity-0 translate-x-4' : 'opacity-100 translate-x-0']"
+                          class="text-sm font-semibold whitespace-nowrap transition-all duration-300">
+                        Árbitros
+                    </span>
+                </Link>
+
                 <!-- Enlace: Roles y Permisos (solo visible con permiso roles.view) -->
                 <Link v-if="can('roles.view')"
                     :href="route('roles.index')"
@@ -184,6 +205,7 @@ const isRouteActive = (routeName) => {
                     </transition>
                 </div>
 
+                <!-- Enlaces estáticos de ejemplo -->
                 <Link v-for="(item, index) in [
                     { n: 'Posiciones', i: 'leaderboard', r: '#' },
                     { n: 'Partidos', i: 'sports_score', r: '#' },

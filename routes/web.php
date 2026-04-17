@@ -48,4 +48,5 @@ require __DIR__ . '/auth.php';
 require __DIR__ . '/users.php';
 require __DIR__ . '/torneos.php';
 require __DIR__.'/teams.php';
+require __DIR__.'/arbitros.php';
 

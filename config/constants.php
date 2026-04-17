@@ -100,4 +100,17 @@ return [
         'BURDEOS' => '#800000',
     ],
 
+
+    /*
+    |--------------------------------------------------------------------------
+    | Niveles de Árbitros
+    |--------------------------------------------------------------------------
+    */
+    'niveles_arbitro' => [
+        'nacional' => 'Nacional',
+        'regional' => 'Regional',
+        'local' => 'Local',
+        'internacional' => 'Internacional',
+    ],
+
 ];
