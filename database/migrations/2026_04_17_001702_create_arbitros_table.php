@@ -14,7 +14,7 @@ return new class extends Migration
             $table->string('nombre');
             $table->string('telefono')->nullable();
             $table->string('email')->nullable();
-            $table->string('nivel')->default('regional'); 
+            $table->string('nivel')->default('regional');
             $table->boolean('disponible')->default(true);
             $table->decimal('pago_por_partido', 10, 2)->nullable();
             $table->timestamps();

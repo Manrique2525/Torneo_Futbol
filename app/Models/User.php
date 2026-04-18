@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\RoleEnum;
 use App\Models\Traits\BelongsToTenant;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -49,12 +50,14 @@ class User extends Authenticatable
     // ── Helpers ─────────────────────────────────────
     public function isSuperAdmin(): bool
     {
-        return $this->hasRole(\App\Enums\RoleEnum::SUPER_ADMIN->value);
+        return $this->roles()
+            ->where('name', RoleEnum::SUPER_ADMIN)
+            ->exists();
     }
 
     public function isAdmin(): bool
     {
-        return $this->hasRole(\App\Enums\RoleEnum::ADMIN->value);
+        return $this->hasRole(RoleEnum::ADMIN);
     }
 
     // ── Relationships ───────────────────────────────

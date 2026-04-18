@@ -2,7 +2,7 @@
 
 use App\Http\Middleware\HandleInertiaRequests;
 use App\Http\Middleware\ResolveTenant;
-use App\Http\Middleware\SetPermissionsTeam;
+
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Routing\Middleware\SubstituteBindings;
@@ -18,11 +18,9 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $middleware->web(append: [
             HandleInertiaRequests::class,  // ← ESTO FALTABA
-            SetPermissionsTeam::class,
         ]);
 
         $middleware->priority([
-            SetPermissionsTeam::class,
             SubstituteBindings::class,
         ]);
 

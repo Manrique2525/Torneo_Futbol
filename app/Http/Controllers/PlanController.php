@@ -14,62 +14,99 @@ class PlanController extends Controller
     /**
      * Ensure only super_admin can access.
      */
-    public function __construct()
-    {
-    }
+    public function __construct() {}
 
     /**
      * List all plans.
      */
-    public function index(): Response
+    public function index(Request $request): Response
     {
-            if (!auth()->user()?->isSuperAdmin()) {
-        abort(403, 'Only SaaS administrators can manage plans.');
-    }
-        $plans = Plan::ordered()->get()->map(function ($plan) {
-            return [
-                'id'                => $plan->id,
-                'name'              => $plan->name,
-                'slug'              => $plan->slug,
-                'description'       => $plan->description,
-                'monthly_price'     => $plan->monthly_price,
-                'annual_price'      => $plan->annual_price,
-                'currency'          => $plan->currency,
-                'max_tournaments'   => $plan->max_tournaments,
-                'max_teams'         => $plan->max_teams,
-                'max_players'       => $plan->max_players,
-                'max_users'         => $plan->max_users,
-                'max_fields'        => $plan->max_fields,
-                'max_referees'      => $plan->max_referees,
-                'storage_mb'        => $plan->storage_mb,
-                'has_mobile_app'    => $plan->has_mobile_app,
-                'has_streaming'     => $plan->has_streaming,
-                'has_advanced_stats' => $plan->has_advanced_stats,
-                'has_api_access'    => $plan->has_api_access,
-                'has_whatsapp'      => $plan->has_whatsapp,
-                'has_reports'       => $plan->has_reports,
-                'has_custom_domain' => $plan->has_custom_domain,
-                'support_level'     => $plan->support_level,
-                'sort_order'        => $plan->sort_order,
-                'is_active'         => $plan->is_active,
-                'is_featured'       => $plan->is_featured,
-                'tenants_count'     => $plan->tenantsCount(),
-            ];
-        });
+        if (!auth()->user()?->isSuperAdmin()) {
+            abort(403, 'Only SaaS administrators can manage plans.');
+        }
+
+        $plans = Plan::query()
+            // 1. Agregamos el conteo de tenants eficientemente
+            ->withCount('tenants')
+
+            // 2. Búsqueda agrupada (Encapsula el OR)
+            ->when($request->input('search'), function ($query, $search) {
+                $query->where(function ($q) use ($search) {
+                    $q->where('name', 'like', "%{$search}%")
+                        ->orWhere('description', 'like', "%{$search}%");
+                });
+            })
+
+            // 3. Filtro de estado
+            ->when($request->input('status'), function ($query, $status) {
+                if ($status === 'active') $query->where('is_active', true);
+                if ($status === 'inactive') $query->where('is_active', false);
+            })
+
+            // 4. Otros filtros (Soporte, Destacado)
+            ->when($request->input('support'), function ($query, $support) {
+                $query->where('support_level', $support);
+            })
+            ->when($request->filled('featured'), function ($query) use ($request) {
+                $query->where('is_featured', $request->boolean('featured'));
+            })
+
+            ->ordered()
+            ->get()
+            ->map(function ($plan) {
+                return [
+                    'id'                 => $plan->id,
+                    'name'               => $plan->name,
+                    'slug'               => $plan->slug,
+                    'description'        => $plan->description,
+                    'monthly_price'      => $plan->monthly_price,
+                    'annual_price'       => $plan->annual_price,
+                    'currency'           => $plan->currency,
+                    'max_tournaments'    => $plan->max_tournaments,
+                    'max_teams'          => $plan->max_teams,
+                    'max_players'        => $plan->max_players,
+                    'max_users'          => $plan->max_users,
+                    'max_fields'         => $plan->max_fields,
+                    'max_referees'       => $plan->max_referees,
+                    'storage_mb'         => $plan->storage_mb,
+                    'has_mobile_app'     => $plan->has_mobile_app,
+                    'has_streaming'      => $plan->has_streaming,
+                    'has_advanced_stats' => $plan->has_advanced_stats,
+                    'has_api_access'     => $plan->has_api_access,
+                    'has_whatsapp'       => $plan->has_whatsapp,
+                    'has_reports'        => $plan->has_reports,
+                    'has_custom_domain'  => $plan->has_custom_domain,
+                    'support_level'      => $plan->support_level,
+                    'sort_order'         => $plan->sort_order,
+                    'is_active'          => (bool) $plan->is_active,
+                    'is_featured'        => (bool) $plan->is_featured,
+                    // Usamos el resultado de withCount()
+                    'tenants_count'      => $plan->tenants_count,
+                ];
+            });
 
         return Inertia::render('Plans/Index', [
-            'plans' => $plans,
+            'plans'   => $plans,
+            // Devolvemos todos los filtros para que los inputs en Vue no se limpien
+            'filters' => $request->only(['search', 'status', 'support', 'featured']),
         ]);
     }
+
+
+        public function create(): Response
+    {
+        return Inertia::render('Plans/Create');
+    }
+
 
     /**
      * Store a new plan.
      */
     public function store(Request $request): RedirectResponse
     {
-                   if (!auth()->user()?->isSuperAdmin()) {
-        abort(403, 'Only SaaS administrators can manage plans.');
-    }
+        if (!auth()->user()?->isSuperAdmin()) {
+            abort(403, 'Only SaaS administrators can manage plans.');
+        }
         $validated = $request->validate($this->rules());
 
         Plan::create($validated);
@@ -77,14 +114,51 @@ class PlanController extends Controller
         return back()->with('success', 'Plan created successfully.');
     }
 
+
+        /**
+     * Show form to edit a plan.
+     */
+    public function edit(Plan $plan): Response
+    {
+        return Inertia::render('Plans/Edit', [
+            'plan' => [
+                'id'                 => $plan->id,
+                'name'               => $plan->name,
+                'slug'               => $plan->slug,
+                'description'        => $plan->description,
+                'monthly_price'      => $plan->monthly_price,
+                'annual_price'       => $plan->annual_price,
+                'currency'           => $plan->currency,
+                'max_tournaments'    => $plan->max_tournaments,
+                'max_teams'          => $plan->max_teams,
+                'max_players'        => $plan->max_players,
+                'max_users'          => $plan->max_users,
+                'max_fields'         => $plan->max_fields,
+                'max_referees'       => $plan->max_referees,
+                'storage_mb'         => $plan->storage_mb,
+                'has_mobile_app'     => $plan->has_mobile_app,
+                'has_streaming'      => $plan->has_streaming,
+                'has_advanced_stats' => $plan->has_advanced_stats,
+                'has_api_access'     => $plan->has_api_access,
+                'has_whatsapp'       => $plan->has_whatsapp,
+                'has_reports'        => $plan->has_reports,
+                'has_custom_domain'  => $plan->has_custom_domain,
+                'support_level'      => $plan->support_level,
+                'sort_order'         => $plan->sort_order,
+                'is_active'          => (bool) $plan->is_active,
+                'is_featured'        => (bool) $plan->is_featured,
+            ],
+        ]);
+    }
+
     /**
      * Update a plan.
      */
     public function update(Request $request, Plan $plan): RedirectResponse
     {
-                   if (!auth()->user()?->isSuperAdmin()) {
-        abort(403, 'Only SaaS administrators can manage plans.');
-    }
+        if (!auth()->user()?->isSuperAdmin()) {
+            abort(403, 'Only SaaS administrators can manage plans.');
+        }
         $rules = $this->rules($plan->id);
         $validated = $request->validate($rules);
 
@@ -98,9 +172,9 @@ class PlanController extends Controller
      */
     public function destroy(Plan $plan): RedirectResponse
     {
-                   if (!auth()->user()?->isSuperAdmin()) {
-        abort(403, 'Only SaaS administrators can manage plans.');
-    }
+        if (!auth()->user()?->isSuperAdmin()) {
+            abort(403, 'Only SaaS administrators can manage plans.');
+        }
         if ($plan->tenantsCount() > 0) {
             return back()->with('error', "Cannot delete plan '{$plan->name}' — {$plan->tenantsCount()} organizations are using it.");
         }
@@ -116,9 +190,9 @@ class PlanController extends Controller
     private function rules(?int $ignoreId = null): array
     {
 
-               if (!auth()->user()?->isSuperAdmin()) {
-        abort(403, 'Only SaaS administrators can manage plans.');
-    }
+        if (!auth()->user()?->isSuperAdmin()) {
+            abort(403, 'Only SaaS administrators can manage plans.');
+        }
         return [
             'name'              => ['required', 'string', 'max:80'],
             'slug'              => ['required', 'string', 'max:80', 'regex:/^[a-z0-9_-]+$/', Rule::unique('plans')->ignore($ignoreId)],

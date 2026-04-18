@@ -13,20 +13,20 @@ return new class extends Migration
     {
         Schema::create('teams', function (Blueprint $table) {
             $table->id();
-    
+
             $table->foreignId('tenant_id')->constrained()->cascadeOnDelete();
-    
+
             $table->string('name');
-            $table->string('shield')->nullable(); 
+            $table->string('shield')->nullable();
             $table->string('colors')->nullable();
-    
+
             $table->foreignId('delegado_id')->nullable()->constrained('users')->nullOnDelete();
-    
+
             $table->string('phone')->nullable();
             $table->string('email')->nullable();
-    
+
             $table->enum('status', ['active', 'suspended'])->default('active');
-    
+
             $table->timestamps();
             $table->softDeletes();
         });

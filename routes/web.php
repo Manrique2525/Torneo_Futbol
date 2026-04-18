@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\PermissionController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
@@ -41,6 +42,11 @@ Route::middleware(['auth', 'verified', 'tenant'])->group(function () {
 
      Route::group([], base_path('routes/plans.php'));
 
+});
+
+Route::middleware(['auth'])->group(function () {
+    Route::resource('permissions', PermissionController::class)
+        ->only(['index', 'store', 'destroy']);
 });
 
 // ── Auth routes (Breeze/Fortify) ────────────────────

@@ -175,7 +175,7 @@ const submit = () => {
                         </div>
                         <div v-else />
 
-                        <PrimaryButton type="submit"
+                         <PrimaryButton type="submit"
                             :class="{ 'opacity-50 pointer-events-none': form.processing }"
                             :disabled="form.processing"
                             class="px-8 py-3 rounded-xl shadow-lg shadow-primary/20 text-sm font-bold uppercase tracking-wider">

@@ -29,48 +29,34 @@ class HandleInertiaRequests extends Middleware
      */
 
 
-    public function share(Request $request): array
-    {
-        $user = $request->user();
-        $authData = null;
+public function share(Request $request): array
+{
+    $user = $request->user();
 
-        if ($user) {
-            try {
-                if ($user->tenant_id) {
-                    setPermissionsTeamId($user->tenant_id);
-                }
-
-                $authData = [
-                    'id'          => $user->id,
-                    'name'        => $user->name,
-                    'email'       => $user->email,
-                    'tenant_id'   => $user->tenant_id,
-                    'roles'       => $user->tenant_id ? $user->getRoleNames() : [],
-                    'permissions' => $user->tenant_id ? $user->getAllPermissions()->pluck('name') : [],
-                ];
-            } catch (\Throwable $e) {
-                // THIS will show you the real error
-                logger()->error('HandleInertiaRequests auth error: ' . $e->getMessage());
-
-                $authData = [
-                    'id'          => $user->id,
-                    'name'        => $user->name,
-                    'email'       => $user->email,
-                    'tenant_id'   => $user->tenant_id,
-                    'roles'       => [],
-                    'permissions' => [],
-                ];
-            }
-        }
-
-        return [
-            ...parent::share($request),
-            'auth' => [
-                'user' => $authData,
-            ],
-            'flash' => [
-                'success' => fn() => $request->session()->get('success'),
-            ],
-        ];
+    if (!$user) {
+        return parent::share($request);
     }
+
+    // 🔥 FORZAR CONTEXTO SPATIE AQUÍ
+    setPermissionsTeamId($user->tenant_id);
+
+    return [
+        ...parent::share($request),
+
+        'auth' => [
+            'user' => [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'tenant_id' => $user->tenant_id,
+                'roles' => $user->getRoleNames(),
+                'permissions' => $user->getAllPermissions()->pluck('name')->values(),
+            ],
+        ],
+
+        'flash' => [
+            'success' => fn () => $request->session()->get('success'),
+        ],
+    ];
+}
 }

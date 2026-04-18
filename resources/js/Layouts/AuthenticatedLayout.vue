@@ -294,46 +294,89 @@ const isRouteActive = (routeName) => {
                 </Link>
 
                 <!-- Enlace: Roles y Permisos (solo visible con permiso roles.view) -->
-                <Link
-                    v-if="can('roles.view')"
-                    :href="route('roles.index')"
-                    :class="[
-                        isRouteActive('roles.*')
-                            ? 'bg-primary/10 text-primary border border-primary/20 shadow-sm shadow-primary/5'
-                            : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5',
-                    ]"
-                    class="flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all group"
+<div class="space-y-1">
+    <button
+        v-if="can('roles.view') || can('permissions.view')"
+        @click="toggleMenu('seguridad')"
+        :class="[
+            isRouteActive('roles.*') || isRouteActive('permissions.*')
+                ? 'bg-primary/10 text-primary border border-primary/20'
+                : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5',
+        ]"
+        class="w-full flex items-center justify-between px-3 py-2.5 rounded-xl transition-all group"
+    >
+        <div class="flex items-center gap-3">
+            <div class="relative">
+                <span class="material-symbols-outlined shrink-0 group-hover:rotate-12 transition-transform">
+                    admin_panel_settings
+                </span>
+                <span
+                    v-if="isRouteActive('roles.*') || isRouteActive('permissions.*')"
+                    class="absolute -top-1 -right-1 flex h-2 w-2"
                 >
-                    <div class="relative">
-                        <span
-                            class="material-symbols-outlined shrink-0 group-hover:rotate-12 transition-transform"
-                        >
-                            admin_panel_settings
-                        </span>
-                        <span
-                            v-if="isRouteActive('roles.*')"
-                            class="absolute -top-1 -right-1 flex h-2 w-2"
-                        >
-                            <span
-                                class="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"
-                            ></span>
-                            <span
-                                class="relative inline-flex rounded-full h-2 w-2 bg-primary"
-                            ></span>
-                        </span>
-                    </div>
-                    <span
-                        :class="[
-                            isCollapsed
-                                ? 'opacity-0 translate-x-4'
-                                : 'opacity-100 translate-x-0',
-                        ]"
-                        class="text-sm font-semibold whitespace-nowrap transition-all duration-300"
-                    >
-                        Roles y Permisos
-                    </span>
-                </Link>
+                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+                    <span class="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
+                </span>
+            </div>
+            <span
+                :class="[
+                    isCollapsed ? 'opacity-0 translate-x-4' : 'opacity-100 translate-x-0',
+                ]"
+                class="text-sm font-semibold whitespace-nowrap transition-all duration-300"
+            >
+                Seguridad
+            </span>
+        </div>
 
+        <span
+            :class="[
+                isCollapsed ? 'opacity-0' : 'opacity-100',
+                { 'rotate-180': openMenus.seguridad },
+            ]"
+            class="material-symbols-outlined text-sm transition-all duration-300"
+        >
+            expand_more
+        </span>
+    </button>
+
+    <transition
+        enter-active-class="transition-all duration-300 ease-out"
+        leave-active-class="transition-all duration-200 ease-in"
+        enter-from-class="opacity-0 -translate-y-2 max-h-0"
+        enter-to-class="opacity-100 translate-y-0 max-h-40"
+    >
+        <div
+            v-show="openMenus.seguridad && !isCollapsed"
+            class="ml-9 space-y-1 overflow-hidden"
+        >
+            <Link
+                v-if="can('roles.view')"
+                :href="route('roles.index')"
+                :class="[
+                    isRouteActive('roles.*')
+                        ? 'text-primary font-bold'
+                        : 'text-slate-500 hover:text-primary'
+                ]"
+                class="block py-2 text-xs font-medium transition-colors whitespace-nowrap"
+            >
+                Gestión de Roles
+            </Link>
+
+            <Link
+                v-if="can('permissions.view')"
+                :href="route('permissions.index')"
+                :class="[
+                    isRouteActive('permissions.*')
+                        ? 'text-primary font-bold'
+                        : 'text-slate-500 hover:text-primary'
+                ]"
+                class="block py-2 text-xs font-medium transition-colors whitespace-nowrap"
+            >
+                Permisos del Sistema
+            </Link>
+        </div>
+    </transition>
+</div>
                 <div class="pt-4 pb-2">
                     <p
                         :class="[isCollapsed ? 'opacity-0' : 'opacity-100']"

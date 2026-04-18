@@ -18,10 +18,18 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         // Super admin bypasses ALL permission checks
-        Gate::before(function ($user, $ability) {
+/*         Gate::before(function ($user, $ability) {
             if ($user->hasRole(RoleEnum::SUPER_ADMIN->value)) {
                 return true;
             }
+        });
+ */
+        Gate::before(function ($user, $ability) {
+            return $user->roles()
+                ->where('name', RoleEnum::SUPER_ADMIN)
+                ->exists()
+                ? true
+                : null;
         });
     }
 }

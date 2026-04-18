@@ -2,48 +2,27 @@
 
 namespace App\Enums;
 
-enum RoleEnum: string
+class RoleEnum
 {
-    case SUPER_ADMIN = 'super_admin';
-    case ADMIN       = 'admin';
-    case MANAGER     = 'manager';
-    case REFEREE     = 'referee';
-    case DELEGATE    = 'delegate';
-    case PLAYER      = 'player';
+    public const SUPER_ADMIN = 'super_admin';
+    public const ADMIN       = 'admin';
+    public const MANAGER     = 'manager';
+    public const REFEREE     = 'referee';
+    public const DELEGATE    = 'delegate';
+    public const PLAYER      = 'player';
 
-    /**
-     * Human-readable labels (for UI).
-     */
-    public function label(): string
+    public static function all(): array
     {
-        return match ($this) {
-            self::SUPER_ADMIN => 'Super Admin',
-            self::ADMIN       => 'Administrator',
-            self::MANAGER     => 'Manager',
-            self::REFEREE     => 'Referee',
-            self::DELEGATE    => 'Delegate',
-            self::PLAYER      => 'Player',
-        };
+        return [
+            self::SUPER_ADMIN,
+            self::ADMIN,
+            self::MANAGER,
+            self::REFEREE,
+            self::DELEGATE,
+            self::PLAYER,
+        ];
     }
 
-    /**
-     * Description for the admin panel.
-     */
-    public function description(): string
-    {
-        return match ($this) {
-            self::SUPER_ADMIN => 'Full access to the SaaS platform',
-            self::ADMIN       => 'Full access within the tenant',
-            self::MANAGER     => 'Manages tournaments, teams, and schedules',
-            self::REFEREE     => 'Records match events and views assignments',
-            self::DELEGATE    => 'Manages their own team and players',
-            self::PLAYER      => 'Views schedules and confirms attendance',
-        };
-    }
-
-    /**
-     * Roles assignable by a tenant admin (excludes super_admin).
-     */
     public static function assignable(): array
     {
         return [
@@ -55,72 +34,126 @@ enum RoleEnum: string
         ];
     }
 
-    /**
-     * Default permissions for each role.
-     * This is used by the seeder to build the role→permission matrix.
-     */
-    public function defaultPermissions(): array
+    public static function labels(): array
     {
-        return match ($this) {
-            self::SUPER_ADMIN => ['*'], // handled by Gate::before, not actual permissions
+        return [
+            self::SUPER_ADMIN => 'Super Admin',
+            self::ADMIN       => 'Administrator',
+            self::MANAGER     => 'Manager',
+            self::REFEREE     => 'Referee',
+            self::DELEGATE    => 'Delegate',
+            self::PLAYER      => 'Player',
+        ];
+    }
+
+    public static function descriptions(): array
+    {
+        return [
+            self::SUPER_ADMIN => 'Full access to the SaaS platform',
+            self::ADMIN       => 'Full access within the tenant',
+            self::MANAGER     => 'Manages tournaments, teams, and schedules',
+            self::REFEREE     => 'Records match events and views assignments',
+            self::DELEGATE    => 'Manages their own team and players',
+            self::PLAYER      => 'Views schedules and confirms attendance',
+        ];
+    }
+
+    public static function defaultPermissions(string $role): array
+    {
+        return match ($role) {
+
+            self::SUPER_ADMIN => [],
 
             self::ADMIN => PermissionEnum::all(),
 
             self::MANAGER => [
-                // Tournaments
-                'tournaments.view', 'tournaments.create', 'tournaments.update',
-                // Teams
-                'teams.view', 'teams.create', 'teams.update',
-                // Players
-                'players.view', 'players.create', 'players.update',
-                // Matches
-                'matches.view', 'matches.create', 'matches.update', 'matches.record_events',
-                // Match days
-                'match_days.view', 'match_days.create', 'match_days.update',
-                // Fields
-                'fields.view', 'fields.create', 'fields.update',
-                // Referees
-                'referees.view', 'referees.create', 'referees.update',
-                // Sanctions
-                'sanctions.view', 'sanctions.create',
-                // Payments
-                'payments.view', 'payments.create',
-                // Stats & standings
-                'stats.view', 'standings.view', 'standings.recalculate',
-                // Reports
-                'reports.view',
+                PermissionEnum::TOURNAMENTS_VIEW,
+                PermissionEnum::TOURNAMENTS_CREATE,
+                PermissionEnum::TOURNAMENTS_UPDATE,
+
+                PermissionEnum::TEAMS_VIEW,
+                PermissionEnum::TEAMS_CREATE,
+                PermissionEnum::TEAMS_UPDATE,
+
+                PermissionEnum::PLAYERS_VIEW,
+                PermissionEnum::PLAYERS_CREATE,
+                PermissionEnum::PLAYERS_UPDATE,
+
+                PermissionEnum::MATCHES_VIEW,
+                PermissionEnum::MATCHES_CREATE,
+                PermissionEnum::MATCHES_UPDATE,
+                PermissionEnum::MATCHES_RECORD_EVENTS,
+
+                PermissionEnum::MATCH_DAYS_VIEW,
+                PermissionEnum::MATCH_DAYS_CREATE,
+                PermissionEnum::MATCH_DAYS_UPDATE,
+
+                PermissionEnum::FIELDS_VIEW,
+                PermissionEnum::FIELDS_CREATE,
+                PermissionEnum::FIELDS_UPDATE,
+
+                PermissionEnum::REFEREES_VIEW,
+                PermissionEnum::REFEREES_CREATE,
+                PermissionEnum::REFEREES_UPDATE,
+
+                PermissionEnum::SANCTIONS_VIEW,
+                PermissionEnum::SANCTIONS_CREATE,
+
+                PermissionEnum::PAYMENTS_VIEW,
+                PermissionEnum::PAYMENTS_CREATE,
+
+                PermissionEnum::STATS_VIEW,
+                PermissionEnum::STANDINGS_VIEW,
+                PermissionEnum::STANDINGS_RECALCULATE,
+
+                PermissionEnum::REPORTS_VIEW,
             ],
 
             self::REFEREE => [
-                'tournaments.view',
-                'teams.view',
-                'players.view',
-                'matches.view', 'matches.record_events',
-                'match_days.view',
-                'fields.view',
-                'sanctions.view',
-                'stats.view', 'standings.view',
+                PermissionEnum::TOURNAMENTS_VIEW,
+                PermissionEnum::TEAMS_VIEW,
+                PermissionEnum::PLAYERS_VIEW,
+                PermissionEnum::MATCHES_VIEW,
+                PermissionEnum::MATCHES_RECORD_EVENTS,
+                PermissionEnum::MATCH_DAYS_VIEW,
+                PermissionEnum::FIELDS_VIEW,
+                PermissionEnum::SANCTIONS_VIEW,
+                PermissionEnum::STATS_VIEW,
+                PermissionEnum::STANDINGS_VIEW,
             ],
 
             self::DELEGATE => [
-                'tournaments.view',
-                'teams.view', 'teams.update_own',
-                'players.view', 'players.create', 'players.update_own',
-                'matches.view', 'matches.confirm',
-                'match_days.view',
-                'fields.view',
-                'sanctions.view',
-                'payments.view', 'payments.upload_receipt',
-                'stats.view', 'standings.view',
+                PermissionEnum::TOURNAMENTS_VIEW,
+                PermissionEnum::TEAMS_VIEW,
+                PermissionEnum::TEAMS_UPDATE_OWN,
+
+                PermissionEnum::PLAYERS_VIEW,
+                PermissionEnum::PLAYERS_CREATE,
+                PermissionEnum::PLAYERS_UPDATE_OWN,
+
+                PermissionEnum::MATCHES_VIEW,
+                PermissionEnum::MATCHES_CONFIRM,
+
+                PermissionEnum::MATCH_DAYS_VIEW,
+                PermissionEnum::FIELDS_VIEW,
+                PermissionEnum::SANCTIONS_VIEW,
+
+                PermissionEnum::PAYMENTS_VIEW,
+                PermissionEnum::PAYMENTS_UPLOAD_RECEIPT,
+
+                PermissionEnum::STATS_VIEW,
+                PermissionEnum::STANDINGS_VIEW,
             ],
 
             self::PLAYER => [
-                'tournaments.view',
-                'teams.view',
-                'players.view_own',
-                'matches.view', 'matches.confirm_attendance',
-                'match_days.view',
-                'stats.view', 'standings.view',
+                PermissionEnum::TOURNAMENTS_VIEW,
+                PermissionEnum::TEAMS_VIEW,
+                PermissionEnum::PLAYERS_VIEW_OWN,
+                PermissionEnum::MATCHES_VIEW,
+                PermissionEnum::MATCHES_CONFIRM_ATTENDANCE,
+                PermissionEnum::MATCH_DAYS_VIEW,
+                PermissionEnum::STATS_VIEW,
+                PermissionEnum::STANDINGS_VIEW,
             ],
         };
     }

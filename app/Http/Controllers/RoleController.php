@@ -9,6 +9,8 @@ use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
 use Inertia\Response;
 use Spatie\Permission\Models\Role;
+use Spatie\Permission\Models\Permission;
+use Spatie\Permission\PermissionRegistrar;
 
 class RoleController extends Controller
 {
@@ -16,48 +18,50 @@ class RoleController extends Controller
         private readonly RolePermissionService $service
     ) {}
 
-    /**
-     * List all roles with their permissions.
-     */
     public function index(): Response
     {
         $this->authorize('roles.view');
 
         return Inertia::render('Roles/Index', [
-            'roles'       => $this->service->getTenantRoles(),
+            'roles' => $this->service->getRoles(),
+
+            // 🔥 ahora viene directo de BD (NO ENUM)
             'permissions' => $this->service->getPermissionsGrouped(),
         ]);
     }
 
-    /**
-     * Create a custom role.
-     */
     public function store(StoreRoleRequest $request): RedirectResponse
     {
+        $this->authorize('roles.create');
+
+        $permissions = $this->sanitizePermissions(
+            $request->validated('permissions', [])
+        );
+
         $this->service->createRole(
             $request->validated('name'),
-            $request->validated('permissions', []),
+            $permissions,
         );
 
         return back()->with('success', 'Role created successfully.');
     }
 
-    /**
-     * Update permissions on a role.
-     */
     public function update(UpdateRolePermissionsRequest $request, Role $role): RedirectResponse
     {
+        $this->authorize('roles.update');
+
+        $permissions = $this->sanitizePermissions(
+            $request->validated('permissions', [])
+        );
+
         $this->service->updateRolePermissions(
             $role,
-            $request->validated('permissions', []),
+            $permissions,
         );
 
         return back()->with('success', 'Permissions updated successfully.');
     }
 
-    /**
-     * Delete a custom role.
-     */
     public function destroy(Role $role): RedirectResponse
     {
         $this->authorize('roles.delete');
@@ -65,5 +69,17 @@ class RoleController extends Controller
         $this->service->deleteRole($role);
 
         return back()->with('success', 'Role deleted successfully.');
+    }
+
+    /**
+     * 🔥 CLAVE: evita el error PermissionDoesNotExist
+     */
+    private function sanitizePermissions(array $permissions): array
+    {
+        app()[PermissionRegistrar::class]->forgetCachedPermissions();
+
+        return Permission::whereIn('name', $permissions)
+            ->pluck('name')
+            ->toArray();
     }
 }

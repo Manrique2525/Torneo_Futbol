@@ -5,18 +5,19 @@ namespace Database\Seeders;
 use App\Enums\RoleEnum;
 use App\Models\Tenant;
 use App\Models\User;
-use App\Services\RolePermissionService;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
+use Spatie\Permission\Models\Role;
+use Spatie\Permission\PermissionRegistrar;
 
 class TenantSeeder extends Seeder
 {
     public function run(): void
     {
-        $roleService = app(RolePermissionService::class);
+        app()[PermissionRegistrar::class]->forgetCachedPermissions();
 
-        // ── 1. Demo Tenant ──────────────────────────
+        // ── 1. Crear tenant ──────────────────────────
         $tenant = Tenant::create([
             'uuid'     => (string) Str::uuid(),
             'name'     => 'Liga Municipal Villahermosa',
@@ -29,11 +30,24 @@ class TenantSeeder extends Seeder
             'status'   => Tenant::STATUS_ACTIVE,
         ]);
 
-        // Setup roles for this tenant
-        $roleService->setupTenantRoles($tenant->id);
+        //  MUY IMPORTANTE: establecer contexto del tenant
         setPermissionsTeamId($tenant->id);
 
-        // ── 2. Admin user ───────────────────────────
+        // ── 2. Crear roles para ESTE tenant ──────────
+        foreach (RoleEnum::assignable() as $roleName) {
+
+            $role = Role::firstOrCreate([
+                'name'       => $roleName,
+                'guard_name' => 'web',
+                'tenant_id'  => $tenant->id,
+            ]);
+
+            $role->syncPermissions(
+                RoleEnum::defaultPermissions($roleName)
+            );
+        }
+
+        // ── 3. Crear usuarios ────────────────────────
         $admin = User::withoutGlobalScopes()->create([
             'tenant_id' => $tenant->id,
             'name'      => 'Admin Liga',
@@ -43,9 +57,7 @@ class TenantSeeder extends Seeder
             'status'    => User::STATUS_ACTIVE,
             'email_verified_at' => now(),
         ]);
-        $admin->assignRole(RoleEnum::ADMIN->value);
 
-        // ── 3. Manager user ─────────────────────────
         $manager = User::withoutGlobalScopes()->create([
             'tenant_id' => $tenant->id,
             'name'      => 'Carlos Coordinador',
@@ -54,9 +66,7 @@ class TenantSeeder extends Seeder
             'status'    => User::STATUS_ACTIVE,
             'email_verified_at' => now(),
         ]);
-        $manager->assignRole(RoleEnum::MANAGER->value);
 
-        // ── 4. Referee user ─────────────────────────
         $referee = User::withoutGlobalScopes()->create([
             'tenant_id' => $tenant->id,
             'name'      => 'Roberto Árbitro',
@@ -65,9 +75,7 @@ class TenantSeeder extends Seeder
             'status'    => User::STATUS_ACTIVE,
             'email_verified_at' => now(),
         ]);
-        $referee->assignRole(RoleEnum::REFEREE->value);
 
-        // ── 5. Delegate user ────────────────────────
         $delegate = User::withoutGlobalScopes()->create([
             'tenant_id' => $tenant->id,
             'name'      => 'Miguel Delegado',
@@ -76,12 +84,18 @@ class TenantSeeder extends Seeder
             'status'    => User::STATUS_ACTIVE,
             'email_verified_at' => now(),
         ]);
-        $delegate->assignRole(RoleEnum::DELEGATE->value);
+
+        // ── 4. Asignar roles (YA EN CONTEXTO) ────────
+        $admin->assignRole(RoleEnum::ADMIN);
+        $manager->assignRole(RoleEnum::MANAGER);
+        $referee->assignRole(RoleEnum::REFEREE);
+        $delegate->assignRole(RoleEnum::DELEGATE);
 
         // ── Summary ─────────────────────────────────
         $this->command->info('');
-        $this->command->info('✅ Tenant created: ' . $tenant->name);
+        $this->command->info(' Tenant created: ' . $tenant->name);
         $this->command->info('');
+
         $this->command->table(
             ['User', 'Email', 'Password', 'Role'],
             [
