@@ -1,6 +1,7 @@
 <script setup>
-import { ref, watch } from 'vue'
-import { Head, useForm, router, Link } from '@inertiajs/vue3' // Link añadido aquí
+import { ref, watch, computed } from 'vue'
+import { Head, useForm, router, Link } from '@inertiajs/vue3'
+import { useCan } from '@/Shared/Composables/useCan'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
 import PrimaryButton from '@/Components/PrimaryButton.vue'
 import Modal from '@/Components/Modal.vue'
@@ -8,16 +9,19 @@ import InputError from '@/Components/InputError.vue'
 import debounce from 'lodash/debounce'
 
 const props = defineProps({
-    permissions: Object, // Objeto de paginación de Laravel
-    filters: Object,     // Filtros desde el controlador
+    permissions: Object,
+    filters: Object,
 })
 
+const { can } = useCan()
+
+// ── State ─────────────────────────
 const showCreateModal = ref(false)
 const showDeleteModal = ref(false)
 const permissionToDelete = ref(null)
 const search = ref(props.filters.search || '')
 
-// --- Lógica de Búsqueda ---
+// ── Search ────────────────────────
 watch(search, debounce((value) => {
     router.get(route('permissions.index'), { search: value }, {
         preserveState: true,
@@ -25,6 +29,30 @@ watch(search, debounce((value) => {
     })
 }, 300))
 
+// ── Grouped Permissions ───────────
+const groupedPermissions = computed(() => {
+    const groups = {}
+
+    props.permissions.data.forEach(p => {
+        const [module, action] = p.name.includes('.')
+            ? p.name.split('.')
+            : ['general', p.name]
+
+        if (!groups[module]) groups[module] = []
+
+        groups[module].push({
+            ...p,
+            action
+        })
+    })
+
+    return Object.entries(groups).map(([module, perms]) => ({
+        module,
+        permissions: perms
+    }))
+})
+
+// ── Form ──────────────────────────
 const form = useForm({
     name: '',
 })
@@ -36,13 +64,13 @@ const submit = () => {
             showCreateModal.value = false
             form.reset()
         },
-        onError: () => {
-            // Si hay error (ej: duplicado), el modal permanece abierto y muestra el InputError
-        }
     })
 }
 
+// ── Delete ────────────────────────
 const deletePermission = () => {
+    if (!permissionToDelete.value) return
+
     router.delete(route('permissions.destroy', permissionToDelete.value.id), {
         onSuccess: () => {
             showDeleteModal.value = false
@@ -58,6 +86,7 @@ const deletePermission = () => {
     <AuthenticatedLayout>
         <div class="flex flex-col h-[calc(100vh-140px)] overflow-hidden">
 
+            <!-- Header -->
             <div class="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-6 flex-shrink-0 px-4 md:px-0">
                 <div>
                     <h2 class="text-3xl font-black uppercase tracking-tighter text-slate-900 dark:text-white leading-none">
@@ -70,63 +99,104 @@ const deletePermission = () => {
                             v-model="search"
                             type="text"
                             placeholder="BUSCAR PERMISO..."
-                            class="bg-slate-100 dark:bg-white/5 border-none rounded-xl text-[10px] font-black tracking-widest pl-10 w-full md:w-64 focus:ring-2 focus:ring-primary transition-all uppercase"
+                            class="bg-slate-100 dark:bg-white/5 border-none rounded-xl text-[10px] font-black tracking-widest pl-10 w-full md:w-64 focus:ring-2 focus:ring-primary uppercase"
                         />
                     </div>
                 </div>
 
-                <PrimaryButton @click="showCreateModal = true" class="!rounded-2xl !py-3">
+                <PrimaryButton
+                    v-if="can('permissions.create')"
+                    @click="showCreateModal = true"
+                    class="!rounded-2xl !py-3">
                     <span class="material-symbols-outlined !text-sm mr-2">key</span>
                     Nuevo Permiso
                 </PrimaryButton>
             </div>
 
+            <!-- Content -->
             <div class="bg-white dark:bg-[#1A2C26] rounded-[2rem] border border-slate-100 dark:border-slate-800 shadow-sm flex flex-col min-h-0 overflow-hidden mx-4 md:mx-0">
+
+                <!-- Header table -->
                 <div class="px-6 py-4 border-b border-slate-100 dark:border-slate-800/50 flex items-center justify-between bg-slate-50/50 dark:bg-black/10">
-                    <h3 class="text-[10px] font-black uppercase tracking-widest text-slate-400">Permisos Registrados</h3>
+                    <h3 class="text-[10px] font-black uppercase tracking-widest text-slate-400">
+                        Permisos Agrupados
+                    </h3>
                     <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
                         {{ permissions.total }} totales
                     </span>
                 </div>
 
-                <div class="flex-1 overflow-y-auto custom-scrollbar p-4">
-                    <div v-if="permissions.data.length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
-                        <div v-for="perm in permissions.data" :key="perm.id"
-                            class="group flex justify-between items-center p-4 bg-white dark:bg-[#213a32] border border-slate-100 dark:border-slate-700/50 rounded-2xl hover:border-primary/50 transition-all shadow-sm hover:shadow-md">
+                <!-- Body -->
+                <div class="flex-1 overflow-y-auto custom-scrollbar p-4 space-y-4">
 
-                            <div class="min-w-0">
-                                <p class="text-[9px] font-black text-primary uppercase tracking-tighter mb-1">
-                                    Scope: {{ perm.name.includes('.') ? perm.name.split('.')[0] : 'General' }}
-                                </p>
-                                <span class="font-mono text-xs font-bold text-slate-700 dark:text-slate-200 truncate block">
-                                    {{ perm.name }}
+                    <div v-if="groupedPermissions.length > 0">
+
+                        <div
+                            v-for="group in groupedPermissions"
+                            :key="group.module"
+                            class="bg-white dark:bg-[#1A2C26] rounded-[2rem] border border-slate-100 dark:border-slate-800 overflow-hidden shadow-sm"
+                        >
+
+                            <!-- Module Header -->
+                            <div class="px-6 py-4 bg-slate-50/50 dark:bg-black/10 border-b border-slate-100 dark:border-slate-800/50 flex justify-between items-center">
+                                <span class="text-xs font-black uppercase tracking-wider text-slate-700 dark:text-slate-200">
+                                    {{ group.module }}
+                                </span>
+                                <span class="text-[10px] font-bold text-slate-400">
+                                    {{ group.permissions.length }} permisos
                                 </span>
                             </div>
 
-                            <button
-                                @click="permissionToDelete = perm; showDeleteModal = true"
-                                class="p-2 rounded-xl text-slate-300 hover:text-red-500 hover:bg-red-500/10 transition-all opacity-0 group-hover:opacity-100">
-                                <span class="material-symbols-outlined !text-[18px]">delete</span>
-                            </button>
+                            <!-- Permissions -->
+                            <div class="px-6 py-4 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-2">
+
+                                <div
+                                    v-for="perm in group.permissions"
+                                    :key="perm.id"
+                                    class="group flex justify-between items-center p-3 rounded-xl transition-all hover:bg-slate-50 dark:hover:bg-white/5"
+                                >
+                                    <div class="min-w-0">
+                                        <p class="text-[9px] font-black text-primary uppercase tracking-tighter">
+                                            {{ perm.action }}
+                                        </p>
+                                        <span class="font-mono text-xs font-bold text-slate-700 dark:text-slate-200 truncate block">
+                                            {{ perm.name }}
+                                        </span>
+                                    </div>
+
+                                    <button
+                                        v-if="can('permissions.delete')"
+                                        @click="permissionToDelete = perm; showDeleteModal = true"
+                                        class="p-2 rounded-xl text-slate-300 hover:text-red-500 hover:bg-red-500/10 transition-all opacity-0 group-hover:opacity-100"
+                                    >
+                                        <span class="material-symbols-outlined !text-[16px]">delete</span>
+                                    </button>
+                                </div>
+
+                            </div>
                         </div>
+
                     </div>
 
                     <div v-else class="flex flex-col items-center justify-center py-12">
                         <span class="material-symbols-outlined text-4xl text-slate-300 mb-2">search_off</span>
-                        <p class="text-xs font-black uppercase tracking-widest text-slate-400">No se encontraron permisos</p>
+                        <p class="text-xs font-black uppercase tracking-widest text-slate-400">
+                            No se encontraron permisos
+                        </p>
                     </div>
                 </div>
 
+                <!-- Pagination -->
                 <div class="px-6 py-4 border-t border-slate-100 dark:border-slate-800/50 bg-slate-50/30 dark:bg-black/5 flex items-center justify-center gap-1">
                     <template v-for="(link, k) in permissions.links" :key="k">
                         <div v-if="link.url === null"
-                             class="px-3 py-1 text-[10px] font-black text-slate-400 uppercase tracking-tighter"
+                             class="px-3 py-1 text-[10px] font-black text-slate-400 uppercase"
                              v-html="link.label" />
                         <Link v-else
                               :href="link.url"
-                              class="px-3 py-1 text-[10px] font-black uppercase tracking-tighter rounded-lg transition-all"
+                              class="px-3 py-1 text-[10px] font-black uppercase rounded-lg"
                               :class="{
-                                  'bg-primary text-white shadow-lg shadow-primary/20': link.active,
+                                  'bg-primary text-white': link.active,
                                   'text-slate-500 hover:bg-slate-200 dark:hover:bg-white/10': !link.active
                               }"
                               v-html="link.label"
@@ -136,6 +206,7 @@ const deletePermission = () => {
             </div>
         </div>
 
+        <!-- Create Modal -->
         <Modal :show="showCreateModal" maxWidth="md" @close="showCreateModal = false; form.reset()">
             <form @submit.prevent="submit" class="p-8">
                 <h3 class="text-xl font-black uppercase tracking-tighter text-slate-900 dark:text-white mb-6">
@@ -144,66 +215,37 @@ const deletePermission = () => {
 
                 <div class="space-y-6">
                     <div>
-                        <label class="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">Nombre del Permiso (Slug)</label>
+                        <label class="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">
+                            Nombre del Permiso
+                        </label>
                         <input
                             v-model="form.name"
                             type="text"
                             required
-                            placeholder="ej: ventas.autorizar"
-                            class="w-full px-5 py-4 bg-slate-50 dark:bg-white/5 border-none rounded-2xl text-sm focus:ring-2 focus:ring-primary dark:text-white font-mono"
+                            placeholder="ej: ventas.crear"
+                            class="w-full px-5 py-4 bg-slate-50 dark:bg-white/5 rounded-2xl text-sm focus:ring-2 focus:ring-primary font-mono"
                         />
-                        <p class="text-[9px] text-slate-400 mt-2 italic">Formato recomendado: modulo.accion</p>
                         <InputError :message="form.errors.name" class="mt-2" />
                     </div>
 
-                    <div class="pt-4 flex flex-col gap-2">
-                        <PrimaryButton :disabled="form.processing" class="w-full !py-4 shadow-xl shadow-primary/20">
-                            {{ form.processing ? 'Registrando...' : 'Crear Permiso' }}
-                        </PrimaryButton>
-
-                        <button
-                            type="button"
-                            @click="showCreateModal = false; form.reset()"
-                            class="py-2 text-[10px] font-black uppercase text-slate-400 hover:text-slate-600 transition-colors">
-                            Cancelar
-                        </button>
-                    </div>
+                    <PrimaryButton @click="submitCreate" class="w-full !py-4">
+                        Crear Permiso
+                    </PrimaryButton>
                 </div>
             </form>
         </Modal>
 
+        <!-- Delete Modal -->
         <Modal :show="showDeleteModal" maxWidth="sm" @close="showDeleteModal = false">
             <div class="p-8 text-center">
-                <div class="w-16 h-16 bg-red-50 dark:bg-red-500/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <span class="material-symbols-outlined text-red-500 text-3xl">warning</span>
-                </div>
-                <h3 class="text-xl font-black uppercase tracking-tighter text-slate-900 dark:text-white">¿Eliminar Permiso?</h3>
-                <p class="text-xs text-slate-500 font-medium my-4 px-4">
-                    Esta acción es irreversible para <code class="bg-slate-100 dark:bg-slate-800 px-1 rounded">{{ permissionToDelete?.name }}</code>.
-                </p>
-                <div class="flex flex-col gap-2">
-                    <button
-                        type="button"
-                        @click="deletePermission"
-                        class="w-full py-4 bg-red-600 hover:bg-red-700 text-white font-black uppercase text-[11px] rounded-2xl transition-colors shadow-lg shadow-red-500/20">
-                        Confirmar Eliminación
-                    </button>
-                    <button
-                        type="button"
-                        @click="showDeleteModal = false"
-                        class="py-2 text-[10px] font-black uppercase text-slate-400">
-                        Cancelar
-                    </button>
-                </div>
+                <h3 class="text-lg font-black">¿Eliminar permiso?</h3>
+                <p class="text-xs mt-2">{{ permissionToDelete?.name }}</p>
+
+                <button @click="deletePermission" class="mt-4 bg-red-600 text-white px-4 py-2 rounded-xl">
+                    Confirmar
+                </button>
             </div>
         </Modal>
 
     </AuthenticatedLayout>
 </template>
-
-<style scoped>
-.custom-scrollbar::-webkit-scrollbar { width: 6px; }
-.custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
-.custom-scrollbar::-webkit-scrollbar-thumb { @apply bg-slate-200 dark:bg-slate-800 rounded-full; }
-.custom-scrollbar::-webkit-scrollbar-thumb:hover { @apply bg-primary/50; }
-</style>
