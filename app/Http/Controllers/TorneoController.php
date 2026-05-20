@@ -2,15 +2,23 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\PermissionEnum;
 use App\Models\Torneo;
+use App\Services\TorneoInscripcionService;
 use Illuminate\Http\Request;
-use Inertia\Inertia;
 use Illuminate\Http\RedirectResponse;
+use Inertia\Inertia;
 
 class TorneoController extends Controller
 {
+    public function __construct(
+        private readonly TorneoInscripcionService $inscripcionService
+    ) {}
+
     public function index(Request $request)
     {
+        $this->authorize(PermissionEnum::TOURNAMENTS_VIEW);
+
         $constants = config('constants');
 
         return Inertia::render('Torneos/Index', [
@@ -32,6 +40,8 @@ class TorneoController extends Controller
 
     public function create()
     {
+        $this->authorize(PermissionEnum::TOURNAMENTS_CREATE);
+
         return Inertia::render('Torneos/Create', [
             'constantes' => config('constants') ?? [],
             'isEditing' => false
@@ -40,6 +50,8 @@ class TorneoController extends Controller
 
     public function edit(Torneo $torneo)
     {
+        $this->authorize(PermissionEnum::TOURNAMENTS_UPDATE);
+
         return Inertia::render('Torneos/Edit', [
             'torneo' => $torneo,
             'constantes' => config('constants') ?? [],
@@ -49,24 +61,30 @@ class TorneoController extends Controller
 
     public function store(Request $request): RedirectResponse
     {
+        $this->authorize(PermissionEnum::TOURNAMENTS_CREATE);
+
         $constants = config('constants');
 
         $validated = $request->validate([
-            'nombre'      => 'required|string|max:255',
-            'tipo'        => 'required|in:' . implode(',', array_keys($constants['tipos_torneo'] ?? [])),
-            'categoria'   => 'required|in:' . implode(',', array_keys($constants['categorias'] ?? [])),
-            'rama'        => 'required|in:' . implode(',', array_keys($constants['ramas'] ?? [])),
-            'fecha_inicio' => 'required|date',
-            'fecha_fin'   => 'nullable|date',
-            'estado'      => 'required|in:activo,finalizado,cancelado',
-            'reglas'      => 'nullable|string'
+            'nombre'              => 'required|string|max:255',
+            'tipo'                => 'required|in:'.implode(',', array_keys($constants['tipos_torneo'] ?? [])),
+            'categoria'           => 'required|in:'.implode(',', array_keys($constants['categorias'] ?? [])),
+            'rama'                => 'required|in:'.implode(',', array_keys($constants['ramas'] ?? [])),
+            'fecha_inicio'        => 'required|date',
+            'fecha_fin'           => 'nullable|date|after_or_equal:fecha_inicio',
+            'estado'              => 'required|in:activo,finalizado,cancelado',
+            'reglas'              => 'nullable|string',
+            'max_equipos'         => 'nullable|integer|min:2|max:999',
+            'inscripcion_abierta' => 'boolean',
         ]);
 
-        Torneo::create([
+        $torneo = Torneo::create([
             ...$validated,
             'created_by' => auth()->id(),
-
+            'inscripcion_abierta' => $request->boolean('inscripcion_abierta', true),
         ]);
+
+        $this->inscripcionService->ensureGrupoGeneral($torneo);
 
         return redirect()->route('torneos.index')
             ->with('success', 'Torneo creado correctamente');
@@ -74,18 +92,25 @@ class TorneoController extends Controller
 
     public function update(Request $request, Torneo $torneo): RedirectResponse
     {
+        $this->authorize(PermissionEnum::TOURNAMENTS_UPDATE);
+
         $validated = $request->validate([
-            'nombre'      => 'required|string|max:255',
-            'tipo'        => 'required',
-            'categoria'   => 'required',
-            'rama'        => 'required',
-            'fecha_inicio' => 'required|date',
-            'fecha_fin'   => 'nullable|date',
-            'estado'      => 'required',
-            'reglas'      => 'nullable|string'
+            'nombre'              => 'required|string|max:255',
+            'tipo'                => 'required',
+            'categoria'           => 'required',
+            'rama'                => 'required',
+            'fecha_inicio'        => 'required|date',
+            'fecha_fin'           => 'nullable|date',
+            'estado'              => 'required|in:activo,finalizado,cancelado',
+            'reglas'              => 'nullable|string',
+            'max_equipos'         => 'nullable|integer|min:2|max:999',
+            'inscripcion_abierta' => 'boolean',
         ]);
 
-        $torneo->update($validated);
+        $torneo->update([
+            ...$validated,
+            'inscripcion_abierta' => $request->boolean('inscripcion_abierta', $torneo->inscripcion_abierta),
+        ]);
 
         return redirect()->route('torneos.index')
             ->with('success', 'Torneo actualizado correctamente');
@@ -93,6 +118,8 @@ class TorneoController extends Controller
 
     public function destroy(Torneo $torneo): RedirectResponse
     {
+        $this->authorize(PermissionEnum::TOURNAMENTS_DELETE);
+
         $torneo->delete();
 
         return redirect()->route('torneos.index')

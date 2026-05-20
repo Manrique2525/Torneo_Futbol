@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Enums\RoleEnum;
 use App\Models\Traits\BelongsToTenant;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -65,4 +66,15 @@ class User extends Authenticatable
     {
         return $this->belongsTo(Tenant::class);
     }
+
+    public function inscripcionesAprobadas(): HasMany
+    {
+        return $this->hasMany(TorneoEquipo::class, 'aprobado_por');
+    }
+
+    public function equiposComoDelegado(): HasMany
+    {
+        return $this->hasMany(Team::class, 'delegado_id');
+    }
 }
+

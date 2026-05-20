@@ -139,4 +139,28 @@ return [
         'suspendido' => 'Suspendido',
         'lesionado' => 'Lesionado',
     ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Estados de inscripción (torneo_equipos)
+    |--------------------------------------------------------------------------
+    */
+    'estados_inscripcion' => [
+        'pendiente' => 'Pendiente',
+        'aprobado' => 'Aprobado',
+        'rechazado' => 'Rechazado',
+        'retirado' => 'Retirado',
+        'descalificado' => 'Descalificado',
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Estados del torneo
+    |--------------------------------------------------------------------------
+    */
+    'estados_torneo' => [
+        'activo' => 'Activo',
+        'finalizado' => 'Finalizado',
+        'cancelado' => 'Cancelado',
+    ],
 ];

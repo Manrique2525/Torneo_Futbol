@@ -5,6 +5,8 @@ namespace App\Models;
 use App\Models\Traits\BelongsToTenant;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Team extends Model
 {
@@ -43,5 +45,22 @@ class Team extends Model
     public function tenant()
     {
         return $this->belongsTo(Tenant::class);
+    }
+
+    public function players(): HasMany
+    {
+        return $this->hasMany(Player::class, 'equipo_id');
+    }
+
+    public function inscripciones(): HasMany
+    {
+        return $this->hasMany(TorneoEquipo::class, 'team_id');
+    }
+
+    public function torneos(): BelongsToMany
+    {
+        return $this->belongsToMany(Torneo::class, 'torneo_equipos', 'team_id', 'torneo_id')
+            ->withPivot(['id', 'estado', 'seed', 'torneo_grupo_id', 'fair_play_points'])
+            ->withTimestamps();
     }
 }

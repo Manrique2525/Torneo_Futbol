@@ -192,10 +192,18 @@ const getEstadoBadge = (estado) => {
                         <td class="p-6 text-right">
                             <div class="flex justify-end gap-2">
                                 <Link
+                                    :href="route('torneos.equipos.index', t.id)"
+                                    class="p-2.5 rounded-xl bg-slate-500/10 text-slate-600 hover:bg-slate-600 hover:text-white transition-all"
+                                    title="Equipos inscritos"
+                                >
+                                    <span class="material-symbols-outlined !text-lg">groups</span>
+                                </Link>
+
+                                <Link
                                     :href="route('torneos.edit', t.id)"
                                     class="p-2.5 rounded-xl bg-primary/10 text-primary hover:bg-primary hover:text-white transition-all"
                                 >
-                                    <span class="material-symbols-outlined !text-lg">open_in_new</span>
+                                    <span class="material-symbols-outlined !text-lg">edit</span>
                                 </Link>
 
                                 <button

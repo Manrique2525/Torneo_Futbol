@@ -4,6 +4,8 @@ namespace App\Providers;
 
 use App\Contexts\TenantContext;
 use App\Enums\RoleEnum;
+use App\Models\TorneoEquipo;
+use App\Policies\TorneoEquipoPolicy;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 
@@ -17,6 +19,8 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        Gate::policy(TorneoEquipo::class, TorneoEquipoPolicy::class);
+
         // Super admin bypasses ALL permission checks
 /*         Gate::before(function ($user, $ability) {
             if ($user->hasRole(RoleEnum::SUPER_ADMIN->value)) {
