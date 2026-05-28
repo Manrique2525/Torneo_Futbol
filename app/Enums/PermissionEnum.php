@@ -87,6 +87,17 @@ final class PermissionEnum
     const PRUEBA_DELETE = 'prueba.delete';
 
 
+    const TORNEO_VIEW   = 'torneo.view';
+    const TORNEO_CREATE = 'torneo.create';
+    const TORNEO_UPDATE = 'torneo.update';
+    const TORNEO_DELETE = 'torneo.delete';
+
+    const ARBITROS_VIEW   = 'arbitros.view';
+    const ARBITROS_CREATE = 'arbitros.create';
+    const ARBITROS_UPDATE = 'arbitros.update';
+    const ARBITROS_DELETE = 'arbitros.delete';
+
+
     public static function all(): array
     {
         return (new \ReflectionClass(self::class))->getConstants();

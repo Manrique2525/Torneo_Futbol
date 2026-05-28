@@ -71,7 +71,7 @@ const isRouteActive = (routeName) => {
             <nav
                 class="flex-1 overflow-y-auto p-4 space-y-2 custom-scrollbar overflow-x-hidden"
             >
-                <Link
+                <Link v-if="can('dashboard.view')"
                     :href="route('dashboard')"
                     :class="[
                         isRouteActive('dashboard')
@@ -96,7 +96,7 @@ const isRouteActive = (routeName) => {
                     </span>
                 </Link>
 
-                <Link
+                <Link  v-if="can('users.view')"
                     :href="route('users.index')"
                     :class="[
                         isRouteActive('users.*')
@@ -174,7 +174,7 @@ const isRouteActive = (routeName) => {
                 </Link>
 
                 <!-- Enlace: Equipos -->
-                <Link
+                <Link v-if="can('teams.view')"
                     :href="route('teams.index')"
                     :class="[
                         isRouteActive('teams.*')
@@ -214,7 +214,7 @@ const isRouteActive = (routeName) => {
                 </Link>
 
                 <!-- Enlace: Árbitros -->
-                <Link
+                <Link v-if="can('arbitros.view')"
                     :href="route('arbitros.index')"
                     :class="[
                         isRouteActive('arbitros.*')
@@ -254,7 +254,7 @@ const isRouteActive = (routeName) => {
                 </Link>
 
                 <!-- Enlace: Jugadores -->
-                <Link
+                <Link v-if="can('players.view')"
                     :href="route('players.index')"
                     :class="[
                         isRouteActive('players.*')
@@ -294,7 +294,7 @@ const isRouteActive = (routeName) => {
                 </Link>
 
                 <!-- Enlace: Canchas -->
-                <Link
+                <Link v-if="can('canchas.view')"
                     :href="route('canchas.index')"
                     :class="[
                         isRouteActive('canchas.*')
@@ -334,7 +334,7 @@ const isRouteActive = (routeName) => {
                 </Link>
 
                 <!-- Enlace: Jornadas -->
-                <Link
+                <Link v-if="can('jornadas.view')"
                     :href="route('jornadas.index')"
                     :class="[
                         isRouteActive('jornadas.*')
@@ -374,7 +374,7 @@ const isRouteActive = (routeName) => {
                 </Link>
 
                 <!-- Enlace: Partidos -->
-                <Link
+                <Link v-if="can('matches.view')"
                     :href="route('partidos.index')"
                     :class="[
                         isRouteActive('partidos.*')

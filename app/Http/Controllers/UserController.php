@@ -68,9 +68,9 @@ class UserController extends Controller
         $this->authorize('users.create');
 
         return Inertia::render('Users/Create', [
-            'roles' => collect(RoleEnum::assignable())->map(fn ($r) => [
-                'value' => $r->value,
-                'label' => $r->label(),
+            'roles' => collect(RoleEnum::assignable())->map(fn ($roleValue) => [
+                'value' => $roleValue,
+                'label' => RoleEnum::labels()[$roleValue] ?? $roleValue,
             ]),
         ]);
     }
@@ -121,9 +121,9 @@ class UserController extends Controller
                 'status' => $user->status,
                 'role'   => $user->getRoleNames()->first() ?? '',
             ],
-            'roles' => collect(RoleEnum::assignable())->map(fn ($r) => [
-                'value' => $r->value,
-                'label' => $r->label(),
+            'roles' => collect(RoleEnum::assignable())->map(fn ($roleValue) => [
+                'value' => $roleValue,
+                'label' => RoleEnum::labels()[$roleValue] ?? $roleValue,
             ]),
         ]);
     }
