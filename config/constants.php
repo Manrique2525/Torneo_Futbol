@@ -163,4 +163,51 @@ return [
         'finalizado' => 'Finalizado',
         'cancelado' => 'Cancelado',
     ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Tipos de Cancha
+    |--------------------------------------------------------------------------
+    */
+    'tipos_cancha' => [
+        'futbol-11' => 'Fútbol 11',
+        'futbol-7' => 'Fútbol 7',
+        'futbol-5' => 'Fútbol 5',
+        'futbol-sala' => 'Fútbol Sala',
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Estados de Cancha
+    |--------------------------------------------------------------------------
+    */
+    'estados_cancha' => [
+        'activo' => 'Activo',
+        'inactivo' => 'Inactivo',
+        'mantenimiento' => 'En Mantenimiento',
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Estados de Jornada
+    |--------------------------------------------------------------------------
+    */
+    'estados_jornada' => [
+        'borrador' => 'Borrador',
+        'programada' => 'Programada',
+        'finalizada' => 'Finalizada',
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Estados de Partido
+    |--------------------------------------------------------------------------
+    */
+    'estados_partido' => [
+        'programado' => 'Programado',
+        'en_juego' => 'En Juego',
+        'finalizado' => 'Finalizado',
+        'suspendido' => 'Suspendido',
+        'cancelado' => 'Cancelado',
+    ],
 ];

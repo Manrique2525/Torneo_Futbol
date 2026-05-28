@@ -6,6 +6,7 @@ use App\Enums\TorneoEquipoEstadoEnum;
 use App\Models\Traits\BelongsToTenant;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class TorneoEquipo extends Model
@@ -82,6 +83,16 @@ class TorneoEquipo extends Model
     public function aprobadoPor(): BelongsTo
     {
         return $this->belongsTo(User::class, 'aprobado_por');
+    }
+
+    public function partidosLocal(): HasMany
+    {
+        return $this->hasMany(Partido::class, 'equipo_local_id');
+    }
+
+    public function partidosVisitante(): HasMany
+    {
+        return $this->hasMany(Partido::class, 'equipo_visitante_id');
     }
 
     // ── Helpers ─────────────────────────────────────

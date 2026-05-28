@@ -41,6 +41,16 @@ class Torneo extends Model
         return $this->belongsTo(User::class, 'created_by');
     }
 
+    public function jornadas(): HasMany
+    {
+        return $this->hasMany(Jornada::class);
+    }
+
+    public function partidos(): HasMany
+    {
+        return $this->hasMany(Partido::class);
+    }
+
     public function grupos(): HasMany
     {
         return $this->hasMany(TorneoGrupo::class);

@@ -52,9 +52,9 @@ class UserController extends Controller
 
         return Inertia::render('Users/Index', [
             'users'   => $users,
-            'roles'   => collect(RoleEnum::assignable())->map(fn ($r) => [
-                'value' => $r->value,
-                'label' => $r->label(),
+            'roles' => collect(RoleEnum::assignable())->map(fn ($roleValue) => [
+                'value' => $roleValue,
+                'label' => RoleEnum::labels()[$roleValue] ?? $roleValue,
             ]),
             'filters' => $request->only(['search', 'role', 'status']),
         ]);

@@ -1,0 +1,310 @@
+<script setup>
+import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
+import Modal from '@/Components/Modal.vue';
+import Pagination from '@/Components/Pagination.vue';
+import VSelectCustom from '@/Components/VSelectCustom.vue';
+import { ref, watch } from 'vue';
+import { Head, router, Link } from '@inertiajs/vue3';
+
+const props = defineProps({
+    partidos: Object,
+    torneos: Array,
+    constantes: Object,
+    filters: Object,
+    flash: Object,
+});
+
+const constantes = props.constantes || {};
+
+const searchQuery = ref(props.filters?.search || '');
+const filterTorneo = ref(props.filters?.torneo_id || 'todos');
+const filterEstado = ref(props.filters?.estado || 'todos');
+
+const torneoOptions = [
+    { label: 'Todos los Torneos', value: 'todos' },
+    ...(props.torneos || []).map((t) => ({
+        label: t.nombre,
+        value: String(t.id),
+    })),
+];
+
+const estadoOptions = [
+    { label: 'Todos los Estados', value: 'todos' },
+    ...Object.entries(constantes.estados_partido || {}).map(([key, label]) => ({
+        label,
+        value: key,
+    })),
+];
+
+const debounce = (fn, delay) => {
+    let t;
+    return (...args) => {
+        clearTimeout(t);
+        t = setTimeout(() => fn(...args), delay);
+    };
+};
+
+const search = debounce(() => {
+    router.get(route('partidos.index'), {
+        search: searchQuery.value,
+        torneo_id: filterTorneo.value === 'todos' ? undefined : filterTorneo.value,
+        estado: filterEstado.value === 'todos' ? undefined : filterEstado.value,
+    }, { preserveState: true, replace: true });
+}, 300);
+
+watch([searchQuery, filterTorneo, filterEstado], search);
+
+const confirmModal = ref({ show: false });
+
+const triggerDelete = (partido) => {
+    const local = partido.equipo_local?.equipo?.name || 'Local';
+    const visitante = partido.equipo_visitante?.equipo?.name || 'Visitante';
+    confirmModal.value = {
+        show: true,
+        title: 'Eliminar Partido',
+        message: `¿Eliminar ${local} vs ${visitante}?`,
+        action: () => router.delete(route('partidos.destroy', partido.id), { onFinish: closeConfirm }),
+    };
+};
+
+const closeConfirm = () => (confirmModal.value.show = false);
+
+const getEstadoBadge = (estado) => {
+    const colors = {
+        programado: 'bg-blue-500/10 text-blue-600 border-blue-500/20',
+        en_juego: 'bg-amber-500/10 text-amber-600 border-amber-500/20',
+        finalizado: 'bg-green-500/10 text-green-600 border-green-500/20',
+        suspendido: 'bg-red-500/10 text-red-600 border-red-500/20',
+        cancelado: 'bg-slate-500/10 text-slate-600 border-slate-500/20',
+    };
+    return colors[estado] || 'bg-slate-100 text-slate-500 border-slate-200';
+};
+
+const formatDate = (date) => {
+    if (!date) return '—';
+    return new Date(date).toLocaleDateString('es-MX', { day: '2-digit', month: 'short', year: 'numeric' });
+};
+
+const formatHora = (hora) => {
+    if (!hora) return '—';
+    return hora.substring(0, 5);
+};
+</script>
+
+<template>
+<Head title="Partidos" />
+
+<AuthenticatedLayout>
+<div class="space-y-6">
+
+    <!-- HEADER -->
+    <div class="flex flex-col md:flex-row md:items-end justify-between gap-4">
+        <div>
+            <h2 class="text-3xl font-black uppercase tracking-tighter text-slate-900 dark:text-white leading-none">
+                Gestión de <span class="text-primary">Partidos</span>
+            </h2>
+            <p class="text-[10px] font-bold uppercase tracking-widest text-slate-500 mt-2">
+                {{ partidos?.total || 0 }} registros encontrados
+            </p>
+        </div>
+
+        <Link
+            :href="route('partidos.create')"
+            class="flex items-center px-3 py-3 bg-primary text-white font-black uppercase text-[11px] tracking-[0.15em] rounded-2xl shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-95 transition-all"
+        >
+            <span class="material-symbols-outlined !text-sm mr-2">sports_soccer</span>
+            Nuevo Partido
+        </Link>
+    </div>
+
+    <!-- FILTROS -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 bg-white dark:bg-[#1A2C26] p-4 rounded-[2rem] border border-slate-100 dark:border-slate-800 shadow-sm">
+
+        <div class="md:col-span-2 relative">
+            <span class="absolute inset-y-0 left-4 flex items-center text-slate-400">
+                <span class="material-symbols-outlined text-xl">search</span>
+            </span>
+            <input
+                v-model="searchQuery"
+                type="text"
+                placeholder="Buscar equipo..."
+                class="w-full pl-12 pr-4 py-3 bg-slate-50 dark:bg-white/5 border-none rounded-2xl text-sm focus:ring-2 focus:ring-primary transition-all"
+            >
+        </div>
+
+        <div>
+            <VSelectCustom
+                v-model="filterTorneo"
+                :options="torneoOptions"
+                label="label"
+                :reduce="opt => opt.value"
+                :clearable="false"
+                placeholder="Torneo..."
+            />
+        </div>
+
+        <div>
+            <VSelectCustom
+                v-model="filterEstado"
+                :options="estadoOptions"
+                label="label"
+                :reduce="opt => opt.value"
+                :clearable="false"
+                placeholder="Estado..."
+            />
+        </div>
+    </div>
+
+    <!-- FLASH -->
+    <div
+        v-if="flash?.success"
+        class="bg-green-500/10 border border-green-500/20 text-green-700 dark:text-green-400 px-6 py-4 rounded-2xl flex items-center gap-3 shadow-sm"
+    >
+        <span class="material-symbols-outlined text-green-600">check_circle</span>
+        <span class="text-sm font-bold uppercase tracking-wide">{{ flash.success }}</span>
+    </div>
+
+    <!-- TABLA -->
+    <div class="bg-white dark:bg-[#1A2C26] rounded-[2.5rem] border border-slate-100 dark:border-slate-800 shadow-sm overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="w-full text-left">
+                <thead>
+                    <tr class="bg-slate-50/50 dark:bg-black/10 border-b border-slate-100 dark:border-slate-800">
+                        <th class="p-6 text-[10px] font-black uppercase tracking-widest text-slate-400">Partido</th>
+                        <th class="p-6 text-[10px] font-black uppercase tracking-widest text-slate-400">Torneo</th>
+                        <th class="p-6 text-[10px] font-black uppercase tracking-widest text-slate-400 text-center">Jornada</th>
+                        <th class="p-6 text-[10px] font-black uppercase tracking-widest text-slate-400 text-center">Fecha / Hora</th>
+                        <th class="p-6 text-[10px] font-black uppercase tracking-widest text-slate-400 text-center">Cancha</th>
+                        <th class="p-6 text-[10px] font-black uppercase tracking-widest text-slate-400 text-center">Estado</th>
+                        <th class="p-6"></th>
+                    </tr>
+                </thead>
+
+                <tbody class="divide-y divide-slate-50 dark:divide-slate-800/50">
+                    <tr
+                        v-for="p in partidos?.data || []"
+                        :key="p.id"
+                        class="group hover:bg-slate-50/80 dark:hover:bg-white/5 transition-all"
+                    >
+                        <td class="p-6">
+                            <div class="flex items-center gap-3">
+                                <div class="flex items-center gap-2">
+                                    <span class="text-sm font-black text-slate-900 dark:text-white">
+                                        {{ p.equipo_local?.equipo?.name || 'Local' }}
+                                    </span>
+                                    <span class="text-[10px] font-bold text-slate-400 uppercase">vs</span>
+                                    <span class="text-sm font-black text-slate-900 dark:text-white">
+                                        {{ p.equipo_visitante?.equipo?.name || 'Visitante' }}
+                                    </span>
+                                </div>
+                            </div>
+                        </td>
+
+                        <td class="p-6">
+                            <div class="flex items-center gap-2">
+                                <span class="material-symbols-outlined !text-sm text-slate-400">emoji_events</span>
+                                <span class="text-sm text-slate-600 dark:text-slate-400">
+                                    {{ p.torneo?.nombre || '—' }}
+                                </span>
+                            </div>
+                        </td>
+
+                        <td class="p-6 text-center">
+                            <span v-if="p.jornada" class="text-sm font-medium text-slate-700 dark:text-slate-300">
+                                {{ p.jornada.nombre }}
+                            </span>
+                            <span v-else class="text-xs text-slate-400">—</span>
+                        </td>
+
+                        <td class="p-6 text-center">
+                            <div class="flex flex-col items-center gap-1">
+                                <span class="text-sm font-bold text-slate-800 dark:text-slate-200">{{ formatDate(p.fecha) }}</span>
+                                <span class="text-[10px] text-slate-400 flex items-center gap-1">
+                                    <span class="material-symbols-outlined !text-[14px]">schedule</span>
+                                    {{ formatHora(p.hora) }}
+                                </span>
+                            </div>
+                        </td>
+
+                        <td class="p-6 text-center">
+                            <span v-if="p.cancha" class="text-sm text-slate-600 dark:text-slate-400 flex items-center justify-center gap-1">
+                                <span class="material-symbols-outlined !text-sm">stadium</span>
+                                {{ p.cancha.nombre }}
+                            </span>
+                            <span v-else class="text-xs text-slate-400">—</span>
+                        </td>
+
+                        <td class="p-6 text-center">
+                            <span :class="['px-4 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-tighter border-b-2', getEstadoBadge(p.estado)]">
+                                {{ constantes.estados_partido?.[p.estado] || p.estado }}
+                            </span>
+                        </td>
+
+                        <td class="p-6 text-right">
+                            <div class="flex justify-end gap-2">
+                                <Link
+                                    :href="route('partidos.edit', p.id)"
+                                    class="p-2.5 rounded-xl bg-primary/10 text-primary hover:bg-primary hover:text-white transition-all"
+                                >
+                                    <span class="material-symbols-outlined !text-lg">open_in_new</span>
+                                </Link>
+
+                                <button
+                                    @click="triggerDelete(p)"
+                                    class="p-2.5 rounded-xl bg-red-500/10 text-red-600 hover:bg-red-600 hover:text-white transition-all"
+                                >
+                                    <span class="material-symbols-outlined !text-lg">delete</span>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+
+                    <tr v-if="!partidos?.data?.length">
+                        <td colspan="7" class="text-center py-10 text-slate-400">
+                            No hay partidos registrados
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="p-6 border-t border-slate-100 dark:border-slate-800/50">
+            <div class="flex justify-between items-center">
+                <span class="text-[10px] font-bold uppercase tracking-widest text-slate-500">
+                    Mostrando {{ partidos.from || 0 }} - {{ partidos.to || 0 }} de {{ partidos.total }} registros
+                </span>
+                <Pagination :links="partidos.links" />
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- MODAL -->
+<Modal :show="confirmModal.show" maxWidth="md" @close="closeConfirm">
+    <div class="p-8">
+        <h3 class="text-xl font-black uppercase tracking-tighter mb-4">
+            {{ confirmModal.title }}
+        </h3>
+        <p class="mb-6 text-sm text-slate-600 dark:text-slate-400">
+            {{ confirmModal.message }}
+        </p>
+        <div class="flex flex-col gap-3">
+            <button
+                @click="confirmModal.action"
+                class="w-full py-3 rounded-2xl text-white font-black uppercase tracking-widest bg-red-600 hover:bg-red-700 transition-all"
+            >
+                Confirmar
+            </button>
+            <button
+                @click="closeConfirm"
+                class="py-2 text-xs font-bold uppercase tracking-widest text-slate-400"
+            >
+                Cancelar
+            </button>
+        </div>
+    </div>
+</Modal>
+
+</AuthenticatedLayout>
+</template>
