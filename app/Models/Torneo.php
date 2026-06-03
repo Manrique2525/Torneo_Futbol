@@ -23,6 +23,7 @@ class Torneo extends Model
         'estado',
         'max_equipos',
         'inscripcion_abierta',
+        'configuracion_asistencia_delegado',
         'created_by',
     ];
 
@@ -33,6 +34,7 @@ class Torneo extends Model
             'fecha_fin'           => 'date',
             'max_equipos'         => 'integer',
             'inscripcion_abierta' => 'boolean',
+            'configuracion_asistencia_delegado' => 'boolean',
         ];
     }
 

@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Models\Traits\BelongsToTenant;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Partido extends Model
 {
@@ -64,5 +65,20 @@ class Partido extends Model
     public function arbitro(): BelongsTo
     {
         return $this->belongsTo(Arbitro::class);
+    }
+
+    public function eventos(): HasMany
+    {
+        return $this->hasMany(PartidoEvento::class, 'partido_id')->orderBy('minuto')->orderBy('created_at');
+    }
+
+    public function asistencias(): HasMany
+    {
+        return $this->hasMany(PartidoAsistencia::class, 'partido_id');
+    }
+
+    public function puedeRegistrarEventos(): bool
+    {
+        return in_array($this->estado, ['en_juego', 'descanso'], true);
     }
 }

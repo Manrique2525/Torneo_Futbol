@@ -57,6 +57,7 @@ require __DIR__.'/teams.php';
 require __DIR__.'/arbitros.php';
 require __DIR__.'/players.php';
 require __DIR__.'/canchas.php';
-require __DIR__.'/jornadas.php';
-require __DIR__.'/partidos.php';
+    require __DIR__.'/jornadas.php';
+    require __DIR__.'/partidos.php';
+    require __DIR__.'/partidos-en-vivo.php';
 

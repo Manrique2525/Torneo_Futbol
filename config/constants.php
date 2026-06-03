@@ -206,6 +206,7 @@ return [
     'estados_partido' => [
         'programado' => 'Programado',
         'en_juego' => 'En Juego',
+        'descanso' => 'Descanso',
         'finalizado' => 'Finalizado',
         'suspendido' => 'Suspendido',
         'cancelado' => 'Cancelado',

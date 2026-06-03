@@ -37,7 +37,7 @@ public function share(Request $request): array
         return parent::share($request);
     }
 
-    // 🔥 FORZAR CONTEXTO SPATIE AQUÍ
+    // FORZAR CONTEXTO SPATIE AQUÍ
     setPermissionsTeamId($user->tenant_id);
 
     return [

@@ -243,6 +243,15 @@ const formatHora = (hora) => {
                         <td class="p-6 text-right">
                             <div class="flex justify-end gap-2">
                                 <Link
+                                    v-if="['programado', 'en_juego', 'descanso'].includes(p.estado)"
+                                    :href="route('partidos.en-vivo.show', p.id)"
+                                    class="p-2.5 rounded-xl bg-amber-500/10 text-amber-600 hover:bg-amber-600 hover:text-white transition-all"
+                                    title="Registrar en vivo"
+                                >
+                                    <span class="material-symbols-outlined !text-lg">online_prediction</span>
+                                </Link>
+
+                                <Link
                                     :href="route('partidos.edit', p.id)"
                                     class="p-2.5 rounded-xl bg-primary/10 text-primary hover:bg-primary hover:text-white transition-all"
                                 >
