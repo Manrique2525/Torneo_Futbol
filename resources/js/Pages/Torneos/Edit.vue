@@ -34,6 +34,7 @@ const form = useForm({
     fecha_fin: props.torneo.fecha_fin ?? '',
     estado: props.torneo.estado ?? 'activo',
     reglas: props.torneo.reglas ?? '',
+    fair_play_automatico: props.torneo.fair_play_automatico ?? false,
 });
 
 const onTipoChange = (o) => form.tipo = o?.value ?? '';
@@ -197,6 +198,30 @@ const submit = () => {
                                        transition-all outline-none"
                             >
                             <InputError :message="form.errors.fecha_fin" class="mt-1.5" />
+                        </div>
+
+                        <!-- Fair Play Automatico -->
+                        <div class="md:col-span-2">
+                            <label class="flex items-center gap-3 cursor-pointer select-none group">
+                                <div class="relative">
+                                    <input
+                                        type="checkbox"
+                                        v-model="form.fair_play_automatico"
+                                        class="peer sr-only"
+                                    >
+                                    <div class="h-6 w-11 rounded-full bg-slate-200 dark:bg-slate-700 peer-checked:bg-primary transition-all"></div>
+                                    <div class="absolute left-1 top-1 h-4 w-4 rounded-full bg-white transition-all peer-checked:translate-x-5"></div>
+                                </div>
+                                <div>
+                                    <span class="text-sm font-bold text-slate-800 dark:text-white group-hover:text-primary transition-colors">
+                                        Fair Play Automatico
+                                    </span>
+                                    <p class="text-[11px] text-slate-400 font-medium">
+                                        Descuenta puntos de fair play por tarjetas y faltas automáticamente
+                                    </p>
+                                </div>
+                            </label>
+                            <InputError :message="form.errors.fair_play_automatico" class="mt-1.5 ml-14" />
                         </div>
 
                         <!-- Reglas -->

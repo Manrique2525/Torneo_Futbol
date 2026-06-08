@@ -294,7 +294,7 @@ const isRouteActive = (routeName) => {
                 </Link>
 
                 <!-- Enlace: Canchas -->
-                <Link v-if="can('canchas.view')"
+                <Link v-if="can('fields.view')"
                     :href="route('canchas.index')"
                     :class="[
                         isRouteActive('canchas.*')

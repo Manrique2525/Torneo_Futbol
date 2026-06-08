@@ -11,6 +11,10 @@ use Illuminate\Support\Facades\DB;
 
 class PartidoEnVivoService
 {
+    public function __construct(
+        private readonly StandingsService $standingsService
+    ) {}
+
     /**
      * Obtiene todos los datos necesarios para la pantalla de registro en vivo.
      */
@@ -119,6 +123,8 @@ class PartidoEnVivoService
 
             $this->recalcularGoles($partido);
 
+            $this->standingsService->aplicarDescuentoFairPlay($evento);
+
             return $evento;
         });
     }
@@ -180,6 +186,10 @@ class PartidoEnVivoService
 
         $partido->estado = $nuevoEstado;
         $partido->save();
+
+        if ($nuevoEstado === 'finalizado' && $partido->torneo?->tipo === 'liga') {
+            $this->standingsService->recalcular($partido->torneo);
+        }
     }
 
     private function recalcularGoles(Partido $partido): void

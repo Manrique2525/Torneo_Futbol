@@ -192,6 +192,15 @@ const getEstadoBadge = (estado) => {
                         <td class="p-6 text-right">
                             <div class="flex justify-end gap-2">
                                 <Link
+                                    v-if="t.tipo === 'liga'"
+                                    :href="route('standings.index', t.id)"
+                                    class="p-2.5 rounded-xl bg-emerald-500/10 text-emerald-600 hover:bg-emerald-600 hover:text-white transition-all"
+                                    title="Tabla de posiciones"
+                                >
+                                    <span class="material-symbols-outlined !text-lg">leaderboard</span>
+                                </Link>
+
+                                <Link
                                     :href="route('torneos.equipos.index', t.id)"
                                     class="p-2.5 rounded-xl bg-slate-500/10 text-slate-600 hover:bg-slate-600 hover:text-white transition-all"
                                     title="Equipos inscritos"

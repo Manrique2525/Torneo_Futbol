@@ -76,12 +76,14 @@ class TorneoController extends Controller
             'reglas'              => 'nullable|string',
             'max_equipos'         => 'nullable|integer|min:2|max:999',
             'inscripcion_abierta' => 'boolean',
+            'fair_play_automatico' => 'boolean',
         ]);
 
         $torneo = Torneo::create([
             ...$validated,
             'created_by' => auth()->id(),
             'inscripcion_abierta' => $request->boolean('inscripcion_abierta', true),
+            'fair_play_automatico' => $request->boolean('fair_play_automatico', false),
         ]);
 
         $this->inscripcionService->ensureGrupoGeneral($torneo);
@@ -105,11 +107,13 @@ class TorneoController extends Controller
             'reglas'              => 'nullable|string',
             'max_equipos'         => 'nullable|integer|min:2|max:999',
             'inscripcion_abierta' => 'boolean',
+            'fair_play_automatico' => 'boolean',
         ]);
 
         $torneo->update([
             ...$validated,
             'inscripcion_abierta' => $request->boolean('inscripcion_abierta', $torneo->inscripcion_abierta),
+            'fair_play_automatico' => $request->boolean('fair_play_automatico', $torneo->fair_play_automatico),
         ]);
 
         return redirect()->route('torneos.index')

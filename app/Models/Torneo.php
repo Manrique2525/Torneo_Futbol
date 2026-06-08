@@ -24,6 +24,7 @@ class Torneo extends Model
         'max_equipos',
         'inscripcion_abierta',
         'configuracion_asistencia_delegado',
+        'fair_play_automatico',
         'created_by',
     ];
 
@@ -35,6 +36,7 @@ class Torneo extends Model
             'max_equipos'         => 'integer',
             'inscripcion_abierta' => 'boolean',
             'configuracion_asistencia_delegado' => 'boolean',
+            'fair_play_automatico' => 'boolean',
         ];
     }
 
@@ -81,6 +83,16 @@ class Torneo extends Model
     public function equiposAprobados(): BelongsToMany
     {
         return $this->equipos()->wherePivot('estado', 'aprobado');
+    }
+
+    public function standings(): HasMany
+    {
+        return $this->hasMany(TorneoStanding::class, 'torneo_id')->orderBy('posicion');
+    }
+
+    public function standingsPorGrupo(?int $grupoId): HasMany
+    {
+        return $this->standings()->when($grupoId, fn ($q) => $q->where('torneo_grupo_id', $grupoId));
     }
 
     public function aceptaInscripciones(): bool
