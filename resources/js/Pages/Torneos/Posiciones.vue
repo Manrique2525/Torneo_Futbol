@@ -2,11 +2,12 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import StandingsTable from '@/Components/StandingsTable.vue';
 import { Head, Link, router } from '@inertiajs/vue3';
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 import { useCan } from '@/Shared/Composables/useCan';
 
 const props = defineProps({
     torneo: Object,
+    es_liga: Boolean,
     grupos: Array,
     flash: Object,
 });
@@ -14,6 +15,7 @@ const props = defineProps({
 const { can } = useCan();
 
 const grupoActivo = ref(0);
+const vista = ref(props.es_liga ? 'posiciones' : 'rendimiento');
 
 const recalcular = () => {
     if (!confirm('¿Recalcular la tabla de posiciones?')) return;
@@ -22,6 +24,29 @@ const recalcular = () => {
         preserveScroll: true,
     });
 };
+
+const standingsOrdenados = computed(() => {
+    const grupo = props.grupos?.[grupoActivo.value];
+    if (!grupo) return [];
+    return [...grupo.standings].sort((a, b) => {
+        if (vista.value === 'posiciones') {
+            return (a.posicion_posiciones ?? 999) - (b.posicion_posiciones ?? 999);
+        }
+        return (a.posicion_rendimiento ?? 999) - (b.posicion_rendimiento ?? 999);
+    });
+});
+
+const leyenda = computed(() => {
+    if (vista.value === 'posiciones') {
+        return 'Ordenado por: Puntos → Diferencia → Goles a favor → Fair Play';
+    }
+    return 'Ordenado por: Partidos ganados → Diferencia → Goles a favor → Fair Play';
+});
+
+const tipoLabel = computed(() => {
+    const labels = { liga: 'Liga', copa: 'Copa', relampago: 'Relámpago' };
+    return labels[props.torneo?.tipo] ?? props.torneo?.tipo;
+});
 </script>
 
 <template>
@@ -44,7 +69,7 @@ const recalcular = () => {
                 Tabla de <span class="text-primary">Posiciones</span>
             </h2>
             <p class="text-[10px] font-bold uppercase tracking-widest text-slate-500 mt-2">
-                {{ torneo?.nombre }} — Liga
+                {{ torneo?.nombre }} — {{ tipoLabel }}
             </p>
         </div>
 
@@ -68,6 +93,28 @@ const recalcular = () => {
     <div v-if="flash?.error" class="bg-red-500/10 border border-red-500/20 text-red-700 dark:text-red-400 px-6 py-4 rounded-2xl flex items-center gap-3 shadow-sm">
         <span class="material-symbols-outlined text-red-600">error</span>
         <span class="text-sm font-bold uppercase tracking-wide">{{ flash.error }}</span>
+    </div>
+
+    <!-- Toggle vista -->
+    <div class="flex flex-wrap gap-2">
+        <button
+            @click="vista = 'posiciones'"
+            class="px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all"
+            :class="vista === 'posiciones'
+                ? 'bg-primary text-white shadow-lg shadow-primary/20'
+                : 'bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-white/10'"
+        >
+            Posiciones
+        </button>
+        <button
+            @click="vista = 'rendimiento'"
+            class="px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all"
+            :class="vista === 'rendimiento'
+                ? 'bg-primary text-white shadow-lg shadow-primary/20'
+                : 'bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-white/10'"
+        >
+            Rendimiento
+        </button>
     </div>
 
     <!-- Selector de grupos -->
@@ -96,13 +143,14 @@ const recalcular = () => {
                     {{ grupos?.[grupoActivo]?.nombre ?? 'General' }}
                 </h3>
                 <p class="text-[11px] text-slate-400 font-medium">
-                    {{ grupos?.[grupoActivo]?.standings?.length ?? 0 }} equipos
+                    {{ leyenda }}
                 </p>
             </div>
         </div>
 
         <StandingsTable
-            :standings="grupos?.[grupoActivo]?.standings ?? []"
+            :standings="standingsOrdenados"
+            :vista="vista"
             :puede-recalcular="can('standings.recalculate')"
         />
     </div>

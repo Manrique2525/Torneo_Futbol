@@ -17,7 +17,9 @@ class StandingsService
      */
     public function recalcular(Torneo $torneo): void
     {
-        DB::transaction(function () use ($torneo) {
+        $esLiga = $torneo->tipo === 'liga';
+
+        DB::transaction(function () use ($torneo, $esLiga) {
             // 1. Limpiar standings actuales del torneo
             TorneoStanding::where('torneo_id', $torneo->id)->delete();
 
@@ -56,6 +58,10 @@ class StandingsService
             // 5. Guardar filas
             foreach ($stats as $row) {
                 $row['dg'] = $row['gf'] - $row['gc'];
+                if (! $esLiga) {
+                    $row['pts'] = 0;
+                }
+
                 TorneoStanding::create([
                     'tenant_id'         => $torneo->tenant_id,
                     'torneo_id'         => $torneo->id,
@@ -70,11 +76,12 @@ class StandingsService
                     'dg'                => $row['dg'],
                     'pts'               => $row['pts'],
                     'fair_play'         => $row['fair_play'],
-                    'posicion'          => null,
+                    'posicion_posiciones'  => null,
+                    'posicion_rendimiento' => null,
                 ]);
             }
 
-            // 6. Calcular posiciones por grupo
+            // 6. Calcular AMBAS posiciones por grupo
             $gruposIds = $equipos->pluck('torneo_grupo_id')->unique()->filter();
             if ($gruposIds->isEmpty()) {
                 $gruposIds = [null];
@@ -88,7 +95,8 @@ class StandingsService
                     $query->whereNull('torneo_grupo_id');
                 }
 
-                $filas = $query
+                // Posición por "Posiciones" (Pts → DG → GF → FP)
+                $filasPosiciones = (clone $query)
                     ->orderByDesc('pts')
                     ->orderByDesc('dg')
                     ->orderByDesc('gf')
@@ -96,8 +104,22 @@ class StandingsService
                     ->get();
 
                 $pos = 1;
-                foreach ($filas as $fila) {
-                    $fila->update(['posicion' => $pos]);
+                foreach ($filasPosiciones as $fila) {
+                    $fila->update(['posicion_posiciones' => $pos]);
+                    $pos++;
+                }
+
+                // Posición por "Rendimiento" (PG → DG → GF → FP)
+                $filasRendimiento = (clone $query)
+                    ->orderByDesc('pg')
+                    ->orderByDesc('dg')
+                    ->orderByDesc('gf')
+                    ->orderByDesc('fair_play')
+                    ->get();
+
+                $pos = 1;
+                foreach ($filasRendimiento as $fila) {
+                    $fila->update(['posicion_rendimiento' => $pos]);
                     $pos++;
                 }
             }

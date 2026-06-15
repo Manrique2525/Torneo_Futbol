@@ -100,7 +100,7 @@ const formatHora = (hora) => {
     <!-- HEADER -->
     <div class="flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
-            <h2 class="text-3xl font-black uppercase tracking-tighter text-slate-900 dark:text-white leading-none">
+            <h2 class="text-2xl md:text-3xl font-black uppercase tracking-tighter text-slate-900 dark:text-white leading-none">
                 Gestión de <span class="text-primary">Partidos</span>
             </h2>
             <p class="text-[10px] font-bold uppercase tracking-widest text-slate-500 mt-2">
@@ -278,7 +278,7 @@ const formatHora = (hora) => {
         </div>
 
         <div class="p-6 border-t border-slate-100 dark:border-slate-800/50">
-            <div class="flex justify-between items-center">
+            <div class="flex flex-col sm:flex-row justify-between items-center gap-3">
                 <span class="text-[10px] font-bold uppercase tracking-widest text-slate-500">
                     Mostrando {{ partidos.from || 0 }} - {{ partidos.to || 0 }} de {{ partidos.total }} registros
                 </span>

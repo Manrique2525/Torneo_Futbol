@@ -51,7 +51,7 @@ const registrar = (jugador, tipo) => {
             >
         </div>
 
-        <div class="space-y-2 max-h-[500px] overflow-y-auto custom-scrollbar pr-1">
+        <div class="space-y-2 max-h-[280px] sm:max-h-[400px] lg:max-h-[500px] overflow-y-auto custom-scrollbar pr-1">
             <div
                 v-for="jugador in jugadoresFiltrados()"
                 :key="jugador.id"

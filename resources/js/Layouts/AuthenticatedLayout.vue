@@ -1,16 +1,15 @@
 <script setup>
-//Layouts/AuthenticatedLayout.vue
-import { ref, computed } from "vue";
+import { ref, computed, watch } from "vue";
 import { useDarkMode } from "@/Composables/useDarkMode";
-import { Link } from "@inertiajs/vue3";
-import { usePage } from "@inertiajs/vue3";
+import { Link, usePage } from "@inertiajs/vue3";
 
 import Dropdown from "@/Components/Dropdown.vue";
 import DropdownLink from "@/Components/DropdownLink.vue";
 import { useCan } from "@/Shared/Composables/useCan";
 
 const { isDark, toggleDark } = useDarkMode();
-const isCollapsed = ref(false);
+const isDesktopCollapsed = ref(false);
+const isMobileOpen = ref(false);
 const page = usePage();
 const { can } = useCan();
 
@@ -18,28 +17,53 @@ const openMenus = ref({
     torneos: false,
     partidos: false,
     administracion: false,
+    seguridad: false,
 });
 
 const toggleMenu = (menu) => {
-    if (isCollapsed.value) isCollapsed.value = false;
+    if (isDesktopCollapsed.value) isDesktopCollapsed.value = false;
     openMenus.value[menu] = !openMenus.value[menu];
 };
 
 const isRouteActive = (routeName) => {
     return route().current(routeName);
 };
+
+// Cerrar menú móvil al cambiar de ruta
+watch(() => page.component, () => {
+    isMobileOpen.value = false;
+});
+
+// Prevenir scroll del body cuando el menú móvil está abierto
+watch(isMobileOpen, (v) => {
+    if (typeof document !== 'undefined') {
+        document.body.classList.toggle('overflow-hidden', v);
+    }
+});
 </script>
 
 <template>
     <div
         class="relative flex h-screen w-full overflow-hidden bg-slate-50 dark:bg-[#0F1A16]"
     >
+        <!-- Backdrop para sidebar móvil -->
+        <div
+            v-if="isMobileOpen"
+            @click="isMobileOpen = false"
+            class="fixed inset-0 bg-black/50 z-40 lg:hidden transition-opacity"
+        />
+
         <aside
-            :class="[isCollapsed ? 'w-20' : 'w-72']"
-            class="flex flex-col bg-white dark:bg-[#1A2C26] border-r border-slate-200 dark:border-slate-800 transition-[width] duration-300 ease-in-out shrink-0 z-50 overflow-hidden"
+            :class="[
+                isMobileOpen ? 'translate-x-0' : '-translate-x-full',
+                'lg:translate-x-0',
+                isDesktopCollapsed ? 'lg:w-20' : 'lg:w-72',
+                'w-72',
+            ]"
+            class="fixed lg:static inset-y-0 left-0 z-50 flex flex-col bg-white dark:bg-[#1A2C26] border-r border-slate-200 dark:border-slate-800 transition-transform lg:transition-[width] duration-300 ease-in-out shrink-0 overflow-hidden"
         >
             <div
-                class="flex h-20 items-center gap-3 px-6 border-b border-slate-100 dark:border-slate-800/50 shrink-0"
+                class="flex h-16 lg:h-20 items-center gap-3 px-6 border-b border-slate-100 dark:border-slate-800/50 shrink-0"
             >
                 <div
                     class="bg-primary flex items-center justify-center rounded-xl h-10 w-10 shrink-0 shadow-lg shadow-primary/20 text-white"
@@ -50,7 +74,7 @@ const isRouteActive = (routeName) => {
                 </div>
                 <div
                     :class="[
-                        isCollapsed
+                        isDesktopCollapsed
                             ? 'opacity-0 -translate-x-4 pointer-events-none'
                             : 'opacity-100 translate-x-0',
                     ]"
@@ -86,7 +110,7 @@ const isRouteActive = (routeName) => {
                     >
                     <span
                         :class="[
-                            isCollapsed
+                            isDesktopCollapsed
                                 ? 'opacity-0 translate-x-4'
                                 : 'opacity-100 translate-x-0',
                         ]"
@@ -124,7 +148,7 @@ const isRouteActive = (routeName) => {
                     </div>
                     <span
                         :class="[
-                            isCollapsed
+                            isDesktopCollapsed
                                 ? 'opacity-0 translate-x-4'
                                 : 'opacity-100 translate-x-0',
                         ]"
@@ -163,7 +187,7 @@ const isRouteActive = (routeName) => {
                     </div>
                     <span
                         :class="[
-                            isCollapsed
+                            isDesktopCollapsed
                                 ? 'opacity-0 translate-x-4'
                                 : 'opacity-100 translate-x-0',
                         ]"
@@ -203,7 +227,7 @@ const isRouteActive = (routeName) => {
                     </div>
                     <span
                         :class="[
-                            isCollapsed
+                            isDesktopCollapsed
                                 ? 'opacity-0 translate-x-4'
                                 : 'opacity-100 translate-x-0',
                         ]"
@@ -243,7 +267,7 @@ const isRouteActive = (routeName) => {
                     </div>
                     <span
                         :class="[
-                            isCollapsed
+                            isDesktopCollapsed
                                 ? 'opacity-0 translate-x-4'
                                 : 'opacity-100 translate-x-0',
                         ]"
@@ -283,7 +307,7 @@ const isRouteActive = (routeName) => {
                     </div>
                     <span
                         :class="[
-                            isCollapsed
+                            isDesktopCollapsed
                                 ? 'opacity-0 translate-x-4'
                                 : 'opacity-100 translate-x-0',
                         ]"
@@ -323,7 +347,7 @@ const isRouteActive = (routeName) => {
                     </div>
                     <span
                         :class="[
-                            isCollapsed
+                            isDesktopCollapsed
                                 ? 'opacity-0 translate-x-4'
                                 : 'opacity-100 translate-x-0',
                         ]"
@@ -363,7 +387,7 @@ const isRouteActive = (routeName) => {
                     </div>
                     <span
                         :class="[
-                            isCollapsed
+                            isDesktopCollapsed
                                 ? 'opacity-0 translate-x-4'
                                 : 'opacity-100 translate-x-0',
                         ]"
@@ -403,7 +427,7 @@ const isRouteActive = (routeName) => {
                     </div>
                     <span
                         :class="[
-                            isCollapsed
+                            isDesktopCollapsed
                                 ? 'opacity-0 translate-x-4'
                                 : 'opacity-100 translate-x-0',
                         ]"
@@ -440,7 +464,7 @@ const isRouteActive = (routeName) => {
             </div>
             <span
                 :class="[
-                    isCollapsed ? 'opacity-0 translate-x-4' : 'opacity-100 translate-x-0',
+                    isDesktopCollapsed ? 'opacity-0 translate-x-4' : 'opacity-100 translate-x-0',
                 ]"
                 class="text-sm font-semibold whitespace-nowrap transition-all duration-300"
             >
@@ -450,7 +474,7 @@ const isRouteActive = (routeName) => {
 
         <span
             :class="[
-                isCollapsed ? 'opacity-0' : 'opacity-100',
+                isDesktopCollapsed ? 'opacity-0' : 'opacity-100',
                 { 'rotate-180': openMenus.seguridad },
             ]"
             class="material-symbols-outlined text-sm transition-all duration-300"
@@ -466,7 +490,7 @@ const isRouteActive = (routeName) => {
         enter-to-class="opacity-100 translate-y-0 max-h-40"
     >
         <div
-            v-show="openMenus.seguridad && !isCollapsed"
+            v-show="openMenus.seguridad && !isDesktopCollapsed"
             class="ml-9 space-y-1 overflow-hidden"
         >
             <Link
@@ -499,13 +523,13 @@ const isRouteActive = (routeName) => {
 </div>
                 <div class="pt-4 pb-2">
                     <p
-                        :class="[isCollapsed ? 'opacity-0' : 'opacity-100']"
+                        :class="[isDesktopCollapsed ? 'opacity-0' : 'opacity-100']"
                         class="px-3 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest transition-opacity duration-300 whitespace-nowrap"
                     >
                         Competencia
                     </p>
                     <div
-                        v-show="isCollapsed"
+                        v-show="isDesktopCollapsed"
                         class="border-t border-slate-100 dark:border-slate-800 mx-2 mt-2"
                     ></div>
                 </div>
@@ -521,7 +545,7 @@ const isRouteActive = (routeName) => {
                             >
                             <span
                                 :class="[
-                                    isCollapsed
+                                    isDesktopCollapsed
                                         ? 'opacity-0 translate-x-4'
                                         : 'opacity-100 translate-x-0',
                                 ]"
@@ -532,7 +556,7 @@ const isRouteActive = (routeName) => {
                         </div>
                         <span
                             :class="[
-                                isCollapsed ? 'opacity-0' : 'opacity-100',
+                                isDesktopCollapsed ? 'opacity-0' : 'opacity-100',
                                 { 'rotate-180': openMenus.torneos },
                             ]"
                             class="material-symbols-outlined text-sm transition-all duration-300"
@@ -548,7 +572,7 @@ const isRouteActive = (routeName) => {
                         enter-to-class="opacity-100 translate-y-0 max-h-40"
                     >
                         <div
-                            v-show="openMenus.torneos && !isCollapsed"
+                            v-show="openMenus.torneos && !isDesktopCollapsed"
                             class="ml-9 space-y-1 overflow-hidden"
                         >
                             <Link
@@ -585,7 +609,7 @@ const isRouteActive = (routeName) => {
                     >
                     <span
                         :class="[
-                            isCollapsed
+                            isDesktopCollapsed
                                 ? 'opacity-0 translate-x-4'
                                 : 'opacity-100 translate-x-0',
                         ]"
@@ -607,7 +631,7 @@ const isRouteActive = (routeName) => {
                     </div>
                     <div
                         :class="[
-                            isCollapsed
+                            isDesktopCollapsed
                                 ? 'opacity-0 translate-x-4'
                                 : 'opacity-100 translate-x-0',
                         ]"
@@ -630,15 +654,24 @@ const isRouteActive = (routeName) => {
 
         <div class="flex flex-1 flex-col overflow-hidden">
             <header
-                class="flex h-20 items-center justify-between px-8 bg-white/80 dark:bg-[#1A2C26]/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 z-40"
+                class="flex h-16 lg:h-20 items-center justify-between px-4 lg:px-8 bg-white/80 dark:bg-[#1A2C26]/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 z-30"
             >
                 <div class="flex items-center gap-4">
+                    <!-- Botón hamburguesa móvil (solo <lg) -->
                     <button
-                        @click="isCollapsed = !isCollapsed"
-                        class="p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-white/5 text-slate-500 transition-all active:scale-95"
+                        @click="isMobileOpen = true"
+                        class="lg:hidden p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-white/5 text-slate-500 transition-all active:scale-95"
+                    >
+                        <span class="material-symbols-outlined">menu</span>
+                    </button>
+                    
+                    <!-- Botón colapsar desktop (solo lg+) -->
+                    <button
+                        @click="isDesktopCollapsed = !isDesktopCollapsed"
+                        class="hidden lg:block p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-white/5 text-slate-500 transition-all active:scale-95"
                     >
                         <span class="material-symbols-outlined">
-                            {{ isCollapsed ? "menu_open" : "menu" }}
+                            {{ isDesktopCollapsed ? "menu_open" : "menu" }}
                         </span>
                     </button>
 

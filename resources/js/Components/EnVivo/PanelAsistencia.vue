@@ -60,7 +60,7 @@ const labelVisible = (mitad) => mitad === 1 ? '1ª Mitad' : '2ª Mitad';
             <span v-if="!puedeRegistrar" class="text-[10px] font-bold text-red-500 uppercase tracking-wide">Solo lectura</span>
         </div>
 
-        <div class="space-y-1.5 max-h-[400px] overflow-y-auto custom-scrollbar pr-1">
+        <div class="space-y-1.5 max-h-[280px] sm:max-h-[400px] overflow-y-auto custom-scrollbar pr-1">
             <div
                 v-for="item in lista"
                 :key="item.jugador_id"

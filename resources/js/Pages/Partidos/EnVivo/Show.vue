@@ -70,6 +70,20 @@ const enJuego = computed(() => props.partido?.estado === 'en_juego');
 const finalizado = computed(() => props.partido?.estado === 'finalizado');
 const esFut7 = computed(() => props.partido?.cancha?.tipo === 'futbol-7' || props.partido?.duracion_minutos <= 50);
 
+const tabActivo = ref('marcador');
+
+const tabs = computed(() => {
+    const list = [
+        { id: 'marcador', label: 'Marcador', icon: 'sports_score' },
+        { id: 'local', label: 'Local', icon: 'shield' },
+        { id: 'visitante', label: 'Visitante', icon: 'shield' },
+    ];
+    if (mostrarAsistencia.value) {
+        list.push({ id: 'asistencia', label: 'Asistencia', icon: 'fact_check' });
+    }
+    return list;
+});
+
 const estadoLabel = computed(() => {
     const labels = {
         programado: 'Programado',
@@ -111,7 +125,7 @@ const estadoColor = computed(() => {
                 <span class="material-symbols-outlined mr-1 !text-lg">arrow_back</span>
                 Partidos
             </Link>
-            <h2 class="text-2xl md:text-3xl font-black uppercase tracking-tighter text-slate-900 dark:text-white leading-none">
+            <h2 class="text-xl md:text-3xl font-black uppercase tracking-tighter text-slate-900 dark:text-white leading-none">
                 Partido <span class="text-primary">En Vivo</span>
             </h2>
             <p class="text-[10px] font-bold uppercase tracking-widest text-slate-500 mt-2">
@@ -187,11 +201,33 @@ const estadoColor = computed(() => {
         </button>
     </div>
 
+    <!-- Tabs solo en móvil -->
+    <div class="lg:hidden flex gap-2 overflow-x-auto pb-2 custom-scrollbar">
+        <button
+            v-for="t in tabs"
+            :key="t.id"
+            @click="tabActivo = t.id"
+            class="px-3 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-1.5 shrink-0"
+            :class="tabActivo === t.id
+                ? 'bg-primary text-white shadow-lg shadow-primary/20'
+                : 'bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-slate-400'"
+        >
+            <span class="material-symbols-outlined !text-base">{{ t.icon }}</span>
+            {{ t.label }}
+        </button>
+    </div>
+
     <!-- Layout principal -->
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
 
         <!-- Panel Local -->
-        <div class="lg:col-span-3 bg-white dark:bg-[#1A2C26] rounded-[2rem] border border-slate-100 dark:border-slate-800 p-5 shadow-sm">
+        <div
+            :class="[
+                'lg:col-span-3 bg-white dark:bg-[#1A2C26] rounded-[2rem] border border-slate-100 dark:border-slate-800 p-5 shadow-sm',
+                tabActivo === 'local' ? 'block' : 'hidden',
+                'lg:block',
+            ]"
+        >
             <PanelJugadores
                 :jugadores="partido?.equipo_local?.jugadores ?? []"
                 :equipo-id="partido?.equipo_local?.id"
@@ -203,7 +239,13 @@ const estadoColor = computed(() => {
         </div>
 
         <!-- Centro: Marcador + Timeline -->
-        <div class="lg:col-span-6 space-y-6">
+        <div
+            :class="[
+                'lg:col-span-6 space-y-6',
+                tabActivo === 'marcador' || tabActivo === 'asistencia' ? 'block' : 'hidden',
+                'lg:block',
+            ]"
+        >
             <div class="bg-white dark:bg-[#1A2C26] rounded-[2rem] border border-slate-100 dark:border-slate-800 p-5 shadow-sm">
                 <MarcadorEnVivo
                     :partido="partido"
@@ -224,7 +266,13 @@ const estadoColor = computed(() => {
         </div>
 
         <!-- Panel Visitante -->
-        <div class="lg:col-span-3 bg-white dark:bg-[#1A2C26] rounded-[2rem] border border-slate-100 dark:border-slate-800 p-5 shadow-sm">
+        <div
+            :class="[
+                'lg:col-span-3 bg-white dark:bg-[#1A2C26] rounded-[2rem] border border-slate-100 dark:border-slate-800 p-5 shadow-sm',
+                tabActivo === 'visitante' ? 'block' : 'hidden',
+                'lg:block',
+            ]"
+        >
             <PanelJugadores
                 :jugadores="partido?.equipo_visitante?.jugadores ?? []"
                 :equipo-id="partido?.equipo_visitante?.id"
@@ -237,7 +285,14 @@ const estadoColor = computed(() => {
     </div>
 
     <!-- Pase de lista (solo en descanso) -->
-    <div v-if="mostrarAsistencia" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <div
+        v-if="mostrarAsistencia"
+        :class="[
+            'grid grid-cols-1 md:grid-cols-2 gap-6',
+            tabActivo === 'asistencia' || tabActivo === 'marcador' ? 'block' : 'hidden',
+            'lg:grid',
+        ]"
+    >
         <div class="bg-white dark:bg-[#1A2C26] rounded-[2rem] border border-slate-100 dark:border-slate-800 p-5 shadow-sm">
             <PanelAsistencia
                 :jugadores="partido?.equipo_local?.jugadores ?? []"

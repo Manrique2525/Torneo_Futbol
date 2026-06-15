@@ -19,11 +19,6 @@ class StandingsController extends Controller
     {
         $this->authorize(PermissionEnum::STANDINGS_VIEW);
 
-        if ($torneo->tipo !== 'liga') {
-            return redirect()->route('torneos.index')
-                ->with('error', 'La tabla de posiciones solo está disponible para torneos de liga.');
-        }
-
         $grupos = TorneoGrupo::where('torneo_id', $torneo->id)
             ->orderBy('orden')
             ->orderBy('nombre')
@@ -31,11 +26,11 @@ class StandingsController extends Controller
 
         $standings = $torneo->standings()
             ->with(['torneoEquipo.equipo:id,name,shield'])
-            ->orderBy('posicion')
             ->get()
             ->map(fn ($s) => [
                 'id' => $s->id,
-                'posicion' => $s->posicion,
+                'posicion_posiciones' => $s->posicion_posiciones,
+                'posicion_rendimiento' => $s->posicion_rendimiento,
                 'equipo' => [
                     'id' => $s->torneoEquipo?->equipo?->id,
                     'nombre' => $s->torneoEquipo?->equipo?->name ?? 'Equipo #'.$s->torneo_equipo_id,
@@ -75,6 +70,7 @@ class StandingsController extends Controller
                 'tipo' => $torneo->tipo,
                 'estado' => $torneo->estado,
             ],
+            'es_liga' => $torneo->tipo === 'liga',
             'grupos' => $gruposConStandings,
             'flash' => [
                 'success' => session('success'),
@@ -86,10 +82,6 @@ class StandingsController extends Controller
     public function recalcular(Torneo $torneo): RedirectResponse
     {
         $this->authorize(PermissionEnum::STANDINGS_RECALCULATE);
-
-        if ($torneo->tipo !== 'liga') {
-            return back()->with('error', 'Solo se puede recalcular standings en torneos de liga.');
-        }
 
         $this->standingsService->recalcular($torneo);
 

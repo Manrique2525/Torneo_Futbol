@@ -61,8 +61,8 @@ const handleSaveScore = (scores) => {
         </div>
 
         <div class="flex flex-col gap-8">
-            <div class="flex items-center justify-between">
-                <h2 class="text-3xl font-black uppercase tracking-tighter text-slate-900 dark:text-white">Calendario</h2>
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <h2 class="text-2xl md:text-3xl font-black uppercase tracking-tighter text-slate-900 dark:text-white">Calendario</h2>
                 <div class="flex gap-2">
                     <span class="text-[10px] font-bold uppercase tracking-widest text-slate-400 italic">Haz clic en un partido para editar o en un equipo para ver stats</span>
                 </div>

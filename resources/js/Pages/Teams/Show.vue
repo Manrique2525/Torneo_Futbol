@@ -27,13 +27,13 @@ const players = [
 
     <AuthenticatedLayout>
         <div class="flex flex-col gap-10">
-            <div class="rounded-[3rem] bg-slate-900 p-10 text-white dark:bg-surface-dark">
+            <div class="rounded-[3rem] bg-slate-900 p-5 md:p-10 text-white dark:bg-surface-dark">
                 <div class="flex items-center gap-8">
-                    <div class="h-24 w-24 rounded-3xl bg-primary flex items-center justify-center text-4xl font-black">
+                    <div class="h-16 w-16 md:h-24 md:w-24 rounded-3xl bg-primary flex items-center justify-center text-2xl md:text-4xl font-black">
                         LI
                     </div>
                     <div>
-                        <h2 class="text-4xl font-black uppercase tracking-tighter">Lions FC</h2>
+                        <h2 class="text-2xl md:text-4xl font-black uppercase tracking-tighter">Lions FC</h2>
                         <div class="mt-2 flex gap-4">
                             <span class="text-xs font-bold uppercase tracking-widest text-primary">Primera División</span>
                             <span class="text-xs font-bold uppercase tracking-widest text-slate-500">22 Jugadores</span>

@@ -26,7 +26,8 @@ class TorneoStanding extends Model
         'dg',
         'pts',
         'fair_play',
-        'posicion',
+        'posicion_posiciones',
+        'posicion_rendimiento',
     ];
 
     protected function casts(): array
@@ -41,7 +42,8 @@ class TorneoStanding extends Model
             'dg'       => 'integer',
             'pts'      => 'integer',
             'fair_play'=> 'decimal:2',
-            'posicion' => 'integer',
+            'posicion_posiciones' => 'integer',
+            'posicion_rendimiento' => 'integer',
         ];
     }
 

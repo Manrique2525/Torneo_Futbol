@@ -80,7 +80,7 @@ const getEstadoBadge = (estado) => {
     <!-- HEADER -->
     <div class="flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
-            <h2 class="text-3xl font-black uppercase tracking-tighter text-slate-900 dark:text-white leading-none">
+            <h2 class="text-2xl md:text-3xl font-black uppercase tracking-tighter text-slate-900 dark:text-white leading-none">
                 Gestión de <span class="text-primary">Torneos</span>
             </h2>
             <p class="text-[10px] font-bold uppercase tracking-widest text-slate-500 mt-2">
@@ -192,7 +192,6 @@ const getEstadoBadge = (estado) => {
                         <td class="p-6 text-right">
                             <div class="flex justify-end gap-2">
                                 <Link
-                                    v-if="t.tipo === 'liga'"
                                     :href="route('standings.index', t.id)"
                                     class="p-2.5 rounded-xl bg-emerald-500/10 text-emerald-600 hover:bg-emerald-600 hover:text-white transition-all"
                                     title="Tabla de posiciones"
@@ -235,7 +234,7 @@ const getEstadoBadge = (estado) => {
         </div>
 
         <div class="p-6 border-t border-slate-100 dark:border-slate-800/50">
-            <div class="flex justify-between items-center">
+            <div class="flex flex-col sm:flex-row justify-between items-center gap-3">
                 <span class="text-[10px] font-bold uppercase tracking-widest text-slate-500">
                     Mostrando {{ torneos.from || 0 }} - {{ torneos.to || 0 }} de {{ torneos.total }} registros
                 </span>

@@ -50,7 +50,7 @@ const submit = () => {
 
             <div class="bg-white dark:bg-[#1A2C26] rounded-3xl shadow-xl shadow-slate-200/60 dark:shadow-none border border-slate-100 dark:border-slate-800 overflow-hidden">
 
-                <div class="flex items-center gap-4 px-8 py-5 border-b border-slate-100 dark:border-slate-800">
+                <div class="flex items-center gap-4 px-4 md:px-8 py-4 md:py-5 border-b border-slate-100 dark:border-slate-800">
                     <div class="h-10 w-10 rounded-2xl bg-primary flex items-center justify-center text-white shadow-md shadow-primary/30 flex-shrink-0">
                         <span class="material-symbols-outlined text-xl">person_add</span>
                     </div>
@@ -64,7 +64,7 @@ const submit = () => {
                     </div>
                 </div>
 
-                <form @submit.prevent="submit" class="px-8 py-7">
+                <form @submit.prevent="submit" class="px-4 md:px-8 py-5 md:py-7">
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-7">
 
                         <!-- Name -->
@@ -130,12 +130,12 @@ const submit = () => {
 
                     </div>
 
-                    <div class="pt-5 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
+                    <div class="pt-5 border-t border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-3">
                         <div v-if="form.recentlySuccessful" class="flex items-center gap-2 text-emerald-500 text-xs font-bold">
                             <span class="material-symbols-outlined !text-base">check_circle</span>
                             ¡Usuario creado con éxito!
                         </div>
-                        <div v-else />
+                        <div v-else class="hidden sm:block" />
 
                         <PrimaryButton type="submit"
                             :class="{ 'opacity-50 pointer-events-none': form.processing }"

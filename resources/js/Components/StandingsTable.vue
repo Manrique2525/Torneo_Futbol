@@ -1,10 +1,14 @@
 <script setup>
-defineProps({
+const props = defineProps({
     standings: { type: Array, required: true },
+    vista: { type: String, default: 'posiciones' },
     puedeRecalcular: { type: Boolean, default: false },
 });
 
 const getPosicionClass = (posicion, total) => {
+    if (props.vista !== 'posiciones') {
+        return 'text-slate-600 bg-slate-500/10';
+    }
     if (posicion === 1) return 'text-amber-600 bg-amber-500/10';
     if (posicion <= 4 && total >= 6) return 'text-emerald-600 bg-emerald-500/10';
     if (posicion > total - 2 && total >= 6) return 'text-red-600 bg-red-500/10';
@@ -20,6 +24,12 @@ const getDgClass = (dg) => {
 const getShieldStyle = (shield) => ({
     backgroundImage: shield ? `url(/storage/${shield})` : 'none',
 });
+
+const posicionKey = (s) => {
+    return props.vista === 'posiciones'
+        ? s.posicion_posiciones
+        : s.posicion_rendimiento;
+};
 </script>
 
 <template>
@@ -49,9 +59,9 @@ const getShieldStyle = (shield) => ({
                     <td class="p-4 text-center">
                         <span
                             class="inline-flex items-center justify-center h-7 w-7 rounded-lg text-[10px] font-black"
-                            :class="getPosicionClass(s.posicion, standings.length)"
+                            :class="getPosicionClass(posicionKey(s), standings.length)"
                         >
-                            {{ s.posicion }}
+                            {{ posicionKey(s) }}
                         </span>
                     </td>
 

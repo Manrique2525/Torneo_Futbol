@@ -87,7 +87,7 @@ class Torneo extends Model
 
     public function standings(): HasMany
     {
-        return $this->hasMany(TorneoStanding::class, 'torneo_id')->orderBy('posicion');
+        return $this->hasMany(TorneoStanding::class, 'torneo_id')->orderBy('posicion_posiciones');
     }
 
     public function standingsPorGrupo(?int $grupoId): HasMany

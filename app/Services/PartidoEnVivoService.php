@@ -187,7 +187,7 @@ class PartidoEnVivoService
         $partido->estado = $nuevoEstado;
         $partido->save();
 
-        if ($nuevoEstado === 'finalizado' && $partido->torneo?->tipo === 'liga') {
+        if ($nuevoEstado === 'finalizado' && $partido->torneo) {
             $this->standingsService->recalcular($partido->torneo);
         }
     }

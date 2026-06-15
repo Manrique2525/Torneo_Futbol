@@ -122,7 +122,7 @@ const isLightColor = (colorHex) => {
     <!-- HEADER -->
     <div class="flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
-            <h2 class="text-3xl font-black uppercase tracking-tighter text-slate-900 dark:text-white leading-none">
+            <h2 class="text-2xl md:text-3xl font-black uppercase tracking-tighter text-slate-900 dark:text-white leading-none">
                 Gestión de <span class="text-primary">Equipos</span>
             </h2>
             <p class="text-[10px] font-bold uppercase tracking-widest text-slate-500 mt-2">
@@ -311,7 +311,7 @@ const isLightColor = (colorHex) => {
         </div>
 
         <div class="p-6 border-t border-slate-100 dark:border-slate-800/50">
-            <div class="flex justify-between items-center">
+            <div class="flex flex-col sm:flex-row justify-between items-center gap-3">
                 <span class="text-[10px] font-bold uppercase tracking-widest text-slate-500">
                     Mostrando {{ teams.from || 0 }} - {{ teams.to || 0 }} de {{ teams.total }} registros
                 </span>
