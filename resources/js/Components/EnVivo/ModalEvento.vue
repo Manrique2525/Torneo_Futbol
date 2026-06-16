@@ -1,5 +1,5 @@
 <script setup>
-import { ref, watch } from 'vue';
+import { ref, watch, computed } from 'vue';
 import { useForm } from '@inertiajs/vue3';
 import Modal from '@/Components/Modal.vue';
 import VSelectCustom from '@/Components/VSelectCustom.vue';
@@ -35,16 +35,20 @@ watch(() => props.show, (val) => {
         form.jugador_id = props.jugadorPre?.id ?? null;
         form.jugador_relacionado_id = null;
         form.tipo = props.tipoPre ?? '';
-        form.minuto = Math.min(form.minuto || 1, props.duracion);
+        form.minuto = Math.min(form.minuto || 1, props.duracion + 15);
         form.comentario = '';
-        selectedJugador.value = props.jugadores.find(j => j.id === props.jugadorPre?.id) ?? null;
+        selectedJugador.value = jugadorOptions.value.find(o => o.value === props.jugadorPre?.id) ?? null;
         selectedJugadorRelacionado.value = null;
-        selectedTipo.value = props.tiposEvento.find(t => t.value === props.tipoPre) ?? null;
+        selectedTipo.value = tipoOptions.value.find(o => o.value === props.tipoPre) ?? null;
     }
 });
 
-const jugadorOptions = (props.jugadores || []).map(j => ({ label: `#${j.numero} ${j.nombre}`, value: j.id }));
-const tipoOptions = (props.tiposEvento || []).map(t => ({ label: t.label, value: t.value }));
+const jugadorOptions = computed(() =>
+    (props.jugadores || []).map(j => ({ label: `#${j.numero} ${j.nombre}`, value: j.id }))
+);
+const tipoOptions = computed(() =>
+    (props.tiposEvento || []).map(t => ({ label: t.label, value: t.value }))
+);
 
 const onJugadorChange = (o) => form.jugador_id = o?.value ?? null;
 const onJugadorRelChange = (o) => form.jugador_relacionado_id = o?.value ?? null;
@@ -133,10 +137,11 @@ const close = () => {
                     <input
                         v-model="form.minuto"
                         type="number"
-                        :min="1"
-                        :max="duracion"
+                        min="0"
+                        :max="duracion + 15"
                         class="w-full bg-slate-50 dark:bg-white/5 border border-transparent focus:border-primary focus:ring-2 focus:ring-primary/20 rounded-xl py-2.5 px-4 text-sm text-slate-800 dark:text-white transition-all outline-none"
                     >
+                    <p class="text-[10px] font-medium text-slate-400 mt-1 ml-1">Máx {{ duracion + 15 }} (duración + tiempo añadido)</p>
                     <p v-if="form.errors.minuto" class="text-[10px] font-bold text-red-500 mt-1 ml-1">{{ form.errors.minuto }}</p>
                 </div>
 

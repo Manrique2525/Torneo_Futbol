@@ -15,6 +15,9 @@ class StorePartidoEventoRequest extends FormRequest
 
     public function rules(): array
     {
+        $partido = $this->route('partido');
+        $maxMinuto = $partido ? $partido->duracion_minutos + 15 : 300;
+
         return [
             'equipo_id' => ['required', 'integer', 'exists:teams,id'],
             'jugador_id' => [
@@ -48,7 +51,7 @@ class StorePartidoEventoRequest extends FormRequest
                 }),
             ],
             'tipo' => ['required', 'string', Rule::in(array_column(PartidoEventoTipoEnum::cases(), 'value'))],
-            'minuto' => ['required', 'integer', 'min:1', 'max:300'],
+            'minuto' => ['required', 'integer', 'min:1', "max:$maxMinuto"],
             'comentario' => ['nullable', 'string', 'max:500'],
         ];
     }

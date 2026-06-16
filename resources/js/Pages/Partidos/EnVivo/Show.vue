@@ -2,6 +2,7 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { Head, Link, router } from '@inertiajs/vue3';
 import { ref, computed } from 'vue';
+import Swal from 'sweetalert2';
 
 import MarcadorEnVivo from '@/Components/EnVivo/MarcadorEnVivo.vue';
 import TimelineEventos from '@/Components/EnVivo/TimelineEventos.vue';
@@ -41,10 +42,36 @@ const abrirModal = (data) => {
 };
 
 const eliminarEvento = (evt) => {
-    if (!confirm('¿Eliminar este evento?')) return;
-    router.delete(route('partidos.en-vivo.eventos.destroy', evt.id), {
-        preserveState: true,
-        preserveScroll: true,
+    const isDark = document.documentElement.classList.contains('dark');
+    Swal.fire({
+        title: '¿Eliminar evento?',
+        text: `Se eliminará el evento del minuto ${evt.minuto}.`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Sí, eliminar',
+        cancelButtonText: 'Cancelar',
+        confirmButtonColor: '#ef4444',
+        cancelButtonColor: isDark ? '#334155' : '#94a3b8',
+        background: isDark ? '#1A2C26' : '#fff',
+        color: isDark ? '#e2e8f0' : '#1e293b',
+        iconColor: '#f59e0b',
+        reverseButtons: true,
+        buttonsStyling: true,
+        customClass: {
+            popup: 'rounded-[2.5rem] shadow-2xl border border-slate-100 dark:border-slate-800 font-sans',
+            title: 'text-base font-black uppercase tracking-tight pt-2',
+            htmlContainer: 'text-sm text-slate-500 dark:text-slate-400',
+            confirmButton: '!rounded-xl !py-2.5 !px-5 !text-xs !font-black !uppercase !tracking-wider !shadow-lg !shadow-red-500/20',
+            cancelButton: '!rounded-xl !py-2.5 !px-5 !text-xs !font-black !uppercase !tracking-wider',
+            icon: '!border-4 !rounded-2xl',
+        },
+    }).then((result) => {
+        if (result.isConfirmed) {
+            router.delete(route('partidos.en-vivo.eventos.destroy', evt.id), {
+                preserveState: true,
+                preserveScroll: true,
+            });
+        }
     });
 };
 
