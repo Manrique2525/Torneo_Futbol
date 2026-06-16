@@ -6,7 +6,6 @@ use App\Enums\PartidoEventoTipoEnum;
 use App\Models\Partido;
 use App\Models\PartidoAsistencia;
 use App\Models\PartidoEvento;
-use App\Models\Player;
 use Illuminate\Support\Facades\DB;
 
 class PartidoEnVivoService
@@ -32,6 +31,9 @@ class PartidoEnVivoService
             'asistencias.jugador',
         ]);
 
+        $equipoLocalTeamId = $partido->equipoLocal?->equipo?->id;
+        $equipoVisitanteTeamId = $partido->equipoVisitante?->equipo?->id;
+
         $jugadoresLocal = $this->mapearJugadores($partido->equipoLocal?->equipo?->players ?? collect());
         $jugadoresVisitante = $this->mapearJugadores($partido->equipoVisitante?->equipo?->players ?? collect());
 
@@ -51,8 +53,8 @@ class PartidoEnVivoService
 
         $asistencias = $partido->asistencias->keyBy('jugador_id');
 
-        $faltasLocal = $this->contarFaltasEquipo($partido, $partido->equipo_local_id);
-        $faltasVisitante = $this->contarFaltasEquipo($partido, $partido->equipo_visitante_id);
+        $faltasLocal = $this->contarFaltasEquipo($partido, $equipoLocalTeamId);
+        $faltasVisitante = $this->contarFaltasEquipo($partido, $equipoVisitanteTeamId);
 
         return [
             'partido' => [
@@ -70,12 +72,14 @@ class PartidoEnVivoService
                 'arbitro' => $partido->arbitro?->only(['id', 'nombre']),
                 'equipo_local' => [
                     'id' => $partido->equipo_local_id,
+                    'equipo_id_real' => $equipoLocalTeamId,
                     'nombre' => $partido->equipoLocal?->equipo?->name ?? 'Local',
                     'shield' => $partido->equipoLocal?->equipo?->shield,
                     'jugadores' => $jugadoresLocal,
                 ],
                 'equipo_visitante' => [
                     'id' => $partido->equipo_visitante_id,
+                    'equipo_id_real' => $equipoVisitanteTeamId,
                     'nombre' => $partido->equipoVisitante?->equipo?->name ?? 'Visitante',
                     'shield' => $partido->equipoVisitante?->equipo?->shield,
                     'jugadores' => $jugadoresVisitante,
@@ -87,8 +91,8 @@ class PartidoEnVivoService
             'faltas_visitante' => $faltasVisitante,
             'alerta_penal_local' => $this->debeAlertarPenal($partido, $faltasLocal),
             'alerta_penal_visitante' => $this->debeAlertarPenal($partido, $faltasVisitante),
-            'expulsados_local' => $this->obtenerExpulsados($partido, $partido->equipo_local_id),
-            'expulsados_visitante' => $this->obtenerExpulsados($partido, $partido->equipo_visitante_id),
+            'expulsados_local' => $this->obtenerExpulsados($partido, $equipoLocalTeamId),
+            'expulsados_visitante' => $this->obtenerExpulsados($partido, $equipoVisitanteTeamId),
         ];
     }
 
@@ -194,8 +198,8 @@ class PartidoEnVivoService
 
     private function recalcularGoles(Partido $partido): void
     {
-        $localId = $partido->equipo_local_id;
-        $visitanteId = $partido->equipo_visitante_id;
+        $localId = $partido->equipoLocal?->equipo?->id;
+        $visitanteId = $partido->equipoVisitante?->equipo?->id;
 
         $golesLocal = PartidoEvento::where('partido_id', $partido->id)
             ->where(function ($q) use ($localId, $visitanteId) {
@@ -249,6 +253,7 @@ class PartidoEnVivoService
     private function debeAlertarPenal(Partido $partido, int $faltas): bool
     {
         $esFut7 = $partido->cancha?->tipo === 'futbol-7' || $partido->duracion_minutos <= 50;
+
         return $esFut7 && $faltas >= 5;
     }
 

@@ -84,6 +84,11 @@ const close = () => {
             </div>
 
             <div class="space-y-4">
+                <div v-if="form.errors.equipo_id || form.errors.jugador_id || form.errors.tipo || form.errors.minuto" class="bg-red-500/10 border border-red-500/20 text-red-700 dark:text-red-400 px-4 py-3 rounded-xl flex items-center gap-2 text-xs font-bold">
+                    <span class="material-symbols-outlined !text-lg">error</span>
+                    <span>{{ form.errors.equipo_id || form.errors.jugador_id || form.errors.jugador_relacionado_id || form.errors.tipo || form.errors.minuto || form.errors.comentario }}</span>
+                </div>
+
                 <div>
                     <label class="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2 ml-1">Tipo *</label>
                     <VSelectCustom
@@ -94,6 +99,7 @@ const close = () => {
                         placeholder="Seleccionar tipo..."
                         @update:modelValue="onTipoChange"
                     />
+                    <p v-if="form.errors.tipo" class="text-[10px] font-bold text-red-500 mt-1 ml-1">{{ form.errors.tipo }}</p>
                 </div>
 
                 <div v-if="requiereJugador()">
@@ -106,6 +112,7 @@ const close = () => {
                         placeholder="Seleccionar jugador..."
                         @update:modelValue="onJugadorChange"
                     />
+                    <p v-if="form.errors.jugador_id" class="text-[10px] font-bold text-red-500 mt-1 ml-1">{{ form.errors.jugador_id }}</p>
                 </div>
 
                 <div v-if="esSustitucion()">
@@ -118,6 +125,7 @@ const close = () => {
                         placeholder="Seleccionar jugador..."
                         @update:modelValue="onJugadorRelChange"
                     />
+                    <p v-if="form.errors.jugador_relacionado_id" class="text-[10px] font-bold text-red-500 mt-1 ml-1">{{ form.errors.jugador_relacionado_id }}</p>
                 </div>
 
                 <div>
@@ -129,6 +137,7 @@ const close = () => {
                         :max="duracion"
                         class="w-full bg-slate-50 dark:bg-white/5 border border-transparent focus:border-primary focus:ring-2 focus:ring-primary/20 rounded-xl py-2.5 px-4 text-sm text-slate-800 dark:text-white transition-all outline-none"
                     >
+                    <p v-if="form.errors.minuto" class="text-[10px] font-bold text-red-500 mt-1 ml-1">{{ form.errors.minuto }}</p>
                 </div>
 
                 <div>

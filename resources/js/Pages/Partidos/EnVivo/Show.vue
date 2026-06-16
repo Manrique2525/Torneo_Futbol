@@ -230,7 +230,7 @@ const estadoColor = computed(() => {
         >
             <PanelJugadores
                 :jugadores="partido?.equipo_local?.jugadores ?? []"
-                :equipo-id="partido?.equipo_local?.id"
+                :equipo-id="partido?.equipo_local?.equipo_id_real"
                 :equipo-nombre="partido?.equipo_local?.nombre"
                 :expulsados="expulsados_local"
                 :puede-registrar="puede_registrar_eventos && enJuego"
@@ -275,7 +275,7 @@ const estadoColor = computed(() => {
         >
             <PanelJugadores
                 :jugadores="partido?.equipo_visitante?.jugadores ?? []"
-                :equipo-id="partido?.equipo_visitante?.id"
+                :equipo-id="partido?.equipo_visitante?.equipo_id_real"
                 :equipo-nombre="partido?.equipo_visitante?.nombre"
                 :expulsados="expulsados_visitante"
                 :puede-registrar="puede_registrar_eventos && enJuego"
@@ -323,7 +323,7 @@ const estadoColor = computed(() => {
         :jugador-pre="modalData.jugador"
         :tipo-pre="modalData.tipo"
         :equipo-id="modalData.equipoId"
-        :jugadores="modalData.equipoId === partido?.equipo_local?.id
+        :jugadores="modalData.equipoId === partido?.equipo_local?.equipo_id_real
             ? partido?.equipo_local?.jugadores
             : partido?.equipo_visitante?.jugadores"
         :tipos-evento="tipos_evento"
