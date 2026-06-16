@@ -61,4 +61,5 @@ require __DIR__.'/canchas.php';
     require __DIR__.'/partidos.php';
     require __DIR__.'/partidos-en-vivo.php';
     require __DIR__.'/standings.php';
+    require __DIR__.'/estadisticas.php';
 

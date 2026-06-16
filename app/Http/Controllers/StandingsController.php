@@ -29,6 +29,7 @@ class StandingsController extends Controller
             ->get()
             ->map(fn ($s) => [
                 'id' => $s->id,
+                'torneo_equipo_id' => $s->torneo_equipo_id,
                 'posicion_posiciones' => $s->posicion_posiciones,
                 'posicion_rendimiento' => $s->posicion_rendimiento,
                 'equipo' => [

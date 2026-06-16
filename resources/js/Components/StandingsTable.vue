@@ -1,9 +1,21 @@
 <script setup>
+import { ref, computed } from 'vue';
+import TableEstadisticas from '@/Components/TableEstadisticas.vue';
+
 const props = defineProps({
     standings: { type: Array, required: true },
     vista: { type: String, default: 'posiciones' },
     puedeRecalcular: { type: Boolean, default: false },
+    torneoId: { type: [Number, String], default: null },
 });
+
+const emit = defineEmits(['team-click']);
+
+const equipoModal = ref(null);
+const modalAbierto = ref(false);
+const cargando = ref(false);
+const statsEquipo = ref(null);
+const errorModal = ref(null);
 
 const getPosicionClass = (posicion, total) => {
     if (props.vista !== 'posiciones') {
@@ -30,6 +42,57 @@ const posicionKey = (s) => {
         ? s.posicion_posiciones
         : s.posicion_rendimiento;
 };
+
+const abrirModalEquipo = async (s) => {
+    if (!s.torneo_equipo_id) return;
+    equipoModal.value = s;
+    modalAbierto.value = true;
+    cargando.value = true;
+    modalTab.value = 'goleo';
+    errorModal.value = null;
+    statsEquipo.value = null;
+    try {
+        const url = route('estadisticas.equipo', [props.torneoId, s.torneo_equipo_id]);
+        const res = await fetch(url, { headers: { Accept: 'application/json' } });
+        if (!res.ok) {
+            const text = await res.text().catch(() => '');
+            throw new Error(`Error ${res.status}${text ? ': ' + text.slice(0, 200) : ''}`);
+        }
+        statsEquipo.value = await res.json();
+    } catch (e) {
+        errorModal.value = e.message;
+    } finally {
+        cargando.value = false;
+    }
+};
+
+const modalTab = ref('goleo');
+
+const modalTabs = [
+    { id: 'goleo', label: 'Goleo', icon: 'sports_soccer' },
+    { id: 'asistencias', label: 'Asistencias', icon: 'assist_walker' },
+    { id: 'tarjetas_amarillas', label: 'T. Amarillas', icon: 'style' },
+    { id: 'tarjetas_rojas', label: 'T. Rojas', icon: 'style' },
+    { id: 'faltas', label: 'Faltas', icon: 'gavel' },
+];
+
+const modalTabConfig = computed(() => {
+    const configs = {
+        goleo: { titulo: 'Goleo', icono: 'sports_soccer', color: 'emerald', valorCampo: 'goles', valorLabel: 'Goles' },
+        asistencias: { titulo: 'Asistencias', icono: 'assist_walker', color: 'primary', valorCampo: 'asistencias', valorLabel: 'Asist.' },
+        tarjetas_amarillas: { titulo: 'Tarjetas Amarillas', icono: 'style', color: 'amber', valorCampo: 'total', valorLabel: 'TA' },
+        tarjetas_rojas: { titulo: 'Tarjetas Rojas', icono: 'style', color: 'red', valorCampo: 'total', valorLabel: 'TR' },
+        faltas: { titulo: 'Faltas', icono: 'gavel', color: 'slate', valorCampo: 'total', valorLabel: 'Faltas' },
+    };
+    return configs[modalTab.value];
+});
+
+const cerrarModal = () => {
+    modalAbierto.value = false;
+    equipoModal.value = null;
+    statsEquipo.value = null;
+    errorModal.value = null;
+};
 </script>
 
 <template>
@@ -54,7 +117,8 @@ const posicionKey = (s) => {
                 <tr
                     v-for="s in standings"
                     :key="s.id"
-                    class="group hover:bg-slate-50/80 dark:hover:bg-white/5 transition-all"
+                    @click="abrirModalEquipo(s)"
+                    class="cursor-pointer group hover:bg-slate-50/80 dark:hover:bg-white/5 transition-all"
                 >
                     <td class="p-4 text-center">
                         <span
@@ -75,9 +139,12 @@ const posicionKey = (s) => {
                                     <span class="material-symbols-outlined text-sm text-slate-300 dark:text-slate-600">shield</span>
                                 </div>
                             </div>
-                            <span class="text-sm font-bold text-slate-900 dark:text-white truncate">
-                                {{ s.equipo?.nombre ?? '—' }}
-                            </span>
+                            <div class="flex items-center gap-2 min-w-0">
+                                <span class="text-sm font-bold text-slate-900 dark:text-white truncate">
+                                    {{ s.equipo?.nombre ?? '—' }}
+                                </span>
+                                <span class="material-symbols-outlined !text-xs text-slate-300 dark:text-slate-600 opacity-0 group-hover:opacity-100 transition-all">bar_chart</span>
+                            </div>
                         </div>
                     </td>
 
@@ -104,4 +171,79 @@ const posicionKey = (s) => {
             </tbody>
         </table>
     </div>
+
+    <!-- Modal estadísticas por equipo -->
+    <Teleport to="body">
+        <div
+            v-if="modalAbierto"
+            class="fixed inset-0 z-50 flex items-start justify-center pt-10 md:pt-20"
+        >
+            <div class="fixed inset-0 bg-black/60 backdrop-blur-sm" @click="cerrarModal"></div>
+            <div class="relative bg-white dark:bg-[#1A2C26] rounded-[2.5rem] border border-slate-100 dark:border-slate-800 shadow-2xl w-full max-w-4xl max-h-[80vh] overflow-y-auto mx-4 z-10">
+                <!-- Header -->
+                <div class="sticky top-0 bg-white dark:bg-[#1A2C26] z-10 p-6 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <div
+                            class="h-10 w-10 rounded-2xl bg-primary flex items-center justify-center text-white shadow-md shadow-primary/30"
+                        >
+                            <span class="material-symbols-outlined text-xl">bar_chart</span>
+                        </div>
+                        <div>
+                            <h3 class="text-base font-black uppercase tracking-tight text-slate-900 dark:text-white">
+                                Estadísticas — {{ equipoModal?.equipo?.nombre ?? '' }}
+                            </h3>
+                            <p class="text-[10px] font-bold uppercase tracking-widest text-slate-500">
+                                Resumen por equipo
+                            </p>
+                        </div>
+                    </div>
+                    <button
+                        @click="cerrarModal"
+                        class="h-10 w-10 rounded-xl bg-slate-100 dark:bg-white/10 flex items-center justify-center hover:bg-slate-200 dark:hover:bg-white/20 transition-colors"
+                    >
+                        <span class="material-symbols-outlined text-lg">close</span>
+                    </button>
+                </div>
+
+                <!-- Content -->
+                <div class="p-6">
+                    <div v-if="cargando" class="flex items-center justify-center py-10">
+                        <span class="material-symbols-outlined animate-spin text-primary text-3xl">refresh</span>
+                        <span class="ml-3 text-sm font-bold text-slate-500">Cargando estadísticas...</span>
+                    </div>
+                    <div v-else-if="errorModal" class="bg-red-500/10 border border-red-500/20 text-red-700 dark:text-red-400 px-6 py-4 rounded-2xl text-sm font-bold">
+                        {{ errorModal }}
+                    </div>
+                    <template v-else-if="statsEquipo">
+                        <!-- Tabs -->
+                        <div class="flex flex-wrap gap-2 mb-6">
+                            <button
+                                v-for="tab in modalTabs"
+                                :key="tab.id"
+                                @click="modalTab = tab.id"
+                                class="flex items-center gap-1.5 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all"
+                                :class="modalTab === tab.id
+                                    ? 'bg-primary text-white shadow-lg shadow-primary/20'
+                                    : 'bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-white/10'"
+                            >
+                                <span class="material-symbols-outlined !text-sm">{{ tab.icon }}</span>
+                                {{ tab.label }}
+                            </button>
+                        </div>
+
+                        <!-- Tabla activa -->
+                        <TableEstadisticas
+                            :key="modalTab + '-' + equipoModal.id"
+                            :titulo="modalTabConfig.titulo"
+                            :icono="modalTabConfig.icono"
+                            :color="modalTabConfig.color"
+                            :datos="statsEquipo[modalTab] ?? []"
+                            :valor-campo="modalTabConfig.valorCampo"
+                            :valor-label="modalTabConfig.valorLabel"
+                        />
+                    </template>
+                </div>
+            </div>
+        </div>
+    </Teleport>
 </template>

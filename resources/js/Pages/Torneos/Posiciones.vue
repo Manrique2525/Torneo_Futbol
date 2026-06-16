@@ -74,6 +74,14 @@ const tipoLabel = computed(() => {
         </div>
 
         <div class="flex items-center gap-3">
+            <Link
+                v-if="can('stats.view')"
+                :href="route('estadisticas.index', torneo.id)"
+                class="px-4 py-2.5 rounded-xl border-2 border-primary text-primary font-black uppercase text-[10px] tracking-widest hover:bg-primary hover:text-white transition-all"
+            >
+                <span class="material-symbols-outlined !text-sm mr-1">bar_chart</span>
+                Estadísticas
+            </Link>
             <button
                 v-if="can('standings.recalculate')"
                 @click="recalcular"
@@ -152,6 +160,7 @@ const tipoLabel = computed(() => {
             :standings="standingsOrdenados"
             :vista="vista"
             :puede-recalcular="can('standings.recalculate')"
+            :torneo-id="torneo.id"
         />
     </div>
 
