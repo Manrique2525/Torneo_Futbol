@@ -3,7 +3,6 @@
 namespace App\Services;
 
 use App\Models\Arbitro;
-use App\Models\Cancha;
 use App\Models\DisponibilidadCancha;
 use App\Models\Jornada;
 use App\Models\Partido;
@@ -23,6 +22,12 @@ class MatchSchedulingService
             $this->assertTorneoActivo($data['torneo_id'], $tenantId);
             $this->assertEquiposAprobados($data['equipo_local_id'], $data['equipo_visitante_id'], $data['torneo_id']);
             $this->assertEquiposDistintos($data['equipo_local_id'], $data['equipo_visitante_id']);
+            $this->assertSinRepeticionExcesiva(
+                $data['torneo_id'],
+                $data['equipo_local_id'],
+                $data['equipo_visitante_id'],
+                $data['fase'] ?? 'regular'
+            );
 
             if (! empty($data['jornada_id'])) {
                 $this->assertJornadaDelMismoTorneo((int) $data['jornada_id'], (int) $data['torneo_id']);
@@ -66,6 +71,13 @@ class MatchSchedulingService
             $this->assertTorneoActivo($data['torneo_id'], $tenantId);
             $this->assertEquiposAprobados($data['equipo_local_id'], $data['equipo_visitante_id'], $data['torneo_id']);
             $this->assertEquiposDistintos($data['equipo_local_id'], $data['equipo_visitante_id']);
+            $this->assertSinRepeticionExcesiva(
+                $data['torneo_id'],
+                $data['equipo_local_id'],
+                $data['equipo_visitante_id'],
+                $data['fase'] ?? $partido->fase ?? 'regular',
+                $partido->id
+            );
 
             if (! empty($data['jornada_id'])) {
                 $this->assertJornadaDelMismoTorneo((int) $data['jornada_id'], (int) $data['torneo_id']);
@@ -287,6 +299,56 @@ class MatchSchedulingService
                         $existenteInicio->format('H:i').' - '.$existenteFin->format('H:i').').',
                 ]);
             }
+        }
+    }
+
+    protected function assertSinRepeticionExcesiva(
+        int $torneoId,
+        int $localId,
+        int $visitanteId,
+        string $fase = 'regular',
+        ?int $exceptPartidoId = null
+    ): void {
+        if ($fase !== 'regular') {
+            return;
+        }
+
+        $torneo = Torneo::query()
+            ->withoutGlobalScopes()
+            ->where('id', $torneoId)
+            ->first();
+
+        if (! $torneo) {
+            return;
+        }
+
+        $maxEnfrentamientos = $torneo->ida_y_vuelta ? 2 : 1;
+
+        $enfrentamientos = Partido::query()
+            ->withoutGlobalScopes()
+            ->where('torneo_id', $torneoId)
+            ->where('fase', 'regular')
+            ->whereNotIn('estado', ['cancelado'])
+            ->when($exceptPartidoId, fn ($q) => $q->where('id', '!=', $exceptPartidoId))
+            ->where(function ($q) use ($localId, $visitanteId) {
+                $q->where(function ($q2) use ($localId, $visitanteId) {
+                    $q2->where('equipo_local_id', $localId)
+                        ->where('equipo_visitante_id', $visitanteId);
+                })->orWhere(function ($q2) use ($localId, $visitanteId) {
+                    $q2->where('equipo_local_id', $visitanteId)
+                        ->where('equipo_visitante_id', $localId);
+                });
+            })
+            ->count();
+
+        if ($enfrentamientos >= $maxEnfrentamientos) {
+            $mensaje = $torneo->ida_y_vuelta
+                ? 'Ya se han programado los 2 enfrentamientos (ida y vuelta) entre estos equipos en la fase regular.'
+                : 'Ya existe un enfrentamiento entre estos equipos en la fase regular. El torneo no permite ida y vuelta.';
+
+            throw ValidationException::withMessages([
+                'equipo_visitante_id' => $mensaje,
+            ]);
         }
     }
 }

@@ -5,11 +5,16 @@ namespace App\Enums;
 class RoleEnum
 {
     public const SUPER_ADMIN = 'super_admin';
-    public const ADMIN       = 'admin';
-    public const MANAGER     = 'manager';
-    public const REFEREE     = 'referee';
-    public const DELEGATE    = 'delegate';
-    public const PLAYER      = 'player';
+
+    public const ADMIN = 'admin';
+
+    public const MANAGER = 'manager';
+
+    public const REFEREE = 'referee';
+
+    public const DELEGATE = 'delegate';
+
+    public const PLAYER = 'player';
 
     public static function all(): array
     {
@@ -38,11 +43,11 @@ class RoleEnum
     {
         return [
             self::SUPER_ADMIN => 'Super Admin',
-            self::ADMIN       => 'Administrator',
-            self::MANAGER     => 'Manager',
-            self::REFEREE     => 'Referee',
-            self::DELEGATE    => 'Delegate',
-            self::PLAYER      => 'Player',
+            self::ADMIN => 'Administrator',
+            self::MANAGER => 'Manager',
+            self::REFEREE => 'Referee',
+            self::DELEGATE => 'Delegate',
+            self::PLAYER => 'Player',
         ];
     }
 
@@ -50,11 +55,11 @@ class RoleEnum
     {
         return [
             self::SUPER_ADMIN => 'Full access to the SaaS platform',
-            self::ADMIN       => 'Full access within the tenant',
-            self::MANAGER     => 'Manages tournaments, teams, and schedules',
-            self::REFEREE     => 'Records match events and views assignments',
-            self::DELEGATE    => 'Manages their own team and players',
-            self::PLAYER      => 'Views schedules and confirms attendance',
+            self::ADMIN => 'Full access within the tenant',
+            self::MANAGER => 'Manages tournaments, teams, and schedules',
+            self::REFEREE => 'Records match events and views assignments',
+            self::DELEGATE => 'Manages their own team and players',
+            self::PLAYER => 'Views schedules and confirms attendance',
         ];
     }
 
@@ -106,6 +111,8 @@ class RoleEnum
                 PermissionEnum::STANDINGS_VIEW,
                 PermissionEnum::STANDINGS_RECALCULATE,
 
+                PermissionEnum::CALENDAR_MANAGE,
+
                 PermissionEnum::REPORTS_VIEW,
             ],
 
@@ -120,6 +127,7 @@ class RoleEnum
                 PermissionEnum::SANCTIONS_VIEW,
                 PermissionEnum::STATS_VIEW,
                 PermissionEnum::STANDINGS_VIEW,
+                PermissionEnum::CALENDAR_MANAGE,
             ],
 
             self::DELEGATE => [

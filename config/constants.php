@@ -211,4 +211,50 @@ return [
         'suspendido' => 'Suspendido',
         'cancelado' => 'Cancelado',
     ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Fases de Partido
+    |--------------------------------------------------------------------------
+    */
+    'fases_partido' => [
+        'regular' => 'Fase Regular',
+        'octavos' => 'Octavos de Final',
+        'cuartos' => 'Cuartos de Final',
+        'semifinal' => 'Semifinal',
+        'final' => 'Final',
+        'tercer_lugar' => 'Tercer Lugar',
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Formatos Relámpago
+    |--------------------------------------------------------------------------
+    */
+    'formatos_relampago' => [
+        'grupos' => 'Fase de Grupos',
+        'eliminacion_directa' => 'Eliminación Directa',
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Motivos de Sustitución
+    |--------------------------------------------------------------------------
+    */
+    'motivos_sustitucion' => [
+        'clima' => 'Clima',
+        'no_presentacion' => 'No Presentación',
+        'no_asistencia' => 'No Asistencia',
+        'otro' => 'Otro',
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Tipos de Resolución de Sustitución
+    |--------------------------------------------------------------------------
+    */
+    'tipos_resolucion_sustitucion' => [
+        'reprogramado' => 'Reprogramar Partido',
+        'doble_jornada' => 'Doble Jornada',
+    ],
 ];

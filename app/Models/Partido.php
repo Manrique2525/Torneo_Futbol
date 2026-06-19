@@ -24,16 +24,22 @@ class Partido extends Model
         'hora',
         'duracion_minutos',
         'estado',
+        'fase',
+        'es_vuelta',
+        'llave_bracket',
+        'orden_bracket',
     ];
 
     protected function casts(): array
     {
         return [
-            'fecha'            => 'date',
-            'hora'             => 'datetime:H:i',
+            'fecha' => 'date',
+            'hora' => 'datetime:H:i',
             'duracion_minutos' => 'integer',
-            'goles_local'      => 'integer',
-            'goles_visitante'  => 'integer',
+            'goles_local' => 'integer',
+            'goles_visitante' => 'integer',
+            'es_vuelta' => 'boolean',
+            'orden_bracket' => 'integer',
         ];
     }
 
@@ -75,6 +81,11 @@ class Partido extends Model
     public function asistencias(): HasMany
     {
         return $this->hasMany(PartidoAsistencia::class, 'partido_id');
+    }
+
+    public function sustituciones(): HasMany
+    {
+        return $this->hasMany(PartidoSustitucion::class, 'partido_id');
     }
 
     public function puedeRegistrarEventos(): bool

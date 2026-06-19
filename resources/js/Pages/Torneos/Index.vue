@@ -192,6 +192,14 @@ const getEstadoBadge = (estado) => {
                         <td class="p-6 text-right">
                             <div class="flex justify-end gap-2">
                                 <Link
+                                    :href="route('calendario.show', t.id)"
+                                    class="p-2.5 rounded-xl bg-purple-500/10 text-purple-600 hover:bg-purple-600 hover:text-white transition-all"
+                                    title="Calendario de partidos"
+                                >
+                                    <span class="material-symbols-outlined !text-lg">calendar_month</span>
+                                </Link>
+
+                                <Link
                                     :href="route('standings.index', t.id)"
                                     class="p-2.5 rounded-xl bg-emerald-500/10 text-emerald-600 hover:bg-emerald-600 hover:text-white transition-all"
                                     title="Tabla de posiciones"

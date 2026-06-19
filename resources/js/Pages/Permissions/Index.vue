@@ -228,7 +228,7 @@ const deletePermission = () => {
                         <InputError :message="form.errors.name" class="mt-2" />
                     </div>
 
-                    <PrimaryButton @click="submitCreate" class="w-full !py-4">
+                    <PrimaryButton  type="submit" class="w-full !py-4">
                         Crear Permiso
                     </PrimaryButton>
                 </div>

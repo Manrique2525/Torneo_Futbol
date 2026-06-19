@@ -35,7 +35,30 @@ const form = useForm({
     estado: props.torneo.estado ?? 'activo',
     reglas: props.torneo.reglas ?? '',
     fair_play_automatico: props.torneo.fair_play_automatico ?? false,
+    ida_y_vuelta: props.torneo.ida_y_vuelta ?? false,
+    formato_relampago: props.torneo.formato_relampago ?? null,
+    tiene_playoff: props.torneo.tiene_playoff ?? false,
+    playoff_equipos: props.torneo.playoff_equipos ?? null,
+    playoff_ida_vuelta: props.torneo.playoff_ida_vuelta ?? false,
+    hora_inicio: props.torneo.hora_inicio ?? '12:00',
+    duracion_minutos: props.torneo.duracion_minutos ?? 90,
 });
+
+const formatoRelampagoOptions = [
+    { label: 'Fase de Grupos', value: 'grupos' },
+    { label: 'Eliminación Directa', value: 'eliminacion_directa' },
+];
+const selectedFormatoRelampago = ref(formatoRelampagoOptions.find(o => o.value === props.torneo.formato_relampago) ?? null);
+const onFormatoRelampagoChange = (o) => form.formato_relampago = o?.value ?? null;
+
+const playoffEquiposOptions = [
+    { label: '2 equipos', value: 2 },
+    { label: '4 equipos', value: 4 },
+    { label: '8 equipos', value: 8 },
+    { label: '16 equipos', value: 16 },
+];
+const selectedPlayoffEquipos = ref(playoffEquiposOptions.find(o => o.value === props.torneo.playoff_equipos) ?? null);
+const onPlayoffEquiposChange = (o) => form.playoff_equipos = o?.value ?? null;
 
 const onTipoChange = (o) => form.tipo = o?.value ?? '';
 const onCategoriaChange = (o) => form.categoria = o?.value ?? '';
@@ -224,11 +247,175 @@ const submit = () => {
                             <InputError :message="form.errors.fair_play_automatico" class="mt-1.5 ml-14" />
                         </div>
 
-                        <!-- Reglas -->
-                        <div class="md:col-span-2">
-                            <label class="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2 ml-1">
-                                Reglas
-                            </label>
+                    </div>
+
+                    <!-- SECCIÓN FORMATO DE TORNEO -->
+                    <div class="border-t border-slate-100 dark:border-slate-800 pt-5 mb-7">
+                        <h3 class="text-sm font-black uppercase tracking-tight text-slate-900 dark:text-white mb-4 flex items-center gap-2">
+                            <span class="material-symbols-outlined text-primary !text-lg">tune</span>
+                            Formato del Torneo
+                        </h3>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+
+                            <!-- Ida y Vuelta (Liga y Copa) -->
+                            <div v-if="form.tipo === 'liga' || form.tipo === 'copa'" class="md:col-span-2">
+                                <label class="flex items-center gap-3 cursor-pointer select-none group">
+                                    <div class="relative">
+                                        <input type="checkbox" v-model="form.ida_y_vuelta" class="peer sr-only">
+                                        <div class="h-6 w-11 rounded-full bg-slate-200 dark:bg-slate-700 peer-checked:bg-primary transition-all"></div>
+                                        <div class="absolute left-1 top-1 h-4 w-4 rounded-full bg-white transition-all peer-checked:translate-x-5"></div>
+                                    </div>
+                                    <div>
+                                        <span class="text-sm font-bold text-slate-800 dark:text-white group-hover:text-primary transition-colors">
+                                            Ida y Vuelta
+                                        </span>
+                                        <p class="text-[11px] text-slate-400 font-medium">
+                                            Cada equipo juega 2 veces contra cada rival (local y visitante)
+                                        </p>
+                                    </div>
+                                </label>
+                                <InputError :message="form.errors.ida_y_vuelta" class="mt-1.5 ml-14" />
+                            </div>
+
+                            <!-- Formato Relámpago -->
+                            <div v-if="form.tipo === 'relampago'" class="md:col-span-2">
+                                <label class="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2 ml-1">
+                                    Formato
+                                </label>
+                                <VSelectCustom
+                                    v-model="selectedFormatoRelampago"
+                                    :options="formatoRelampagoOptions"
+                                    label="label"
+                                    :clearable="false"
+                                    placeholder="Seleccionar formato..."
+                                    @update:modelValue="onFormatoRelampagoChange"
+                                />
+                                <InputError :message="form.errors.formato_relampago" class="mt-1.5" />
+                                <p v-if="form.formato_relampago === 'eliminacion_directa'" class="text-[11px] text-amber-500 font-medium mt-2 ml-1">
+                                    <span class="material-symbols-outlined !text-sm align-middle mr-1">info</span>
+                                    Eliminación directa: sin ida y vuelta, un solo partido por llave
+                                </p>
+                            </div>
+
+                            <!-- Tiene Playoff -->
+                            <div v-if="form.tipo === 'liga' || form.tipo === 'copa' || (form.tipo === 'relampago' && form.formato_relampago === 'grupos')" class="md:col-span-2">
+                                <label class="flex items-center gap-3 cursor-pointer select-none group">
+                                    <div class="relative">
+                                        <input type="checkbox" v-model="form.tiene_playoff" class="peer sr-only">
+                                        <div class="h-6 w-11 rounded-full bg-slate-200 dark:bg-slate-700 peer-checked:bg-primary transition-all"></div>
+                                        <div class="absolute left-1 top-1 h-4 w-4 rounded-full bg-white transition-all peer-checked:translate-x-5"></div>
+                                    </div>
+                                    <div>
+                                        <span class="text-sm font-bold text-slate-800 dark:text-white group-hover:text-primary transition-colors">
+                                            Tiene Playoff
+                                        </span>
+                                        <p class="text-[11px] text-slate-400 font-medium">
+                                            Los mejores equipos clasifican a una fase eliminatoria
+                                        </p>
+                                    </div>
+                                </label>
+                                <InputError :message="form.errors.tiene_playoff" class="mt-1.5 ml-14" />
+                            </div>
+
+                            <!-- Playoff Equipos -->
+                            <div v-if="form.tiene_playoff && (form.tipo === 'liga' || form.tipo === 'copa' || (form.tipo === 'relampago' && form.formato_relampago === 'grupos'))">
+                                <label class="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2 ml-1">
+                                    Equipos en Playoff
+                                </label>
+                                <VSelectCustom
+                                    v-model="selectedPlayoffEquipos"
+                                    :options="playoffEquiposOptions"
+                                    label="label"
+                                    :clearable="false"
+                                    placeholder="Seleccionar..."
+                                    @update:modelValue="onPlayoffEquiposChange"
+                                />
+                                <InputError :message="form.errors.playoff_equipos" class="mt-1.5" />
+                            </div>
+
+                            <!-- Playoff Ida y Vuelta -->
+                            <div v-if="form.tiene_playoff && (form.tipo === 'liga' || form.tipo === 'copa' || (form.tipo === 'relampago' && form.formato_relampago === 'grupos'))" class="md:col-span-2">
+                                <label class="flex items-center gap-3 cursor-pointer select-none group">
+                                    <div class="relative">
+                                        <input type="checkbox" v-model="form.playoff_ida_vuelta" class="peer sr-only">
+                                        <div class="h-6 w-11 rounded-full bg-slate-200 dark:bg-slate-700 peer-checked:bg-primary transition-all"></div>
+                                        <div class="absolute left-1 top-1 h-4 w-4 rounded-full bg-white transition-all peer-checked:translate-x-5"></div>
+                                    </div>
+                                    <div>
+                                        <span class="text-sm font-bold text-slate-800 dark:text-white group-hover:text-primary transition-colors">
+                                            Playoff Ida y Vuelta
+                                        </span>
+                                        <p class="text-[11px] text-slate-400 font-medium">
+                                            Cada llave del playoff se juega a 2 partidos (ida y vuelta)
+                                        </p>
+                                    </div>
+                                </label>
+                                <InputError :message="form.errors.playoff_ida_vuelta" class="mt-1.5 ml-14" />
+                            </div>
+
+                        </div>
+            </div>
+
+            <!-- SECCIÓN CONFIGURACIÓN DE PARTIDOS -->
+            <div class="border-t border-slate-100 dark:border-slate-800 pt-5 mb-7">
+                <h3 class="text-sm font-black uppercase tracking-tight text-slate-900 dark:text-white mb-4 flex items-center gap-2">
+                    <span class="material-symbols-outlined text-primary !text-lg">schedule</span>
+                    Configuración de Partidos
+                </h3>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+
+                    <!-- Hora de Inicio -->
+                    <div>
+                        <label class="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2 ml-1">
+                            Hora de Inicio por Defecto
+                        </label>
+                        <input
+                            type="time"
+                            v-model="form.hora_inicio"
+                            class="w-full bg-slate-50 dark:bg-white/5 border border-transparent
+                                   focus:border-primary focus:ring-2 focus:ring-primary/20
+                                   rounded-xl py-3 px-4 text-sm text-slate-800 dark:text-white
+                                   transition-all outline-none"
+                        >
+                        <p class="text-[11px] text-slate-400 font-medium mt-1 ml-1">
+                            Hora base para los partidos al generar el calendario
+                        </p>
+                        <InputError :message="form.errors.hora_inicio" class="mt-1.5" />
+                    </div>
+
+                    <!-- Duración -->
+                    <div>
+                        <label class="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2 ml-1">
+                            Duración por Defecto (minutos)
+                        </label>
+                        <input
+                            type="number"
+                            v-model="form.duracion_minutos"
+                            min="15"
+                            max="300"
+                            class="w-full bg-slate-50 dark:bg-white/5 border border-transparent
+                                   focus:border-primary focus:ring-2 focus:ring-primary/20
+                                   rounded-xl py-3 px-4 text-sm text-slate-800 dark:text-white
+                                   transition-all outline-none"
+                        >
+                        <p class="text-[11px] text-slate-400 font-medium mt-1 ml-1">
+                            Duración de cada partido (15 - 300 minutos)
+                        </p>
+                        <InputError :message="form.errors.duracion_minutos" class="mt-1.5" />
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-7">
+
+                <!-- Reglas -->
+                <div class="md:col-span-2">
+                    <label class="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2 ml-1">
+                        Reglas
+                    </label>
                             <textarea
                                 v-model="form.reglas"
                                 rows="4"

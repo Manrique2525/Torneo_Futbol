@@ -62,7 +62,7 @@ Module routes live in dedicated files under `routes/`. Some are loaded inside te
 
 **Inside `['auth', 'verified', 'tenant']`** (web.php line 35):
 - `roles.php`, `plans.php` (via `Route::group([], base_path(...))`)
-- `torneos.php`, `teams.php`, `arbitros.php`, `players.php`, `canchas.php`, `jornadas.php`, `partidos.php`, `partidos-en-vivo.php`, `standings.php` (via `require` at bottom of web.php)
+- `torneos.php`, `teams.php`, `arbitros.php`, `players.php`, `canchas.php`, `jornadas.php`, `partidos.php`, `partidos-en-vivo.php`, `standings.php`, `calendario.php` (via `require` at bottom of web.php)
 
 **Outside tenant group** (web.php line 47): `permissions` resource (auth only)
 
@@ -74,7 +74,7 @@ Route naming uses Spanish convention for domain modules: `torneos`, `arbitros`, 
 
 ## Models
 
-18 models in `app/Models/`. Domain models use Spanish names: `Torneo`, `Arbitro`, `Jornada`, `Cancha`, `Partido`, `PartidoEvento`, `PartidoAsistencia`, `TorneoEquipo`, `TorneoGrupo`, `TorneoStanding`, `DisponibilidadCancha`, `Team`, `Player`, `Tenant`, `User`, `Plan`, `Subscription`, `UsageLimit`.
+18 models in `app/Models/`. Domain models use Spanish names: `Torneo`, `Arbitro`, `Jornada`, `Cancha`, `Partido`, `PartidoEvento`, `PartidoAsistencia`, `PartidoSustitucion`, `TorneoEquipo`, `TorneoGrupo`, `TorneoStanding`, `DisponibilidadCancha`, `Team`, `Player`, `Tenant`, `User`, `Plan`, `Subscription`, `UsageLimit`.
 
 `User` model: `HasRoles` (Spatie), `BelongsToTenant`, `SoftDeletes`. Status constants: `active`, `inactive`, `suspended`.
 
@@ -98,6 +98,48 @@ Route naming uses Spanish convention for domain modules: `torneos`, `arbitros`, 
 - No custom TestCase methods — `Tests\TestCase` is empty
 
 ## Session History
+
+### 2026-06-17 — Módulo Calendario Automático de Partidos
+
+**Archivos creados:**
+- `database/migrations/2026_06_17_000001_add_calendario_config_to_torneos.php` — agrega campos: `ida_y_vuelta`, `formato_relampago`, `tiene_playoff`, `playoff_equipos`, `playoff_ida_vuelta`.
+- `database/migrations/2026_06_17_000002_add_fase_to_partidos.php` — agrega campos: `fase`, `es_vuelta`, `llave_bracket`, `orden_bracket`.
+- `database/migrations/2026_06_17_000003_create_partido_sustituciones_table.php` — tabla para registrar sustituciones de equipos.
+- `app/Models/PartidoSustitucion.php` — modelo con trait `BelongsToTenant`, relaciones a partido, equipos, usuario.
+- `app/Services/RoundRobinGenerator.php` — algoritmo Round-Robin para generar enfrentamientos todos vs todos, con soporte para ida y vuelta.
+- `app/Services/BracketGenerator.php` — genera llaves de eliminación directa con cruzamiento estándar (1° vs N°, 2° vs N-1°, etc.).
+- `app/Services/CalendarioService.php` — servicio principal que orquesta la generación de calendarios (preview, confirmar, eliminar).
+- `app/Http/Controllers/CalendarioController.php` — controlador con métodos: show, preview, store, update, destroy, sustituir.
+- `app/Http/Requests/StoreSustitucionRequest.php` — validación para sustitución de equipos.
+- `routes/calendario.php` — rutas del módulo calendario dentro de middleware `['auth', 'verified', 'tenant']`.
+- `resources/js/Pages/Calendario/Show.vue` — página principal del calendario con preview modal, tabs fase regular/playoff, modal de sustitución.
+- `tests/Unit/RoundRobinGeneratorTest.php` — 8 tests unitarios para el generador Round-Robin.
+- `tests/Unit/BracketGeneratorTest.php` — 11 tests unitarios para el generador de brackets.
+
+**Archivos modificados:**
+- `app/Models/Torneo.php` — nuevos campos en `$fillable` y `$casts`, helpers: `esLiga()`, `esCopa()`, `esRelampago()`, `tieneIdaYVuelta()`, `tienePlayoff()`, `esPotenciaDe2()`.
+- `app/Models/Partido.php` — nuevos campos en `$fillable` y `$casts`, relación `sustituciones()`.
+- `app/Enums/PermissionEnum.php` — agregado `CALENDAR_MANAGE = 'calendar.manage'`.
+- `app/Enums/RoleEnum.php` — `CALENDAR_MANAGE` asignado a roles admin (vía `PermissionEnum::all()`) y referee.
+- `app/Http/Controllers/TorneoController.php` — validación de nuevos campos en store/update.
+- `app/Services/MatchSchedulingService.php` — nuevo método `assertSinRepeticionExcesiva()` que valida que no se repitan partidos más de lo permitido según `ida_y_vuelta`.
+- `config/constants.php` — agregados: `fases_partido`, `formatos_relampago`, `motivos_sustitucion`, `tipos_resolucion_sustitucion`.
+- `routes/web.php` — agregado `require __DIR__.'/calendario.php'`.
+- `resources/js/Pages/Torneos/Create.vue` — sección "Formato del Torneo" con toggles y selects condicionales según tipo.
+- `resources/js/Pages/Torneos/Edit.vue` — misma sección de formato.
+- `resources/js/Pages/Torneos/Index.vue` — botón "Calendario" en cada torneo.
+
+**Lógica implementada:**
+- **Liga/Copa**: Round-Robin todos vs todos, configurable ida y vuelta (2 partidos por par), playoff opcional con top N (potencia de 2).
+- **Relámpago**: Admin elige entre fase de grupos o eliminación directa. Sin ida y vuelta.
+- **Playoff**: Cruzamiento estándar (1° vs N°, 2° vs N-1°), configurable eliminación directa o ida y vuelta por llave.
+- **Sustitución de equipos**: Si un equipo no asiste, otro puede tomar su lugar. Admin elige: reprogramar partido o doble jornada.
+- **Validación de repetición**: Sin ida y vuelta = 1 enfrentamiento máximo por par. Con ida y vuelta = 2 enfrentamientos máximo. Excepción: partidos de playoff.
+
+**Notas:**
+- Tests unitarios pasan (19 tests, 80 assertions). Tests de Feature fallan por problema pre-existente (driver SQLite no instalado).
+- Build de frontend exitoso.
+- Laravel Pint ejecutado en todos los archivos PHP nuevos/modificados.
 
 ### 2026-06-15 — Módulo Estadísticas + Modal por equipo
 

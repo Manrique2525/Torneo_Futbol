@@ -25,18 +25,31 @@ class Torneo extends Model
         'inscripcion_abierta',
         'configuracion_asistencia_delegado',
         'fair_play_automatico',
+        'ida_y_vuelta',
+        'formato_relampago',
+        'tiene_playoff',
+        'playoff_equipos',
+        'playoff_ida_vuelta',
+        'hora_inicio',
+        'duracion_minutos',
         'created_by',
     ];
 
     protected function casts(): array
     {
         return [
-            'fecha_inicio'        => 'date',
-            'fecha_fin'           => 'date',
-            'max_equipos'         => 'integer',
+            'fecha_inicio' => 'date',
+            'fecha_fin' => 'date',
+            'max_equipos' => 'integer',
             'inscripcion_abierta' => 'boolean',
             'configuracion_asistencia_delegado' => 'boolean',
             'fair_play_automatico' => 'boolean',
+            'ida_y_vuelta' => 'boolean',
+            'tiene_playoff' => 'boolean',
+            'playoff_equipos' => 'integer',
+            'playoff_ida_vuelta' => 'boolean',
+            'hora_inicio' => 'datetime:H:i',
+            'duracion_minutos' => 'integer',
         ];
     }
 
@@ -100,5 +113,34 @@ class Torneo extends Model
         return $this->inscripcion_abierta
             && $this->estado === 'activo';
     }
-}
 
+    public function esLiga(): bool
+    {
+        return $this->tipo === 'liga';
+    }
+
+    public function esCopa(): bool
+    {
+        return $this->tipo === 'copa';
+    }
+
+    public function esRelampago(): bool
+    {
+        return $this->tipo === 'relampago';
+    }
+
+    public function tieneIdaYVuelta(): bool
+    {
+        return $this->ida_y_vuelta && ! $this->esRelampago();
+    }
+
+    public function tienePlayoff(): bool
+    {
+        return $this->tiene_playoff && $this->playoff_equipos > 0;
+    }
+
+    public static function esPotenciaDe2(int $n): bool
+    {
+        return $n > 0 && ($n & ($n - 1)) === 0;
+    }
+}
