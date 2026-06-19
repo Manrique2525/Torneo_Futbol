@@ -27,36 +27,35 @@ class HandleInertiaRequests extends Middleware
      *
      * @return array<string, mixed>
      */
+    public function share(Request $request): array
+    {
+        $user = $request->user();
 
+        if (! $user) {
+            return parent::share($request);
+        }
 
-public function share(Request $request): array
-{
-    $user = $request->user();
+        // FORZAR CONTEXTO SPATIE AQUÍ
+        setPermissionsTeamId($user->tenant_id);
 
-    if (!$user) {
-        return parent::share($request);
-    }
+        return [
+            ...parent::share($request),
 
-    // FORZAR CONTEXTO SPATIE AQUÍ
-    setPermissionsTeamId($user->tenant_id);
-
-    return [
-        ...parent::share($request),
-
-        'auth' => [
-            'user' => [
-                'id' => $user->id,
-                'name' => $user->name,
-                'email' => $user->email,
-                'tenant_id' => $user->tenant_id,
-                'roles' => $user->getRoleNames(),
-                'permissions' => $user->getAllPermissions()->pluck('name')->values(),
+            'auth' => [
+                'user' => [
+                    'id' => $user->id,
+                    'name' => $user->name,
+                    'email' => $user->email,
+                    'tenant_id' => $user->tenant_id,
+                    'roles' => $user->getRoleNames(),
+                    'permissions' => $user->getAllPermissions()->pluck('name')->values(),
+                ],
             ],
-        ],
 
-        'flash' => [
-            'success' => fn () => $request->session()->get('success'),
-        ],
-    ];
-}
+            'flash' => [
+                'success' => fn () => $request->session()->get('success'),
+                'error' => fn () => $request->session()->get('error'),
+            ],
+        ];
+    }
 }

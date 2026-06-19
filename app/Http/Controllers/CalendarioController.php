@@ -110,7 +110,14 @@ class CalendarioController extends Controller
     {
         $this->authorize(PermissionEnum::CALENDAR_MANAGE);
 
-        $preview = $this->calendarioService->preview($torneo);
+        try {
+            $preview = $this->calendarioService->preview($torneo);
+        } catch (ValidationException $e) {
+            $message = collect($e->errors())->flatten()->first();
+
+            return redirect()->route('calendario.show', $torneo)
+                ->with('error', $message ?? 'No se pudo generar el calendario.');
+        }
 
         return Inertia::render('Calendario/Preview', [
             'torneo' => $torneo->only([

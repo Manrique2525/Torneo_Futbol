@@ -255,6 +255,14 @@ const getFaseBadge = (fase) => {
                 <span class="text-sm font-bold uppercase tracking-wide">{{ flash.success }}</span>
             </div>
 
+            <div
+                v-if="flash?.error"
+                class="mb-6 bg-red-500/10 border border-red-500/20 text-red-700 dark:text-red-400 px-6 py-4 rounded-2xl flex items-center gap-3 shadow-sm"
+            >
+                <span class="material-symbols-outlined text-red-600">error</span>
+                <span class="text-sm font-bold uppercase tracking-wide">{{ flash.error }}</span>
+            </div>
+
             <div v-if="!tieneCalendario" class="text-center py-16">
                 <span class="material-symbols-outlined text-6xl text-slate-300 dark:text-slate-600">event_busy</span>
                 <p class="text-slate-400 text-sm mt-4">No hay calendario generado para este torneo.</p>
