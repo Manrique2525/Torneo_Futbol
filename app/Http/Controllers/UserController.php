@@ -86,7 +86,7 @@ class UserController extends Controller
             'name'     => ['required', 'string', 'max:150'],
             'email'    => ['required', 'email', 'max:255', 'unique:users,email'],
             'phone'    => ['nullable', 'string', 'max:20'],
-            'role'     => ['required', 'string', Rule::in(array_map(fn ($r) => $r->value, RoleEnum::assignable()))],
+            'role' => ['required', 'string', Rule::in(RoleEnum::assignable())],
             'password' => ['required', Password::defaults()],
         ]);
 
@@ -139,7 +139,7 @@ class UserController extends Controller
             'name'     => ['required', 'string', 'max:150'],
             'email'    => ['required', 'email', 'max:255', Rule::unique('users')->ignore($user->id)],
             'phone'    => ['nullable', 'string', 'max:20'],
-            'role'     => ['required', 'string', Rule::in(array_map(fn ($r) => $r->value, RoleEnum::assignable()))],
+            'role' => ['required', 'string', Rule::in(RoleEnum::assignable())],
             'status'   => ['required', 'string', Rule::in(['active', 'inactive', 'suspended'])],
             'password' => ['nullable', Password::defaults()],
         ]);
