@@ -1,12 +1,15 @@
 <script setup>
 import { Head, Link } from '@inertiajs/vue3';
 import { ref, onMounted, computed } from 'vue';
+import { useAuth } from '@/Shared/Composables/useAuth';
 
 const props = defineProps({
     canLogin: { type: Boolean },
     canRegister: { type: Boolean },
     planes: { type: Array, default: () => [] },
 });
+
+const { isAuthenticated } = useAuth();
 
 const isMenuOpen = ref(false);
 const activeTab = ref('mensual');
@@ -277,7 +280,7 @@ const stats = [
 
                         <div v-if="canLogin" class="hidden lg:flex items-center gap-3">
                             <Link
-                                v-if="$page.props.auth.user"
+                                v-if="isAuthenticated"
                                 :href="route('dashboard')"
                                 class="px-5 py-2.5 text-sm font-semibold bg-primary hover:bg-primary-dark text-white rounded-xl"
                             >
@@ -324,14 +327,14 @@ const stats = [
                     <a href="#features" class="block text-sm text-gray-500 hover:text-gray-900 dark:text-white/60 dark:hover:text-white" @click="isMenuOpen = false">Funciones</a>
                     <a href="#pricing" class="block text-sm text-gray-500 hover:text-gray-900 dark:text-white/60 dark:hover:text-white" @click="isMenuOpen = false">Precios</a>
                     <a href="#stats" class="block text-sm text-gray-500 hover:text-gray-900 dark:text-white/60 dark:hover:text-white" @click="isMenuOpen = false">Resultados</a>
-                    <div v-if="canLogin" class="pt-4 border-t border-gray-200 dark:border-white/10 space-y-3">
-                        <template v-if="!$page.props.auth.user">
-                            <Link :href="route('login')" class="block text-sm text-gray-500 dark:text-white/70">Iniciar sesión</Link>
-                            <Link v-if="canRegister" :href="route('register')" class="block w-full text-center px-5 py-2.5 text-sm font-semibold bg-primary text-white rounded-xl">
-                                Prueba gratis
-                            </Link>
-                        </template>
-                        <Link v-else :href="route('dashboard')" class="block w-full text-center px-5 py-2.5 text-sm font-semibold bg-primary text-white rounded-xl">
+                        <div v-if="canLogin" class="pt-4 border-t border-gray-200 dark:border-white/10 space-y-3">
+                            <template v-if="!isAuthenticated">
+                                <Link :href="route('login')" class="block text-sm text-gray-500 dark:text-white/70">Iniciar sesión</Link>
+                                <Link v-if="canRegister" :href="route('register')" class="block w-full text-center px-5 py-2.5 text-sm font-semibold bg-primary text-white rounded-xl">
+                                    Prueba gratis
+                                </Link>
+                            </template>
+                            <Link v-else :href="route('dashboard')" class="block w-full text-center px-5 py-2.5 text-sm font-semibold bg-primary text-white rounded-xl">
                             Dashboard
                         </Link>
                     </div>

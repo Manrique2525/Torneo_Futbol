@@ -6,11 +6,6 @@ export function useCan() {
 
     const user = computed(() => page.props?.auth?.user ?? null)
 
-    console.log('User:', user.value)
-    console.log('Permissions:', user.value?.permissions)
-    console.log('Roles:', user.value?.roles)
-
-
     const permissions = computed(() => user.value?.permissions ?? [])
     const roles = computed(() => user.value?.roles ?? [])
 
