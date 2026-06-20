@@ -80,7 +80,7 @@ class RegisteredUserController extends Controller
 
             // 4. Assign admin role
             setPermissionsTeamId($tenant->id);
-            $user->assignRole(RoleEnum::ADMIN->value);
+            $user->assignRole(RoleEnum::ADMIN);
 
 
             // 5. Create trial subscription

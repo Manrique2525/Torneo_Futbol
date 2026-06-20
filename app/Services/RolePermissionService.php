@@ -12,6 +12,27 @@ use Spatie\Permission\PermissionRegistrar;
 
 class RolePermissionService
 {
+
+
+   /**
+     * Create default roles for a new tenant.
+     * Called when a tenant is first created.
+     */
+    public function setupTenantRoles(int $tenantId): void
+    {
+        // Set Spatie context to this tenant
+        setPermissionsTeamId($tenantId);
+
+        foreach (RoleEnum::assignable() as $roleName) {
+            $role = Role::findOrCreate($roleName, 'web');
+            $role->syncPermissions(
+                RoleEnum::defaultPermissions($roleName)
+            );
+        }
+
+        app()[PermissionRegistrar::class]->forgetCachedPermissions();
+    }
+
     /**
      * Setup roles (ONLY once globally, not per tenant)
      */
