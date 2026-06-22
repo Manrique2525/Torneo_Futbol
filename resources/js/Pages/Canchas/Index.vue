@@ -6,6 +6,7 @@ import VSelectCustom from '@/Components/VSelectCustom.vue';
 import { ref, watch } from 'vue';
 import { Head, router, Link } from '@inertiajs/vue3';
 import { useCan } from '@/Shared/Composables/useCan.js';
+import GoogleMapPicker from '@/Components/GoogleMapPicker.vue';
 
 const props = defineProps({
     canchas: Object,
@@ -86,6 +87,16 @@ const getEstadoBadge = (estado) => {
         mantenimiento: 'bg-amber-500/10 text-amber-600 border-amber-500/20',
     };
     return colors[estado] || 'bg-slate-100 text-slate-500 border-slate-200';
+};
+
+const canchaModal = ref(null);
+
+const abrirModal = (c) => {
+    canchaModal.value = c;
+};
+
+const cerrarModal = () => {
+    canchaModal.value = null;
 };
 
 const truncate = (text, max) => {
@@ -187,7 +198,8 @@ const truncate = (text, max) => {
                     <tr
                         v-for="c in canchas?.data || []"
                         :key="c.id"
-                        class="group hover:bg-slate-50/80 dark:hover:bg-white/5 transition-all"
+                        @click="abrirModal(c)"
+                        class="cursor-pointer group hover:bg-slate-50/80 dark:hover:bg-white/5 transition-all"
                     >
                         <td class="p-6">
                             <div class="flex items-center gap-4">
@@ -303,6 +315,83 @@ const truncate = (text, max) => {
         </div>
     </div>
 </Modal>
+
+<!-- Modal ubicación -->
+<Teleport to="body">
+    <div
+        v-if="canchaModal"
+        class="fixed inset-0 z-50 flex items-start justify-center pt-10 md:pt-20"
+    >
+        <div class="fixed inset-0 bg-black/60 backdrop-blur-sm" @click="cerrarModal"></div>
+        <div class="relative bg-white dark:bg-[#1A2C26] rounded-[2.5rem] border border-slate-100 dark:border-slate-800 shadow-2xl w-full max-w-2xl max-h-[85vh] overflow-y-auto mx-4 z-10">
+            <!-- Header -->
+            <div class="sticky top-0 bg-white dark:bg-[#1A2C26] z-10 p-6 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <div class="h-10 w-10 rounded-2xl bg-primary flex items-center justify-center text-white shadow-md shadow-primary/30">
+                        <span class="material-symbols-outlined text-xl">stadium</span>
+                    </div>
+                    <div>
+                        <h3 class="text-base font-black uppercase tracking-tight text-slate-900 dark:text-white">
+                            {{ canchaModal.nombre }}
+                        </h3>
+                        <p class="text-[10px] font-bold uppercase tracking-widest text-slate-500">
+                            {{ constantes.tipos_cancha?.[canchaModal.tipo] || canchaModal.tipo }}
+                            —
+                            {{ constantes.estados_cancha?.[canchaModal.estado] || canchaModal.estado }}
+                        </p>
+                    </div>
+                </div>
+                <button
+                    @click="cerrarModal"
+                    class="h-10 w-10 rounded-xl bg-slate-100 dark:bg-white/10 flex items-center justify-center hover:bg-slate-200 dark:hover:bg-white/20 transition-colors"
+                >
+                    <span class="material-symbols-outlined text-lg">close</span>
+                </button>
+            </div>
+
+            <!-- Content -->
+            <div class="p-6 space-y-5">
+                <!-- Info -->
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <p class="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">Dirección</p>
+                        <p class="text-sm text-slate-700 dark:text-slate-300">
+                            {{ canchaModal.direccion || 'Sin dirección' }}
+                        </p>
+                    </div>
+                    <div>
+                        <p class="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">Capacidad</p>
+                        <p class="text-sm text-slate-700 dark:text-slate-300">
+                            {{ canchaModal.capacidad ? canchaModal.capacidad + ' personas' : '—' }}
+                        </p>
+                    </div>
+                    <div v-if="canchaModal.latitud && canchaModal.longitud">
+                        <p class="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">Latitud</p>
+                        <p class="text-sm text-slate-700 dark:text-slate-300">{{ canchaModal.latitud }}</p>
+                    </div>
+                    <div v-if="canchaModal.latitud && canchaModal.longitud">
+                        <p class="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">Longitud</p>
+                        <p class="text-sm text-slate-700 dark:text-slate-300">{{ canchaModal.longitud }}</p>
+                    </div>
+                </div>
+
+                <!-- Map -->
+                <div v-if="canchaModal.latitud && canchaModal.longitud">
+                    <p class="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">Ubicación</p>
+                    <GoogleMapPicker
+                        :model-value="{ lat: canchaModal.latitud, lng: canchaModal.longitud }"
+                        :disabled="true"
+                        height="300px"
+                    />
+                </div>
+                <div v-else class="bg-slate-50 dark:bg-white/5 rounded-2xl p-6 text-center">
+                    <span class="material-symbols-outlined text-3xl text-slate-300">map</span>
+                    <p class="text-sm text-slate-400 mt-2">Esta cancha no tiene ubicación registrada</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</Teleport>
 
 </AuthenticatedLayout>
 </template>
