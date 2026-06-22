@@ -246,6 +246,12 @@ Route naming uses Spanish convention for domain modules: `torneos`, `arbitros`, 
 - Filas alternadas
 - Fecha de generación
 
+### 2026-06-22 — Restricciones delegate en Canchas y Jornadas
+
+**Archivos modificados:**
+- `resources/js/Pages/Canchas/Index.vue` — botones "Nueva Cancha", "Editar" y "Eliminar" ocultos para delegate (`v-if="!hasRole('delegate')"`).
+- `resources/js/Pages/Jornadas/Index.vue` — botones "Nueva Jornada", "Editar" y "Eliminar" ocultos para delegate (mismo patrón).
+
 ## Code Style
 
 - 4-space indent, LF line endings (`.editorconfig`)
