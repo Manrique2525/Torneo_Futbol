@@ -1,6 +1,6 @@
 <script setup>
 import { ref, onMounted, watch, shallowRef } from 'vue';
-import { Loader } from '@googlemaps/js-api-loader';
+import { setOptions, importLibrary } from '@googlemaps/js-api-loader';
 
 const props = defineProps({
     modelValue: { type: Object, default: null },
@@ -37,13 +37,13 @@ onMounted(async () => {
     }
 
     try {
-        const loader = new Loader({
-            apiKey: API_KEY,
-            version: 'weekly',
-            libraries: ['places'],
-        });
+        setOptions({ key: API_KEY, version: 'weekly' });
 
-        const google = await loader.load();
+        await Promise.all([
+            importLibrary('maps'),
+            importLibrary('places'),
+            importLibrary('geocoding'),
+        ]);
 
         const center = getCenter();
 
@@ -79,7 +79,7 @@ onMounted(async () => {
             const lat = pos.lat();
             const lng = pos.lng();
             emit('update:modelValue', { lat, lng });
-            reverseGeocode(google, lat, lng);
+            reverseGeocode(lat, lng);
         });
 
         mapInstance.addListener('click', (e) => {
@@ -89,7 +89,7 @@ onMounted(async () => {
             markerInstance.setPosition(e.latLng);
             mapInstance.panTo(e.latLng);
             emit('update:modelValue', { lat, lng });
-            reverseGeocode(google, lat, lng);
+            reverseGeocode(lat, lng);
         });
 
         // Places Autocomplete
@@ -123,7 +123,7 @@ onMounted(async () => {
     }
 });
 
-const reverseGeocode = async (google, lat, lng) => {
+const reverseGeocode = async (lat, lng) => {
     try {
         const geocoder = new google.maps.Geocoder();
         const result = await geocoder.geocode({ location: { lat, lng } });
