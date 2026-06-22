@@ -51,7 +51,7 @@ const onUbicacionChange = (pos) => {
 };
 
 const onAddressUpdate = (address) => {
-    if (address && !form.direccion) {
+    if (address) {
         form.direccion = address;
     }
 };
