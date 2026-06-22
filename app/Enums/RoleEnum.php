@@ -67,7 +67,7 @@ class RoleEnum
     {
         return match ($role) {
 
-            self::SUPER_ADMIN => [],
+            self::SUPER_ADMIN => PermissionEnum::all(),
 
             self::ADMIN => PermissionEnum::all(),
 

@@ -12,9 +12,7 @@ use Spatie\Permission\PermissionRegistrar;
 
 class RolePermissionService
 {
-
-
-   /**
+    /**
      * Create default roles for a new tenant.
      * Called when a tenant is first created.
      */
@@ -51,8 +49,9 @@ class RolePermissionService
             $role->syncPermissions(RoleEnum::defaultPermissions($roleName));
         }
 
-        // Super admin
-        Role::findOrCreate(RoleEnum::SUPER_ADMIN, 'web');
+        // Super admin — assign all permissions for consistency
+        $role = Role::findOrCreate(RoleEnum::SUPER_ADMIN, 'web');
+        $role->syncPermissions(PermissionEnum::all());
     }
 
     /**
@@ -63,8 +62,8 @@ class RolePermissionService
         return Role::with('permissions:id,name')
             ->get()
             ->map(fn (Role $role) => [
-                'id'          => $role->id,
-                'name'        => $role->name,
+                'id' => $role->id,
+                'name' => $role->name,
                 'permissions' => $role->permissions->pluck('name'),
             ]);
     }
@@ -72,20 +71,20 @@ class RolePermissionService
     /**
      * Get permissions grouped
      */
-public function getPermissionsGrouped(): array
-{
-    return Permission::query()
-        ->select('name')
-        ->get()
-        ->pluck('name')
-        ->groupBy(function ($permission) {
-            return explode('.', $permission)[0]; // módulo
-        })
-        ->map(function ($permissions, $module) {
-            return $permissions->values();
-        })
-        ->toArray();
-}
+    public function getPermissionsGrouped(): array
+    {
+        return Permission::query()
+            ->select('name')
+            ->get()
+            ->pluck('name')
+            ->groupBy(function ($permission) {
+                return explode('.', $permission)[0]; // módulo
+            })
+            ->map(function ($permissions, $module) {
+                return $permissions->values();
+            })
+            ->toArray();
+    }
 
     /**
      * Create custom role
@@ -96,7 +95,7 @@ public function getPermissionsGrouped(): array
         $filtered = array_intersect($permissionNames, $valid);
 
         $role = Role::create([
-            'name'       => $name,
+            'name' => $name,
             'guard_name' => 'web',
         ]);
 
@@ -163,7 +162,7 @@ public function getPermissionsGrouped(): array
      */
     public function giveDirectPermission(User $user, string $permissionName): void
     {
-        if (!in_array($permissionName, PermissionEnum::all())) {
+        if (! in_array($permissionName, PermissionEnum::all())) {
             abort(422, "Invalid permission: {$permissionName}");
         }
 

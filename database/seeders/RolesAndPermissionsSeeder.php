@@ -20,7 +20,9 @@ class RolesAndPermissionsSeeder extends Seeder
             Permission::findOrCreate($permission, 'web');
         }
 
-
-
+        // ── Assign all permissions to every super_admin role ──
+        Role::where('name', RoleEnum::SUPER_ADMIN)->each(
+            fn (Role $role) => $role->syncPermissions(PermissionEnum::all())
+        );
     }
 }
