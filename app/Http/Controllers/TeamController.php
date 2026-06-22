@@ -2,10 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Mail\EquipoCreado;
 use App\Models\Team;
 use App\Models\User;
 use App\Services\PlanService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Mail;
 use Inertia\Inertia;
 
 class TeamController extends Controller
@@ -100,7 +102,7 @@ class TeamController extends Controller
             $shieldPath = $request->file('shield')->store('teams', 'public');
         }
 
-        Team::create([
+        $team = Team::create([
             'tenant_id' => $tenant->id,
             'name' => $request->name,
             'colors' => $request->colors,
@@ -110,6 +112,11 @@ class TeamController extends Controller
             'shield' => $shieldPath,
             'status' => $request->status ?? 'active',
         ]);
+
+        if ($team->email) {
+            $team->load('delegado');
+            Mail::to($team->email)->queue(new EquipoCreado($team));
+        }
 
         return redirect()->route('teams.index')->with('success', 'Equipo creado correctamente');
     }

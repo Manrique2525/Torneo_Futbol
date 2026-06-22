@@ -271,6 +271,50 @@ Route naming uses Spanish convention for domain modules: `torneos`, `arbitros`, 
 - `resources/js/Pages/Canchas/Index.vue` — botones "Nueva Cancha", "Editar" y "Eliminar" ocultos para delegate (`v-if="!hasRole('delegate')"`).
 - `resources/js/Pages/Jornadas/Index.vue` — botones "Nueva Jornada", "Editar" y "Eliminar" ocultos para delegate (mismo patrón).
 
+### 2026-06-22 — Correo de inscripción al aprobar equipo en torneo
+
+**Contexto:** Al aprobar la inscripción de un equipo en un torneo, se envía un correo al email registrado del equipo notificando que fue dado de alta. Se usa **queue** para no ralentizar la respuesta HTTP.
+
+**Archivos creados:**
+- `app/Mail/EquipoInscritoTorneo.php` — Mailable con `Queueable`, subject dinámico con nombre del equipo y torneo.
+- `resources/views/emails/equipo-inscrito.blade.php` — Template HTML con diseño deportivo en línea con el sistema (verde primary `#10b77f`, fuente Bebas Neue/Barlow, tabla de resumen con equipo/torneo/categoría/seed).
+
+**Archivos modificados:**
+- `app/Services/TorneoInscripcionService.php` — agregado `Mail::to(...)->queue(...)` después de la transacción en `inscribir()` (cuando auto-aprobado) y `aprobar()`. Nuevo método privado `enviarCorreoInscripcion()` que verifica estado `aprobado` y email no vacío.
+- `.env` — default mailer cambiado a `resend`, sección Mailtrap comentada para desarrollo local.
+- `.env.example` — agregado `RESEND_API_KEY` y `MAIL_FROM_ADDRESS` actualizado.
+
+**Proveedor recomendado:** **Resend** (3000 emails/mes gratis, ya preconfigurado en Laravel 12 con `config/mail.php`). Requiere:
+  1. Crear cuenta en https://resend.com
+  2. Verificar dominio
+  3. Agregar `RESEND_API_KEY=re_xxx` en `.env`
+
+**Flujo del correo:**
+1. Admin inscribe un equipo → `TorneoInscripcionService@inscribir()` o `@aprobar()`
+2. Si el estado resultante es `aprobado` y el equipo tiene email → `Mail::to($email)->queue(...)`
+3. El email se encola y se envía asíncronamente (requiere `php artisan queue:work`)
+
+**Notas:**
+- Para desarrollo local, descomentar las líneas de Mailtrap en `.env` y comentar las de Resend.
+- Para producción, configurar `RESEND_API_KEY` y correr el worker de colas.
+- Laravel Pint ejecutado en todos los archivos PHP nuevos/modificados.
+
+### 2026-06-22 — Correo de creación de equipo + correo de inscripción a torneo
+
+**Contexto:** Se agregaron dos notificaciones por correo: (1) al crear un equipo, se notifica al email registrado; (2) al aprobar inscripción en torneo, se notifica al equipo (ya implementado arriba).
+
+**Archivos creados:**
+- `app/Mail/EquipoCreado.php` — Mailable con `Queueable`, subject dinámico con nombre del equipo.
+- `resources/views/emails/equipo-creado.blade.php` — Template HTML con diseño deportivo (verde primary `#10b77f`, Bebas Neue/Barlow, resumen de datos del equipo).
+
+**Archivos modificados:**
+- `app/Http/Controllers/TeamController.php` — agregados imports de `Mail` y `EquipoCreado`. En `store()`, después de crear el equipo, hace `$team->load('delegado')` y `Mail::to($team->email)->queue(...)` si el equipo tiene email.
+
+**Flujo de correos actual:**
+1. **Crear equipo** (`TeamController@store`) → `EquipoCreado` → notifica al email del equipo
+2. **Inscribir en torneo** (`TorneoInscripcionService@inscribir`, si auto-aprobado) → `EquipoInscritoTorneo`
+3. **Aprobar inscripción** (`TorneoInscripcionService@aprobar`) → `EquipoInscritoTorneo`
+
 ## Code Style
 
 - 4-space indent, LF line endings (`.editorconfig`)
