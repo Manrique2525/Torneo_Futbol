@@ -172,7 +172,7 @@ const onBlur = () => {
 <template>
 <div>
     <!-- Search box -->
-    <div v-if="!cargando && !error" class="relative mb-3">
+    <div v-if="!cargando && !error && !disabled" class="relative mb-3">
         <span class="absolute top-3 left-3 flex items-start text-slate-400 z-10">
             <span class="material-symbols-outlined text-lg">search</span>
         </span>
@@ -233,7 +233,7 @@ const onBlur = () => {
         ></div>
     </div>
 
-    <p v-if="!cargando && !error" class="text-[10px] text-slate-400 mt-2">
+    <p v-if="!cargando && !error && !disabled" class="text-[10px] text-slate-400 mt-2">
         <span class="material-symbols-outlined !text-xs align-middle mr-0.5">touch_app</span>
         Haz clic en el mapa para colocar un pin o arrastra el pin existente para ajustar la ubicación.
     </p>
