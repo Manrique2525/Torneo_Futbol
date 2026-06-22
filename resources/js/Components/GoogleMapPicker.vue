@@ -20,7 +20,7 @@ const marker = shallowRef(null);
 const cargando = ref(true);
 const error = ref(null);
 
-const defaultCenter = { lat: 19.4326, lng: -99.1332 };
+const defaultCenter = { lat: 17.9892, lng: -92.9477 };
 
 const getCenter = () => {
     if (props.modelValue?.lat && props.modelValue?.lng) {
