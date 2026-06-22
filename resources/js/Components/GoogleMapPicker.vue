@@ -204,32 +204,32 @@ const onBlur = () => {
         </div>
     </div>
 
-    <!-- Loading -->
-    <div v-if="cargando"
-        class="flex items-center justify-center rounded-2xl bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-slate-800"
-        :style="{ height }"
-    >
-        <div class="flex flex-col items-center gap-2">
-            <span class="material-symbols-outlined animate-spin text-primary text-3xl">refresh</span>
-            <span class="text-xs font-bold text-slate-500">Cargando mapa...</span>
+    <!-- Map wrapper with absolute overlays -->
+    <div class="relative rounded-2xl overflow-hidden border border-slate-100 dark:border-slate-800" :style="{ height }">
+        <!-- Loading overlay -->
+        <div v-if="cargando"
+            class="absolute inset-0 flex items-center justify-center bg-slate-50 dark:bg-white/5 z-20"
+        >
+            <div class="flex flex-col items-center gap-2">
+                <span class="material-symbols-outlined animate-spin text-primary text-3xl">refresh</span>
+                <span class="text-xs font-bold text-slate-500">Cargando mapa...</span>
+            </div>
         </div>
-    </div>
 
-    <!-- Error -->
-    <div v-else-if="error"
-        class="flex items-center justify-center rounded-2xl bg-red-500/10 border border-red-500/20"
-        :style="{ height }"
-    >
-        <p class="text-sm font-bold text-red-600 px-4 text-center">{{ error }}</p>
-    </div>
+        <!-- Error overlay -->
+        <div v-else-if="error"
+            class="absolute inset-0 flex items-center justify-center bg-red-500/10 z-20"
+        >
+            <p class="text-sm font-bold text-red-600 px-4 text-center">{{ error }}</p>
+        </div>
 
-    <!-- Map -->
-    <div
-        v-show="!cargando && !error"
-        ref="mapDiv"
-        class="rounded-2xl border border-slate-100 dark:border-slate-800 overflow-hidden"
-        :style="{ height, cursor: disabled ? 'default' : 'crosshair' }"
-    ></div>
+        <!-- Map (always visible) -->
+        <div
+            ref="mapDiv"
+            class="w-full h-full"
+            :style="{ cursor: disabled ? 'default' : 'crosshair' }"
+        ></div>
+    </div>
 
     <p v-if="!cargando && !error" class="text-[10px] text-slate-400 mt-2">
         <span class="material-symbols-outlined !text-xs align-middle mr-0.5">touch_app</span>
