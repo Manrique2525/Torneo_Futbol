@@ -1,5 +1,4 @@
 import '../css/app.css';
-import 'leaflet/dist/leaflet.css';
 import './bootstrap';
 
 import { createInertiaApp } from '@inertiajs/vue3';
