@@ -310,6 +310,17 @@ Route naming uses Spanish convention for domain modules: `torneos`, `arbitros`, 
 **Archivos modificados:**
 - `app/Http/Controllers/TeamController.php` — agregados imports de `Mail` y `EquipoCreado`. En `store()`, después de crear el equipo, hace `$team->load('delegado')` y `Mail::to($team->email)->queue(...)` si el equipo tiene email.
 
+### 2026-06-22 — Correo al registrar jugador en equipo
+
+**Contexto:** Al dar de alta un jugador en un equipo, se envía un correo al contacto del equipo (email del equipo o, si no tiene, email del delegado) notificando que el jugador fue registrado.
+
+**Archivos creados:**
+- `app/Mail/JugadorRegistrado.php` — Mailable con `Queueable`, subject: "{Jugador} ha sido registrado en {Equipo}".
+- `resources/views/emails/jugador-registrado.blade.php` — Template HTML con diseño deportivo (verde primary `#10b77f`, Bebas Neue/Barlow), resumen con nombre del jugador, equipo, número y posición.
+
+**Archivos modificados:**
+- `app/Http/Controllers/PlayerController.php` — agregados imports de `Mail` y `JugadorRegistrado`. En `store()`, después de crear el jugador, carga `equipo.delegado` y envía el correo. Nuevo método privado `enviarCorreoJugador()` que prioriza `equipo->email`, fallback a `delegado->email`.
+
 **Flujo de correos actual:**
 1. **Crear equipo** (`TeamController@store`) → `EquipoCreado` → notifica al email del equipo
 2. **Inscribir en torneo** (`TorneoInscripcionService@inscribir`, si auto-aprobado) → `EquipoInscritoTorneo`

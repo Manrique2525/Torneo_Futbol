@@ -2,10 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Mail\JugadorRegistrado;
 use App\Models\Player;
 use App\Models\Team;
 use App\Services\PlanService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Mail;
 use Inertia\Inertia;
 
 class PlayerController extends Controller
@@ -155,7 +157,7 @@ class PlayerController extends Controller
             $fotoPath = $request->file('foto')->store('players', 'public');
         }
 
-        Player::create([
+        $player = Player::create([
             'tenant_id' => $tenant->id,
             'equipo_id' => $request->equipo_id,
             'nombre' => $request->nombre,
@@ -166,6 +168,9 @@ class PlayerController extends Controller
             'foto' => $fotoPath,
             'estado' => $request->estado,
         ]);
+
+        $player->load('equipo.delegado');
+        $this->enviarCorreoJugador($player);
 
         return redirect()->route('players.index')->with('success', 'Jugador creado correctamente');
     }
@@ -263,5 +268,16 @@ class PlayerController extends Controller
         if ($player->tenant_id !== auth()->user()->tenant_id) {
             abort(403);
         }
+    }
+
+    private function enviarCorreoJugador(Player $player): void
+    {
+        $email = $player->equipo->email ?? $player->equipo->delegado?->email;
+
+        if (! $email) {
+            return;
+        }
+
+        Mail::to($email)->queue(new JugadorRegistrado($player));
     }
 }
