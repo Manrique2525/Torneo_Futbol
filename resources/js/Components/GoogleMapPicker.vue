@@ -1,7 +1,14 @@
 <script setup>
-import { ref, onMounted, watch, shallowRef } from 'vue';
+import { ref, onMounted, watch, shallowRef, nextTick } from 'vue';
 import L from 'leaflet';
-import 'leaflet/dist/leaflet.css';
+
+// Fix Leaflet default icon paths for bundlers
+delete L.Icon.Default.prototype._getIconUrl;
+L.Icon.Default.mergeOptions({
+    iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
+    iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
+    shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
+});
 
 const props = defineProps({
     modelValue: { type: Object, default: null },
@@ -71,18 +78,8 @@ const placeMarker = (lat, lng) => {
     if (marker.value) {
         marker.value.setLatLng([lat, lng]);
     } else {
-        const icon = L.icon({
-            iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
-            iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
-            shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
-            iconSize: [25, 41],
-            iconAnchor: [12, 41],
-            popupAnchor: [1, -34],
-            shadowSize: [41, 41],
-        });
         marker.value = L.marker([lat, lng], {
             draggable: !props.disabled,
-            icon,
         }).addTo(map.value);
 
         marker.value.on('dragend', () => {
@@ -109,6 +106,9 @@ const reverseGeocode = async (lat, lng) => {
 
 onMounted(async () => {
     try {
+        // Wait for DOM to be fully laid out
+        await nextTick();
+
         const center = getCenter();
 
         const mapInstance = L.map(mapDiv.value, {
@@ -136,6 +136,9 @@ onMounted(async () => {
             emit('update:modelValue', { lat, lng });
             reverseGeocode(lat, lng);
         });
+
+        // Ensure map renders correctly after layout settles
+        setTimeout(() => mapInstance.invalidateSize(), 100);
 
         cargando.value = false;
     } catch (e) {
