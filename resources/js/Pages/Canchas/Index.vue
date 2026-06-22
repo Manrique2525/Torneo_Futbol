@@ -5,6 +5,7 @@ import Pagination from '@/Components/Pagination.vue';
 import VSelectCustom from '@/Components/VSelectCustom.vue';
 import { ref, watch } from 'vue';
 import { Head, router, Link } from '@inertiajs/vue3';
+import { useCan } from '@/Shared/Composables/useCan.js';
 
 const props = defineProps({
     canchas: Object,
@@ -12,6 +13,8 @@ const props = defineProps({
     filters: Object,
     flash: Object,
 });
+
+const { hasRole } = useCan();
 
 const constantes = props.constantes || {};
 
@@ -109,6 +112,7 @@ const truncate = (text, max) => {
         </div>
 
         <Link
+            v-if="!hasRole('delegate')"
             :href="route('canchas.create')"
             class="flex items-center px-3 py-3 bg-primary text-white font-black uppercase text-[11px] tracking-[0.15em] rounded-2xl shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-95 transition-all"
         >
@@ -235,6 +239,7 @@ const truncate = (text, max) => {
                         <td class="p-6 text-right">
                             <div class="flex justify-end gap-2">
                                 <Link
+                                    v-if="!hasRole('delegate')"
                                     :href="route('canchas.edit', c.id)"
                                     class="p-2.5 rounded-xl bg-primary/10 text-primary hover:bg-primary hover:text-white transition-all"
                                 >
@@ -242,6 +247,7 @@ const truncate = (text, max) => {
                                 </Link>
 
                                 <button
+                                    v-if="!hasRole('delegate')"
                                     @click="triggerDelete(c)"
                                     class="p-2.5 rounded-xl bg-red-500/10 text-red-600 hover:bg-red-600 hover:text-white transition-all"
                                 >
