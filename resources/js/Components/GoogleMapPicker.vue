@@ -1,14 +1,7 @@
 <script setup>
-import { ref, onMounted, watch, shallowRef, nextTick } from 'vue';
+import { ref, nextTick, onMounted, watch, shallowRef } from 'vue';
 import L from 'leaflet';
-
-// Fix Leaflet default icon paths for bundlers
-delete L.Icon.Default.prototype._getIconUrl;
-L.Icon.Default.mergeOptions({
-    iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
-    iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
-    shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
-});
+import 'leaflet/dist/leaflet.css';
 
 const props = defineProps({
     modelValue: { type: Object, default: null },
@@ -78,8 +71,18 @@ const placeMarker = (lat, lng) => {
     if (marker.value) {
         marker.value.setLatLng([lat, lng]);
     } else {
+        const icon = L.icon({
+            iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
+            iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
+            shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
+            iconSize: [25, 41],
+            iconAnchor: [12, 41],
+            popupAnchor: [1, -34],
+            shadowSize: [41, 41],
+        });
         marker.value = L.marker([lat, lng], {
             draggable: !props.disabled,
+            icon,
         }).addTo(map.value);
 
         marker.value.on('dragend', () => {
@@ -106,9 +109,6 @@ const reverseGeocode = async (lat, lng) => {
 
 onMounted(async () => {
     try {
-        // Wait for DOM to be fully laid out
-        await nextTick();
-
         const center = getCenter();
 
         const mapInstance = L.map(mapDiv.value, {
@@ -137,10 +137,9 @@ onMounted(async () => {
             reverseGeocode(lat, lng);
         });
 
-        // Ensure map renders correctly after layout settles
-        setTimeout(() => mapInstance.invalidateSize(), 100);
-
         cargando.value = false;
+        await nextTick();
+        mapInstance.invalidateSize();
     } catch (e) {
         error.value = 'Error al cargar el mapa: ' + e.message;
         cargando.value = false;
@@ -173,7 +172,7 @@ const onBlur = () => {
 <template>
 <div>
     <!-- Search box -->
-    <div class="relative mb-3">
+    <div v-if="!cargando && !error" class="relative mb-3">
         <span class="absolute top-3 left-3 flex items-start text-slate-400 z-10">
             <span class="material-symbols-outlined text-lg">search</span>
         </span>
@@ -207,11 +206,11 @@ const onBlur = () => {
         </div>
     </div>
 
-    <!-- Map wrapper with absolute overlays -->
-    <div class="relative rounded-2xl overflow-hidden border border-slate-100 dark:border-slate-800" :style="{ height }">
+    <!-- Map container (always rendered) -->
+    <div class="relative rounded-2xl border border-slate-100 dark:border-slate-800 overflow-hidden" :style="{ height }">
         <!-- Loading overlay -->
         <div v-if="cargando"
-            class="absolute inset-0 flex items-center justify-center bg-slate-50 dark:bg-white/5 z-20"
+            class="absolute inset-0 z-20 flex items-center justify-center bg-slate-50 dark:bg-[#1A2C26] rounded-2xl"
         >
             <div class="flex flex-col items-center gap-2">
                 <span class="material-symbols-outlined animate-spin text-primary text-3xl">refresh</span>
@@ -221,16 +220,16 @@ const onBlur = () => {
 
         <!-- Error overlay -->
         <div v-else-if="error"
-            class="absolute inset-0 flex items-center justify-center bg-red-500/10 z-20"
+            class="absolute inset-0 z-20 flex items-center justify-center bg-red-500/10 rounded-2xl"
         >
             <p class="text-sm font-bold text-red-600 px-4 text-center">{{ error }}</p>
         </div>
 
-        <!-- Map (always visible) -->
+        <!-- Map -->
         <div
             ref="mapDiv"
             class="w-full h-full"
-            :style="{ cursor: disabled ? 'default' : 'crosshair' }"
+            :style="{ height, cursor: disabled ? 'default' : 'crosshair' }"
         ></div>
     </div>
 
