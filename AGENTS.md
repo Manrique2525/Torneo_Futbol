@@ -246,6 +246,26 @@ Route naming uses Spanish convention for domain modules: `torneos`, `arbitros`, 
 - Filas alternadas
 - Fecha de generación
 
+### 2026-06-22 — Google Maps Picker en formulario de Canchas
+
+**Contexto:** Se agregó un mapa interactivo de Google Maps en los formularios de crear/editar cancha. Al hacer clic en el mapa o arrastrar el pin, se auto-completan los campos de latitud y longitud. Incluye búsqueda por lugares (Google Places) y reverse geocoding que auto-completa la dirección si está vacía.
+
+**Archivos creados:**
+- `resources/js/Components/GoogleMapPicker.vue` — componente reutilizable que integra Google Maps API vía `@googlemaps/js-api-loader`. Incluye:
+  - Search box con autocompletado de Places (restringido a MX)
+  - Mapa interactivo con marcador arrastrable
+  - Click en mapa → coloca pin → emite lat/lng
+  - Drag del pin → actualiza lat/lng
+  - Reverse geocoding → emite dirección
+  - Estados loading/error si no hay API key
+
+**Archivos modificados:**
+- `resources/js/Pages/Canchas/Create.vue` — inputs de latitud/longitud reemplazados por `<GoogleMapPicker>`. Lat/lng ahora son campos de solo lectura. Dirección se auto-completa si está vacía al poner un pin.
+- `resources/js/Pages/Canchas/Edit.vue` — mismo cambio.
+
+**Configuración requerida:**
+- `VITE_GOOGLE_MAPS_API_KEY` en `.env` con API Key de Google Maps (Maps JavaScript API + Places API + Geocoding API habilitadas).
+
 ### 2026-06-22 — Restricciones delegate en Canchas y Jornadas
 
 **Archivos modificados:**
