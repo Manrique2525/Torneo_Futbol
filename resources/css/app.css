@@ -2,33 +2,8 @@
 @tailwind components;
 @tailwind utilities;
 
-.pac-container {
-    z-index: 9999 !important;
-    border-radius: 12px;
-    margin-top: 4px;
-    border: 1px solid #e2e8f0;
-    box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+.leaflet-container {
     font-family: inherit;
-}
-.pac-item {
-    padding: 10px 14px;
-    font-size: 13px;
-    color: #334155;
-    border-top: 1px solid #f1f5f9;
-    cursor: pointer;
-    line-height: 1.4;
-}
-.pac-item:hover {
-    background: #f8fafc;
-}
-.pac-item-query {
-    font-size: 13px;
-    color: #0f172a;
-}
-.pac-matched {
-    font-weight: 700;
-}
-.pac-icon {
-    display: none;
+    z-index: 0;
 }
 

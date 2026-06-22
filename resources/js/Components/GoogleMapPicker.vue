@@ -1,6 +1,7 @@
 <script setup>
 import { ref, onMounted, watch, shallowRef } from 'vue';
-import { setOptions, importLibrary } from '@googlemaps/js-api-loader';
+import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
 
 const props = defineProps({
     modelValue: { type: Object, default: null },
@@ -12,13 +13,12 @@ const emit = defineEmits(['update:modelValue', 'address-update']);
 
 const mapDiv = ref(null);
 const searchInput = ref(null);
+const searchResults = ref([]);
+const searchOpen = ref(false);
 const map = shallowRef(null);
 const marker = shallowRef(null);
-const autocomplete = shallowRef(null);
 const cargando = ref(true);
 const error = ref(null);
-
-const API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
 
 const defaultCenter = { lat: 19.4326, lng: -99.1332 };
 
@@ -29,130 +29,148 @@ const getCenter = () => {
     return defaultCenter;
 };
 
-onMounted(async () => {
-    if (!API_KEY) {
-        error.value = 'API Key de Google Maps no configurada (VITE_GOOGLE_MAPS_API_KEY)';
-        cargando.value = false;
+let searchTimeout = null;
+
+const onSearchInput = () => {
+    clearTimeout(searchTimeout);
+    const q = searchInput.value?.value?.trim();
+    if (!q || q.length < 3) {
+        searchResults.value = [];
+        searchOpen.value = false;
         return;
     }
+    searchTimeout = setTimeout(async () => {
+        try {
+            const res = await fetch(
+                `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(q)}&limit=5&countrycodes=mx`
+            );
+            const data = await res.json();
+            searchResults.value = data.map((r) => ({
+                label: r.display_name,
+                lat: parseFloat(r.lat),
+                lng: parseFloat(r.lon),
+            }));
+            searchOpen.value = searchResults.value.length > 0;
+        } catch {
+            searchResults.value = [];
+            searchOpen.value = false;
+        }
+    }, 400);
+};
 
+const selectSearchResult = (result) => {
+    searchOpen.value = false;
+    searchInput.value.value = result.label;
+    placeMarker(result.lat, result.lng);
+    map.value.setView([result.lat, result.lng], 17);
+    emit('update:modelValue', { lat: result.lat, lng: result.lng });
+    emit('address-update', result.label);
+};
+
+const placeMarker = (lat, lng) => {
+    if (marker.value) {
+        marker.value.setLatLng([lat, lng]);
+    } else {
+        const icon = L.icon({
+            iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
+            iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
+            shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
+            iconSize: [25, 41],
+            iconAnchor: [12, 41],
+            popupAnchor: [1, -34],
+            shadowSize: [41, 41],
+        });
+        marker.value = L.marker([lat, lng], {
+            draggable: !props.disabled,
+            icon,
+        }).addTo(map.value);
+
+        marker.value.on('dragend', () => {
+            const pos = marker.value.getLatLng();
+            emit('update:modelValue', { lat: pos.lat, lng: pos.lng });
+            reverseGeocode(pos.lat, pos.lng);
+        });
+    }
+};
+
+const reverseGeocode = async (lat, lng) => {
     try {
-        setOptions({ key: API_KEY, version: 'weekly' });
+        const res = await fetch(
+            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`
+        );
+        const data = await res.json();
+        if (data.display_name) {
+            emit('address-update', data.display_name);
+        }
+    } catch {
+        // silent fail
+    }
+};
 
-        await Promise.all([
-            importLibrary('maps'),
-            importLibrary('places'),
-            importLibrary('geocoding'),
-        ]);
-
+onMounted(async () => {
+    try {
         const center = getCenter();
 
-        const mapInstance = new google.maps.Map(mapDiv.value, {
-            center,
+        const mapInstance = L.map(mapDiv.value, {
+            center: [center.lat, center.lng],
             zoom: 15,
-            mapTypeControl: false,
-            streetViewControl: false,
-            fullscreenControl: true,
-            styles: [
-                { featureType: 'poi', elementType: 'labels', stylers: [{ visibility: 'off' }] },
-            ],
+            zoomControl: true,
         });
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://openstreetmap.org/copyright">OpenStreetMap</a>',
+            maxZoom: 19,
+        }).addTo(mapInstance);
 
         map.value = mapInstance;
 
-        const markerInstance = new google.maps.Marker({
-            map: mapInstance,
-            position: center,
-            draggable: !props.disabled,
-            animation: google.maps.Animation.DROP,
-        });
-
-        marker.value = markerInstance;
-
-        if (props.modelValue?.lat && props.modelValue?.lng) {
-            markerInstance.setPosition(getCenter());
-            mapInstance.setCenter(getCenter());
+        if (center.lat && center.lng) {
+            placeMarker(center.lat, center.lng);
         }
 
-        markerInstance.addListener('dragend', () => {
-            const pos = markerInstance.getPosition();
-            const lat = pos.lat();
-            const lng = pos.lng();
-            emit('update:modelValue', { lat, lng });
-            reverseGeocode(lat, lng);
-        });
-
-        mapInstance.addListener('click', (e) => {
+        mapInstance.on('click', (e) => {
             if (props.disabled) return;
-            const lat = e.latLng.lat();
-            const lng = e.latLng.lng();
-            markerInstance.setPosition(e.latLng);
-            mapInstance.panTo(e.latLng);
+            const { lat, lng } = e.latlng;
+            placeMarker(lat, lng);
+            mapInstance.setView([lat, lng], mapInstance.getZoom());
             emit('update:modelValue', { lat, lng });
             reverseGeocode(lat, lng);
         });
-
-        // Places Autocomplete
-        if (searchInput.value) {
-            const auto = new google.maps.places.Autocomplete(searchInput.value, {
-                types: ['geocode', 'establishment'],
-                componentRestrictions: { country: 'mx' },
-            });
-            autocomplete.value = auto;
-
-            auto.addListener('place_changed', () => {
-                const place = auto.getPlace();
-                if (!place.geometry || !place.geometry.location) return;
-
-                const lat = place.geometry.location.lat();
-                const lng = place.geometry.location.lng();
-
-                markerInstance.setPosition(place.geometry.location);
-                mapInstance.setCenter(place.geometry.location);
-                mapInstance.setZoom(17);
-
-                emit('update:modelValue', { lat, lng });
-                emit('address-update', place.formatted_address || place.name || '');
-            });
-        }
 
         cargando.value = false;
     } catch (e) {
-        error.value = 'Error al cargar Google Maps: ' + e.message;
+        error.value = 'Error al cargar el mapa: ' + e.message;
         cargando.value = false;
     }
 });
 
-const reverseGeocode = async (lat, lng) => {
-    try {
-        const geocoder = new google.maps.Geocoder();
-        const result = await geocoder.geocode({ location: { lat, lng } });
-        if (result.results?.[0]?.formatted_address) {
-            emit('address-update', result.results[0].formatted_address);
-        }
-    } catch {
-        // silent fail for reverse geocode
-    }
-};
-
 watch(() => props.modelValue, (val) => {
-    if (!val?.lat || !val?.lng || !map.value || !marker.value) return;
-    const pos = { lat: Number(val.lat), lng: Number(val.lng) };
-    marker.value.setPosition(pos);
-    map.value.setCenter(pos);
+    if (!val?.lat || !val?.lng || !map.value) return;
+    const pos = [Number(val.lat), Number(val.lng)];
+    if (marker.value) {
+        marker.value.setLatLng(pos);
+    } else {
+        placeMarker(pos[0], pos[1]);
+    }
+    map.value.setView(pos, map.value.getZoom());
 }, { deep: true });
 
 watch(() => props.disabled, (val) => {
     if (marker.value) {
-        marker.value.setDraggable(!val);
+        marker.value.dragging?.[val ? 'disable' : 'enable']();
     }
 });
+
+// Close search on click outside
+const onBlur = () => {
+    setTimeout(() => { searchOpen.value = false; }, 200);
+};
 </script>
 
 <template>
 <div>
     <!-- Search box -->
-    <div v-show="!cargando && !error" class="relative mb-3">
+    <div class="relative mb-3">
         <span class="absolute top-3 left-3 flex items-start text-slate-400 z-10">
             <span class="material-symbols-outlined text-lg">search</span>
         </span>
@@ -161,11 +179,29 @@ watch(() => props.disabled, (val) => {
             type="text"
             placeholder="Buscar dirección o lugar..."
             :disabled="disabled"
+            @input="onSearchInput"
+            @blur="onBlur"
+            @focus="searchOpen = searchResults.length > 0"
             class="w-full pl-10 pr-4 py-3 bg-slate-50 dark:bg-white/5 border border-transparent
                    focus:border-primary focus:ring-2 focus:ring-primary/20
                    rounded-xl text-sm text-slate-800 dark:text-white
                    placeholder:text-slate-400 transition-all outline-none"
         >
+        <!-- Search results dropdown -->
+        <div
+            v-if="searchOpen"
+            class="absolute z-50 left-0 right-0 mt-1 bg-white dark:bg-[#1A2C26] rounded-2xl border border-slate-100 dark:border-slate-800 shadow-xl overflow-hidden"
+        >
+            <button
+                v-for="r in searchResults"
+                :key="r.label"
+                @mousedown.prevent="selectSearchResult(r)"
+                class="w-full text-left px-4 py-3 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-white/5 border-b border-slate-50 dark:border-slate-800/50 last:border-0 transition-colors"
+            >
+                <span class="material-symbols-outlined !text-sm align-middle mr-2 text-primary">location_on</span>
+                {{ r.label }}
+            </button>
+        </div>
     </div>
 
     <!-- Loading -->
