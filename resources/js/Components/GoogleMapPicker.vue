@@ -152,7 +152,7 @@ watch(() => props.disabled, (val) => {
 <template>
 <div>
     <!-- Search box -->
-    <div v-if="!cargando && !error" class="relative mb-3">
+    <div v-show="!cargando && !error" class="relative mb-3">
         <span class="absolute top-3 left-3 flex items-start text-slate-400 z-10">
             <span class="material-symbols-outlined text-lg">search</span>
         </span>
