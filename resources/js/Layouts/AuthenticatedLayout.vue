@@ -11,7 +11,22 @@ const { isDark, toggleDark } = useDarkMode();
 const isDesktopCollapsed = ref(false);
 const isMobileOpen = ref(false);
 const page = usePage();
-const { can } = useCan();
+const { can, hasRole } = useCan();
+
+const roleLabels = {
+    super_admin: 'Super Admin',
+    admin: 'Administrador',
+    manager: 'Manager',
+    referee: 'Árbitro',
+    delegate: 'Delegado',
+    player: 'Jugador',
+};
+
+const userRole = computed(() => {
+    const roles = page.props?.auth?.user?.roles ?? [];
+    const firstRole = roles[0];
+    return roleLabels[firstRole] || firstRole || 'Usuario';
+});
 
 const openMenus = ref({
     torneos: false,
@@ -789,7 +804,7 @@ watch(isMobileOpen, (v) => {
                                     </span>
                                     <span
                                         class="text-[10px] text-slate-500 uppercase font-bold tracking-tighter"
-                                        >Administrador</span
+                                        >{{ userRole }}</span
                                     >
                                 </div>
                                 <span

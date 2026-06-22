@@ -5,6 +5,9 @@ import Pagination from '@/Components/Pagination.vue';
 import VSelectCustom from '@/Components/VSelectCustom.vue';
 import { ref, watch } from 'vue';
 import { Head, router, Link } from '@inertiajs/vue3';
+import { useCan } from '@/Shared/Composables/useCan.js';
+
+const { can, hasRole } = useCan();
 
 const props = defineProps({
     torneos: Object,
@@ -89,6 +92,7 @@ const getEstadoBadge = (estado) => {
         </div>
 
         <Link
+            v-if="!hasRole('delegate')"
             :href="route('torneos.create')"
             class="flex items-center px-3 py-3 bg-primary text-white font-black uppercase text-[11px] tracking-[0.15em] rounded-2xl shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-95 transition-all"
         >
@@ -208,6 +212,7 @@ const getEstadoBadge = (estado) => {
                                 </Link>
 
                                 <Link
+                                    v-if="!hasRole('delegate')"
                                     :href="route('torneos.equipos.index', t.id)"
                                     class="p-2.5 rounded-xl bg-slate-500/10 text-slate-600 hover:bg-slate-600 hover:text-white transition-all"
                                     title="Equipos inscritos"
@@ -216,6 +221,7 @@ const getEstadoBadge = (estado) => {
                                 </Link>
 
                                 <Link
+                                    v-if="!hasRole('delegate')"
                                     :href="route('torneos.edit', t.id)"
                                     class="p-2.5 rounded-xl bg-primary/10 text-primary hover:bg-primary hover:text-white transition-all"
                                 >
@@ -223,8 +229,9 @@ const getEstadoBadge = (estado) => {
                                 </Link>
 
                                 <button
+                                    v-if="!hasRole('delegate')"
                                     @click="triggerDelete(t)"
-                                    class="p-2.5 rounded-xl bg-red-500/10 text-red-600 hover:bg-red-600 hover:text-white transition-all"
+                                    class="p-2.5 rounded-xl bg-red-500/10 text-red-600 hover:bg-red-600 transition-all"
                                 >
                                     <span class="material-symbols-outlined !text-lg">delete</span>
                                 </button>

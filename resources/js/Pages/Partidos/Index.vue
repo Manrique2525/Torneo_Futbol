@@ -5,6 +5,9 @@ import Pagination from '@/Components/Pagination.vue';
 import VSelectCustom from '@/Components/VSelectCustom.vue';
 import { ref, watch } from 'vue';
 import { Head, router, Link } from '@inertiajs/vue3';
+import { useCan } from '@/Shared/Composables/useCan.js';
+
+const { can, hasRole } = useCan();
 
 const props = defineProps({
     partidos: Object,
@@ -109,6 +112,7 @@ const formatHora = (hora) => {
         </div>
 
         <Link
+            v-if="!hasRole('delegate')"
             :href="route('partidos.create')"
             class="flex items-center px-3 py-3 bg-primary text-white font-black uppercase text-[11px] tracking-[0.15em] rounded-2xl shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-95 transition-all"
         >
@@ -243,7 +247,7 @@ const formatHora = (hora) => {
                         <td class="p-6 text-right">
                             <div class="flex justify-end gap-2">
                                 <Link
-                                    v-if="['programado', 'en_juego', 'descanso'].includes(p.estado)"
+                                    v-if="!hasRole('delegate') && ['programado', 'en_juego', 'descanso'].includes(p.estado)"
                                     :href="route('partidos.en-vivo.show', p.id)"
                                     class="p-2.5 rounded-xl bg-amber-500/10 text-amber-600 hover:bg-amber-600 hover:text-white transition-all"
                                     title="Registrar en vivo"
@@ -252,6 +256,7 @@ const formatHora = (hora) => {
                                 </Link>
 
                                 <Link
+                                    v-if="!hasRole('delegate')"
                                     :href="route('partidos.edit', p.id)"
                                     class="p-2.5 rounded-xl bg-primary/10 text-primary hover:bg-primary hover:text-white transition-all"
                                 >
@@ -259,6 +264,7 @@ const formatHora = (hora) => {
                                 </Link>
 
                                 <button
+                                    v-if="!hasRole('delegate')"
                                     @click="triggerDelete(p)"
                                     class="p-2.5 rounded-xl bg-red-500/10 text-red-600 hover:bg-red-600 hover:text-white transition-all"
                                 >

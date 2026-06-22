@@ -9,6 +9,8 @@ import { Head, router, Link } from '@inertiajs/vue3';
 const props = defineProps({
     players: Object,
     equipos: Array,
+    misEquiposIds: Array,
+    esDelegate: Boolean,
     constantes: Object,
     filters: Object,
     flash: Object
@@ -122,6 +124,7 @@ const getPosicionBadge = (posicion) => {
         </div>
 
         <Link
+            v-if="!esDelegate"
             :href="route('players.create')"
             class="flex items-center px-3 py-3 bg-primary text-white font-black uppercase text-[11px] tracking-[0.15em] rounded-2xl shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-95 transition-all"
         >
@@ -264,6 +267,7 @@ const getPosicionBadge = (posicion) => {
                         <td class="p-6 text-right">
                             <div class="flex justify-end gap-2">
                                 <Link
+                                    v-if="!esDelegate"
                                     :href="route('players.edit', p.id)"
                                     class="p-2.5 rounded-xl bg-primary/10 text-primary hover:bg-primary hover:text-white transition-all"
                                 >
@@ -271,6 +275,7 @@ const getPosicionBadge = (posicion) => {
                                 </Link>
 
                                 <button
+                                    v-if="!esDelegate"
                                     @click="triggerDelete(p)"
                                     class="p-2.5 rounded-xl bg-red-500/10 text-red-600 hover:bg-red-600 hover:text-white transition-all"
                                 >

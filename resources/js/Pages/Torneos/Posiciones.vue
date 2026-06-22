@@ -4,6 +4,8 @@ import StandingsTable from '@/Components/StandingsTable.vue';
 import { Head, Link, router } from '@inertiajs/vue3';
 import { ref, computed } from 'vue';
 import { useCan } from '@/Shared/Composables/useCan';
+import jsPDF from 'jspdf';
+import { autoTable } from 'jspdf-autotable';
 
 const props = defineProps({
     torneo: Object,
@@ -47,6 +49,111 @@ const tipoLabel = computed(() => {
     const labels = { liga: 'Liga', copa: 'Copa', relampago: 'Relámpago' };
     return labels[props.torneo?.tipo] ?? props.torneo?.tipo;
 });
+
+const descargarPDF = () => {
+    const doc = new jsPDF('landscape', 'mm', 'letter');
+    const primary = '#10b77f';
+    const pageWidth = doc.internal.pageSize.getWidth();
+
+    // ── Header ──
+    doc.setFillColor(16, 183, 127);
+    doc.rect(0, 0, pageWidth, 32, 'F');
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(18);
+    doc.setFont('helvetica', 'bold');
+    doc.text(props.torneo?.nombre ?? 'Torneo', pageWidth / 2, 16, { align: 'center' });
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'normal');
+    doc.text('Tabla de Posiciones — ' + tipoLabel.value, pageWidth / 2, 25, { align: 'center' });
+
+    // ── Fecha ──
+    doc.setFontSize(8);
+    doc.setTextColor(120, 120, 120);
+    const hoy = new Date().toLocaleDateString('es-MX', { day: '2-digit', month: 'long', year: 'numeric' });
+    doc.text('Generado el ' + hoy, pageWidth - 15, 40, { align: 'right' });
+
+    // ── Columns (view = posiciones uses #, view = rendimiento uses #) ──
+    const columns = [
+        { header: '#', dataKey: 'pos' },
+        { header: 'Equipo', dataKey: 'equipo' },
+        { header: 'PJ', dataKey: 'pj' },
+        { header: 'PG', dataKey: 'pg' },
+        { header: 'PE', dataKey: 'pe' },
+        { header: 'PP', dataKey: 'pp' },
+        { header: 'GF', dataKey: 'gf' },
+        { header: 'GC', dataKey: 'gc' },
+        { header: 'DG', dataKey: 'dg' },
+        { header: 'FP', dataKey: 'fp' },
+        { header: 'Pts', dataKey: 'pts' },
+    ];
+
+    const groupName = props.grupos?.[grupoActivo.value]?.nombre ?? 'General';
+
+    const rows = standingsOrdenados.value.map((s) => ({
+        pos: vista.value === 'posiciones' ? s.posicion_posiciones : s.posicion_rendimiento,
+        equipo: s.equipo?.nombre ?? '—',
+        pj: s.pj,
+        pg: s.pg,
+        pe: s.pe,
+        pp: s.pp,
+        gf: s.gf,
+        gc: s.gc,
+        dg: (s.dg > 0 ? '+' : '') + s.dg,
+        fp: s.fair_play,
+        pts: s.pts,
+    }));
+
+    // ── Table ──
+    autoTable(doc, {
+        columns,
+        body: rows,
+        startY: 45,
+        theme: 'grid',
+        headStyles: {
+            fillColor: [16, 183, 127],
+            textColor: [255, 255, 255],
+            fontStyle: 'bold',
+            fontSize: 9,
+            halign: 'center',
+            cellPadding: 3,
+        },
+        bodyStyles: {
+            fontSize: 9,
+            cellPadding: 3,
+        },
+        columnStyles: {
+            pos: { halign: 'center', cellWidth: 12 },
+            equipo: { halign: 'left', cellWidth: 'auto' },
+            pj: { halign: 'center', cellWidth: 15 },
+            pg: { halign: 'center', cellWidth: 15 },
+            pe: { halign: 'center', cellWidth: 15 },
+            pp: { halign: 'center', cellWidth: 15 },
+            gf: { halign: 'center', cellWidth: 15 },
+            gc: { halign: 'center', cellWidth: 15 },
+            dg: { halign: 'center', cellWidth: 15 },
+            fp: { halign: 'center', cellWidth: 15 },
+            pts: { halign: 'center', cellWidth: 15 },
+        },
+        alternateRowStyles: {
+            fillColor: [245, 250, 248],
+        },
+        didDrawPage: (data) => {
+            // Footer with group name
+            doc.setFontSize(8);
+            doc.setTextColor(120, 120, 120);
+            doc.text(groupName + ' — Página ' + doc.internal.getNumberOfPages(), pageWidth / 2, doc.internal.pageSize.getHeight() - 10, { align: 'center' });
+        },
+    });
+
+    // ── Legend ──
+    const finalY = doc.lastAutoTable.finalY + 8;
+    doc.setFontSize(7);
+    doc.setTextColor(150, 150, 150);
+    doc.text('PJ: Partidos Jugados | PG: Partidos Ganados | PE: Partidos Empatados | PP: Partidos Perdidos', pageWidth / 2, finalY + 3, { align: 'center' });
+    doc.text('GF: Goles a Favor | GC: Goles en Contra | DG: Diferencia de Goles | FP: Fair Play | Pts: Puntos', pageWidth / 2, finalY + 10, { align: 'center' });
+
+    doc.save(`posiciones-${props.torneo?.nombre?.toLowerCase().replace(/\s+/g, '-') || 'torneo'}.pdf`);
+};
 </script>
 
 <template>
@@ -82,6 +189,13 @@ const tipoLabel = computed(() => {
                 <span class="material-symbols-outlined !text-sm mr-1">bar_chart</span>
                 Estadísticas
             </Link>
+            <button
+                @click="descargarPDF"
+                class="px-4 py-2.5 rounded-xl bg-white dark:bg-[#1A2C26] border-2 border-primary text-primary font-black uppercase text-[10px] tracking-widest hover:bg-primary hover:text-white transition-all"
+            >
+                <span class="material-symbols-outlined !text-sm mr-1">picture_as_pdf</span>
+                PDF
+            </button>
             <button
                 v-if="can('standings.recalculate')"
                 @click="recalcular"

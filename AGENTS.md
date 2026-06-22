@@ -165,6 +165,87 @@ Route naming uses Spanish convention for domain modules: `torneos`, `arbitros`, 
 - `estadisticas.equipo` recibe `{torneo}` (model binding) y `{torneoEquipo}` (int — torneo_equipos.id).
 - Build falla pre-existentemente por `lodash/debounce` no instalado (Permissions/Index.vue). No afecta este módulo.
 
+### 2026-06-22 — Restricciones de rol Delegate (dueño de equipo)
+
+**Contexto:** Se implementaron restricciones permisológicas para el rol `delegate` en los módulos de Equipos, Jugadores y Partidos.
+
+**Archivos modificados:**
+
+- `app/Http/Controllers/TeamController.php` — en `update()`, si el usuario es delegate y `$team->delegado_id !== auth()->id()`, aborta con 403.
+- `app/Http/Controllers/PlayerController.php`:
+  - `index()`: si es delegate y no hay filtro `equipo_id`, muestra solo jugadores de sus equipos.
+  - `create()`: si es delegate, solo muestra sus equipos en el selector.
+  - `store()`: si es delegate, valida que `equipo_id` pertenezca a sus equipos.
+  - `edit()`/`update()`: si es delegate, verifica que el jugador pertenezca a uno de sus equipos.
+  - `destroy()`: si es delegate, aborta con 403.
+- `resources/js/Pages/Teams/Index.vue` — botones "Nuevo Equipo", "Editar" y "Eliminar" condicionados por rol delegate y `delegado_id`.
+- `resources/js/Pages/Players/Index.vue` — botones "Nuevo Jugador", "Editar" y "Eliminar" condicionados por `esDelegate` y `misEquiposIds`.
+- `resources/js/Pages/Partidos/Index.vue` — botones "Nuevo Partido", "Registrar en vivo", "Editar" y "Eliminar" ocultos para delegate.
+
+**Comportamiento por rol:**
+
+| Módulo | Delegate |
+|--------|----------|
+| **Equipos** | Ve todos, su equipo resaltado en verde, solo lectura (sin editar/eliminar) |
+| **Jugadores** | Por defecto ve solo los suyos; si filtra otro equipo, solo lectura (sin editar/eliminar) |
+| **Partidos** | Ve todos, sin botones de acción (nuevo, editar, eliminar, en vivo) |
+
+**Nota:** La rama de estos cambios es `feature/roles-delegate-manager`.
+
+### 2026-06-22 — Selector de delegado: solo delegates sin equipo + email único en equipos
+
+**Contexto:** Al crear/editar un equipo, el selector de responsable (delegado) ahora solo muestra usuarios con rol `delegate` que no tengan un equipo asignado. Además se agregó validación de email único.
+
+**Archivos modificados:**
+
+- `app/Http/Controllers/TeamController.php`:
+  - `create()`: filtro `->role('delegate')->whereDoesntHave('equiposComoDelegado')`.
+  - `edit()`: filtro similar pero incluye al delegado actual del equipo.
+  - `store()`: `email` con regla `'nullable|email|unique:teams,email'`.
+  - `update()`: `email` con regla `'nullable|email|unique:teams,email,'.$team->id`.
+- `database/migrations/2026_06_22_163817_add_unique_email_to_teams.php` — agrega `unique` a la columna `email` en `teams`.
+- `resources/js/Pages/Teams/Create.vue` — hint "Debe ser único por equipo" bajo el campo email.
+- `resources/js/Pages/Teams/Edit.vue` — mismo hint.
+
+### 2026-06-22 — Restricciones delegate en Torneos + Navbar dinámico + CURP único
+
+**Archivos modificados:**
+
+- `resources/js/Pages/Torneos/Index.vue` — botones "Nuevo Torneo", "Equipos inscritos", "Editar" y "Eliminar" ocultos para delegate.
+- `resources/js/Layouts/AuthenticatedLayout.vue` — el texto "Administrador" hardcodeado ahora muestra el rol real del usuario (`userRole` computed), con mapa de roles en español.
+
+**Nota:** La validación `unique` de CURP en jugadores ya existía tanto en la migración (`$table->string('curp')->nullable()->unique()`) como en las reglas de validación de `PlayerController@store` y `@update`.
+
+### 2026-06-22 — PDF de tabla de posiciones
+
+**Archivos modificados:**
+- `resources/js/Pages/Torneos/Posiciones.vue` — agregado botón "PDF" y función `descargarPDF()` que genera un PDF con `jspdf` + `jspdf-autotable`.
+
+**Diseño del PDF:**
+- Encabezado con fondo verde primary (`#10b77f`) con nombre del torneo y tipo
+- Fecha de generación
+- Tabla estilizada con columnas: #, Equipo, PJ, PG, PE, PP, GF, GC, DG, FP, Pts
+- Filas alternadas con fondo verde claro
+- Leyenda de siglas al final
+- Nombre del archivo: `posiciones-{nombre-torneo}.pdf`
+
+### 2026-06-22 — Fix PDF posiciones + PDF estadísticas
+
+**Contexto:** El botón PDF en Posiciones no funcionaba porque `jspdf-autotable` v5 en Vite/ESM no encuentra `window.jsPDF` para aplicar el plugin como método (`doc.autoTable()`).
+
+**Solución:** Cambiar de `import 'jspdf-autotable'` (side-effect) a `import { autoTable } from 'jspdf-autotable'` y llamar `autoTable(doc, {...})` en vez de `doc.autoTable({...})`.
+
+**Archivos modificados:**
+- `resources/js/Pages/Torneos/Posiciones.vue` — fix import y llamada a autoTable.
+- `resources/js/Pages/Torneos/Estadisticas.vue` — agregado botón PDF y función `descargarPDF()` que descarga PDF del tab activo (Goleo, Asistencias, T. Amarillas, T. Rojas, Faltas). Nombre de archivo: `estadisticas-{tab}-{torneo}.pdf`.
+- `resources/js/Components/StandingsTable.vue` — agregado botón PDF en modal de estadísticas por equipo, función `descargarPDFModal()` que descarga PDF del tab activo del equipo seleccionado. Nombre de archivo: `estadisticas-{tab}-{equipo}.pdf`.
+
+**Diseño del PDF (estadísticas):**
+- Portrait, mismo estilo que Posiciones
+- Columnas: #, Jugador, Equipo, Valor (label dinámico según tab)
+- Filas alternadas
+- Fecha de generación
+
 ## Code Style
 
 - 4-space indent, LF line endings (`.editorconfig`)

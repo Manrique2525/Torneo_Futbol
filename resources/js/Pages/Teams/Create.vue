@@ -310,6 +310,7 @@ const submit = () => {
                         >
                     </div>
                     <InputError :message="form.errors.email" class="mt-1.5" />
+                    <p class="text-[10px] text-slate-400 mt-1 ml-1">Debe ser único por equipo</p>
                 </div>
 
             </div>

@@ -3,7 +3,11 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import Modal from '@/Components/Modal.vue';
 import Pagination from '@/Components/Pagination.vue';
 import { ref, watch } from 'vue';
-import { Head, router, Link } from '@inertiajs/vue3';
+import { Head, router, Link, usePage } from '@inertiajs/vue3';
+import { useCan } from '@/Shared/Composables/useCan.js';
+
+const { can, hasRole } = useCan();
+const currentUserId = usePage().props?.auth?.user?.id;
 
 const props = defineProps({
     teams: Object,
@@ -131,6 +135,7 @@ const isLightColor = (colorHex) => {
         </div>
 
         <Link
+            v-if="!hasRole('delegate')"
             :href="route('teams.create')"
             class="flex items-center px-3 py-3 bg-primary text-white font-black uppercase text-[11px] tracking-[0.15em] rounded-2xl shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-95 transition-all"
         >
@@ -198,6 +203,7 @@ const isLightColor = (colorHex) => {
                         v-for="team in teams?.data || []"
                         :key="team.id"
                         class="group hover:bg-slate-50/80 dark:hover:bg-white/5 transition-all"
+                        :class="hasRole('delegate') && team.delegado_id === currentUserId ? 'bg-primary/5 ring-2 ring-primary/30 rounded-2xl' : ''"
                     >
                         <td class="p-6">
                             <div class="flex items-center gap-4">
@@ -274,6 +280,7 @@ const isLightColor = (colorHex) => {
                         <td class="p-6 text-right">
                             <div class="flex justify-end gap-2">
                                 <Link
+                                    v-if="!hasRole('delegate')"
                                     :href="route('teams.edit', team.id)"
                                     class="p-2.5 rounded-xl bg-primary/10 text-primary hover:bg-primary hover:text-white transition-all"
                                     :title="'Editar ' + team.name"
@@ -282,6 +289,7 @@ const isLightColor = (colorHex) => {
                                 </Link>
 
                                 <button
+                                    v-if="!hasRole('delegate')"
                                     @click="triggerDelete(team)"
                                     class="p-2.5 rounded-xl bg-red-500/10 text-red-600 hover:bg-red-600 hover:text-white transition-all"
                                     :title="'Eliminar ' + team.name"
@@ -298,6 +306,7 @@ const isLightColor = (colorHex) => {
                                 <span class="material-symbols-outlined text-5xl text-slate-400">shield</span>
                                 <span class="text-slate-400 font-medium">No hay equipos registrados</span>
                                 <Link
+                                    v-if="!hasRole('delegate')"
                                     :href="route('teams.create')"
                                     class="text-primary text-sm font-bold uppercase tracking-wider hover:underline"
                                 >

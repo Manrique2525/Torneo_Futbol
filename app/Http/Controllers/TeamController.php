@@ -4,9 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Models\Team;
 use App\Models\User;
+use App\Services\PlanService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
-use App\Services\PlanService;
 
 class TeamController extends Controller
 {
@@ -26,7 +26,7 @@ class TeamController extends Controller
             'filters' => $request->only('search'),
             'flash' => [
                 'success' => session('success'),
-                'error' => session('error')
+                'error' => session('error'),
             ],
             'constantes' => [
                 'colores_equipos' => config('constants.colores_equipos', []),
@@ -38,14 +38,16 @@ class TeamController extends Controller
     {
         $tenant = auth()->user()->tenant;
         $planService = new PlanService($tenant);
-        
+
         // Obtener información del plan
         $teamsCount = Team::where('tenant_id', $tenant->id)->count();
         $canCreate = $planService->canCreateTeam($teamsCount);
         $remaining = $planService->remaining('max_teams', $teamsCount);
         $limit = $planService->getLimit('max_teams');
-        
+
         $delegados = User::where('tenant_id', $tenant->id)
+            ->role('delegate')
+            ->whereDoesntHave('equiposComoDelegado')
             ->select('id', 'name')
             ->orderBy('name')
             ->get();
@@ -72,13 +74,13 @@ class TeamController extends Controller
 
         // Validar límite del plan
         $teamsCount = Team::where('tenant_id', $tenant->id)->count();
-        
-        if (!$planService->canCreateTeam($teamsCount)) {
+
+        if (! $planService->canCreateTeam($teamsCount)) {
             $limit = $planService->getLimit('max_teams');
-            $message = $limit === -1 
-                ? 'No puedes crear más equipos' 
+            $message = $limit === -1
+                ? 'No puedes crear más equipos'
                 : "Has alcanzado el límite de {$limit} equipos de tu plan";
-            
+
             return back()->with('error', $message);
         }
 
@@ -87,7 +89,7 @@ class TeamController extends Controller
             'colors' => 'nullable|string',
             'delegado_id' => 'nullable|exists:users,id',
             'phone' => 'nullable|string',
-            'email' => 'nullable|email',
+            'email' => 'nullable|email|unique:teams,email',
             'shield' => 'nullable|image|max:2048',
             'status' => 'nullable|in:active,suspended,inactive',
         ]);
@@ -115,10 +117,15 @@ class TeamController extends Controller
     public function edit(Team $team)
     {
         $this->authorizeTenant($team);
-        
+
         $tenant = auth()->user()->tenant;
 
         $delegados = User::where('tenant_id', $tenant->id)
+            ->role('delegate')
+            ->where(function ($q) use ($team) {
+                $q->whereDoesntHave('equiposComoDelegado')
+                    ->orWhereHas('equiposComoDelegado', fn ($q2) => $q2->where('id', $team->id));
+            })
             ->select('id', 'name')
             ->orderBy('name')
             ->get();
@@ -136,25 +143,30 @@ class TeamController extends Controller
     {
         $this->authorizeTenant($team);
 
+        // Delegate solo puede editar su propio equipo
+        if (auth()->user()->hasRole('delegate') && $team->delegado_id !== auth()->id()) {
+            abort(403, 'No puedes editar un equipo que no te pertenece.');
+        }
+
         $request->validate([
             'name' => 'required|string|max:255',
             'colors' => 'nullable|string',
             'delegado_id' => 'nullable|exists:users,id',
             'phone' => 'nullable|string',
-            'email' => 'nullable|email',
+            'email' => 'nullable|email|unique:teams,email,'.$team->id,
             'status' => 'required|in:active,suspended,inactive',
             'shield' => 'nullable|image|max:2048',
         ]);
 
         $data = $request->except('shield', '_method');
-        
+
         // Manejar el escudo
         if ($request->hasFile('shield')) {
             // Eliminar escudo anterior si existe
             if ($team->shield && \Storage::disk('public')->exists($team->shield)) {
                 \Storage::disk('public')->delete($team->shield);
             }
-            
+
             $data['shield'] = $request->file('shield')->store('teams', 'public');
         }
 

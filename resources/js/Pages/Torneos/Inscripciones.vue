@@ -7,6 +7,7 @@ import PrimaryButton from '@/Components/PrimaryButton.vue';
 import { Head, Link, router, useForm } from '@inertiajs/vue3';
 import { ref, watch, computed } from 'vue';
 import { useCan } from '@/Shared/Composables/useCan';
+import Swal from 'sweetalert2';
 
 const props = defineProps({
     torneo: Object,
@@ -62,9 +63,36 @@ const formRechazar = useForm({
 });
 
 const inscribirEquipo = (team) => {
-    router.post(route('torneos.equipos.store', props.torneo.id), {
-        team_id: team.id,
-        torneo_grupo_id: props.grupoDefaultId,
+    const isDark = document.documentElement.classList.contains('dark');
+    Swal.fire({
+        title: '¿Inscribir equipo?',
+        text: `Se inscribirá "${team.name}" en el torneo "${props.torneo.nombre}".`,
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: 'Sí, inscribir',
+        cancelButtonText: 'Cancelar',
+        confirmButtonColor: '#10b77f',
+        cancelButtonColor: isDark ? '#334155' : '#94a3b8',
+        background: isDark ? '#1A2C26' : '#fff',
+        color: isDark ? '#e2e8f0' : '#1e293b',
+        iconColor: '#10b77f',
+        reverseButtons: true,
+        buttonsStyling: true,
+        customClass: {
+            popup: 'rounded-[2.5rem] shadow-2xl border border-slate-100 dark:border-slate-800 font-sans',
+            title: 'text-base font-black uppercase tracking-tight pt-2',
+            htmlContainer: 'text-sm text-slate-500 dark:text-slate-400',
+            confirmButton: '!rounded-xl !py-2.5 !px-5 !text-xs !font-black !uppercase !tracking-wider !shadow-lg !shadow-primary/20',
+            cancelButton: '!rounded-xl !py-2.5 !px-5 !text-xs !font-black !uppercase !tracking-wider',
+            icon: '!border-4 !rounded-2xl',
+        },
+    }).then((result) => {
+        if (result.isConfirmed) {
+            router.post(route('torneos.equipos.store', props.torneo.id), {
+                team_id: team.id,
+                torneo_grupo_id: props.grupoDefaultId,
+            });
+        }
     });
 };
 
