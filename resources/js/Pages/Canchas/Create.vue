@@ -4,6 +4,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import InputError from '@/Components/InputError.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
 import VSelectCustom from '@/Components/VSelectCustom.vue';
+import GoogleMapPicker from '@/Components/GoogleMapPicker.vue';
 import { Head, useForm, Link } from '@inertiajs/vue3';
 
 const props = defineProps({
@@ -43,6 +44,17 @@ const selectedEstado = ref(estadoOptions.find((o) => o.value === 'activo'));
 
 const onTipoChange = (o) => (form.tipo = o?.value ?? 'futbol-11');
 const onEstadoChange = (o) => (form.estado = o?.value ?? 'activo');
+
+const onUbicacionChange = (pos) => {
+    form.latitud = pos.lat;
+    form.longitud = pos.lng;
+};
+
+const onAddressUpdate = (address) => {
+    if (address && !form.direccion) {
+        form.direccion = address;
+    }
+};
 
 const submit = () => {
     form.disponibilidades = disponibilidadDias.value
@@ -182,40 +194,41 @@ const submit = () => {
                     <InputError :message="form.errors.estado" class="mt-1.5" />
                 </div>
 
+                <div class="md:col-span-2">
+                    <label class="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2 ml-1">
+                        Ubicación en el mapa
+                    </label>
+                    <GoogleMapPicker
+                        :model-value="{ lat: form.latitud, lng: form.longitud }"
+                        @update:model-value="onUbicacionChange"
+                        @address-update="onAddressUpdate"
+                        :disabled="!planInfo?.canCreate"
+                        height="350px"
+                    />
+                    <InputError :message="form.errors.latitud" class="mt-1.5" />
+                    <InputError :message="form.errors.longitud" class="mt-1.5" />
+                </div>
+
                 <div>
                     <label class="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2 ml-1">
                         Latitud
                     </label>
-                    <div class="relative">
-                        <span class="absolute inset-y-0 left-3 flex items-center text-slate-400">
-                            <span class="material-symbols-outlined text-lg">pin_drop</span>
-                        </span>
-                        <input v-model="form.latitud" type="number" step="0.0000001"
-                            class="w-full pl-10 bg-slate-50 dark:bg-white/5 border border-transparent
-                                   focus:border-primary focus:ring-2 focus:ring-primary/20
-                                   rounded-xl py-3 px-4 text-sm text-slate-800 dark:text-white
-                                   placeholder:text-slate-400 transition-all outline-none"
-                            placeholder="Ej. 19.4326" :disabled="!planInfo?.canCreate">
-                    </div>
-                    <InputError :message="form.errors.latitud" class="mt-1.5" />
+                    <input :value="form.latitud" type="text" readonly
+                        class="w-full bg-slate-100 dark:bg-white/5 border border-transparent
+                               rounded-xl py-3 px-4 text-sm text-slate-500 dark:text-slate-400
+                               cursor-not-allowed outline-none"
+                        placeholder="Se auto-completa con el mapa">
                 </div>
 
                 <div>
                     <label class="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2 ml-1">
                         Longitud
                     </label>
-                    <div class="relative">
-                        <span class="absolute inset-y-0 left-3 flex items-center text-slate-400">
-                            <span class="material-symbols-outlined text-lg">pin_drop</span>
-                        </span>
-                        <input v-model="form.longitud" type="number" step="0.0000001"
-                            class="w-full pl-10 bg-slate-50 dark:bg-white/5 border border-transparent
-                                   focus:border-primary focus:ring-2 focus:ring-primary/20
-                                   rounded-xl py-3 px-4 text-sm text-slate-800 dark:text-white
-                                   placeholder:text-slate-400 transition-all outline-none"
-                            placeholder="Ej. -99.1332" :disabled="!planInfo?.canCreate">
-                    </div>
-                    <InputError :message="form.errors.longitud" class="mt-1.5" />
+                    <input :value="form.longitud" type="text" readonly
+                        class="w-full bg-slate-100 dark:bg-white/5 border border-transparent
+                               rounded-xl py-3 px-4 text-sm text-slate-500 dark:text-slate-400
+                               cursor-not-allowed outline-none"
+                        placeholder="Se auto-completa con el mapa">
                 </div>
             </div>
 
