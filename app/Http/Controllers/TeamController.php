@@ -19,6 +19,9 @@ class TeamController extends Controller
             ->when($request->search, function ($q) use ($request) {
                 $q->where('name', 'like', "%{$request->search}%");
             })
+            ->withCount(['inscripciones as inscripciones_baja_por_impago_count' => function ($q) {
+                $q->where('estado', 'baja_por_impago');
+            }])
             ->latest()
             ->paginate(10)
             ->withQueryString();

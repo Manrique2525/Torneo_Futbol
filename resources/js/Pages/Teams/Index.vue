@@ -203,7 +203,7 @@ const isLightColor = (colorHex) => {
                         v-for="team in teams?.data || []"
                         :key="team.id"
                         class="group hover:bg-slate-50/80 dark:hover:bg-white/5 transition-all"
-                        :class="hasRole('delegate') && team.delegado_id === currentUserId ? 'bg-primary/5 ring-2 ring-primary/30 rounded-2xl' : ''"
+                        :class="hasRole('delegate') && team.delegado_id === currentUserId ? (team.inscripciones_baja_por_impago_count > 0 ? 'bg-red-100 dark:bg-red-900/20 ring-2 ring-red-400/50 rounded-2xl' : 'bg-primary/5 ring-2 ring-primary/30 rounded-2xl') : ''"
                     >
                         <td class="p-6">
                             <div class="flex items-center gap-4">
@@ -219,6 +219,9 @@ const isLightColor = (colorHex) => {
                                 <div>
                                     <span class="text-sm font-black text-slate-900 dark:text-white">
                                         {{ team.name }}
+                                    </span>
+                                    <span v-if="hasRole('delegate') && team.delegado_id === currentUserId && team.inscripciones_baja_por_impago_count > 0" class="ml-2 inline-flex items-center px-2 py-0.5 rounded-md bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 text-[10px] font-bold uppercase tracking-wider">
+                                        Baja por impago
                                     </span>
                                     <p class="text-xs text-slate-500">
                                         {{ team.email || 'Sin email registrado' }}

@@ -230,19 +230,20 @@ class MatchSchedulingService
         int $duracionMinutos,
         ?int $exceptPartidoId = null
     ): void {
-        $nuevoInicio = Carbon::parse($fecha.' '.$hora);
+        $fechaDate = Carbon::parse($fecha)->format('Y-m-d');
+        $nuevoInicio = Carbon::parse($fechaDate.' '.$hora);
         $nuevoFin = $nuevoInicio->copy()->addMinutes($duracionMinutos);
 
         $partidosConflicto = Partido::query()
             ->withoutGlobalScopes()
             ->where('cancha_id', $canchaId)
-            ->where('fecha', $fecha)
+            ->whereDate('fecha', $fechaDate)
             ->whereNotIn('estado', ['cancelado', 'suspendido'])
             ->when($exceptPartidoId, fn ($q) => $q->where('id', '!=', $exceptPartidoId))
             ->get();
 
         foreach ($partidosConflicto as $partido) {
-            $existenteInicio = Carbon::parse($partido->fecha.' '.$partido->hora);
+            $existenteInicio = Carbon::parse($partido->fecha->format('Y-m-d').' '.$partido->hora->format('H:i'));
             $existenteFin = $existenteInicio->copy()->addMinutes($partido->duracion_minutos ?? 90);
 
             if ($nuevoInicio->lt($existenteFin) && $nuevoFin->gt($existenteInicio)) {
@@ -278,19 +279,20 @@ class MatchSchedulingService
             ]);
         }
 
-        $nuevoInicio = Carbon::parse($fecha.' '.$hora);
+        $fechaDate = Carbon::parse($fecha)->format('Y-m-d');
+        $nuevoInicio = Carbon::parse($fechaDate.' '.$hora);
         $nuevoFin = $nuevoInicio->copy()->addMinutes($duracionMinutos);
 
         $partidosConflicto = Partido::query()
             ->withoutGlobalScopes()
             ->where('arbitro_id', $arbitroId)
-            ->where('fecha', $fecha)
+            ->whereDate('fecha', $fechaDate)
             ->whereNotIn('estado', ['cancelado', 'suspendido'])
             ->when($exceptPartidoId, fn ($q) => $q->where('id', '!=', $exceptPartidoId))
             ->get();
 
         foreach ($partidosConflicto as $partido) {
-            $existenteInicio = Carbon::parse($partido->fecha.' '.$partido->hora);
+            $existenteInicio = Carbon::parse($partido->fecha->format('Y-m-d').' '.$partido->hora->format('H:i'));
             $existenteFin = $existenteInicio->copy()->addMinutes($partido->duracion_minutos ?? 90);
 
             if ($nuevoInicio->lt($existenteFin) && $nuevoFin->gt($existenteInicio)) {
