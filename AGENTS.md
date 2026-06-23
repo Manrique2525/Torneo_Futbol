@@ -392,6 +392,27 @@ Route naming uses Spanish convention for domain modules: `torneos`, `arbitros`, 
 - Si un equipo no tiene ningún pago confirmado y las jornadas transcurridas >= máximo → cambia estado a `baja_por_impago` y envía correo.
 - `baja_por_impago` NO ocupa cupo en el torneo (no está en `cupoOcupante()`).
 
+### 2026-06-23 — Badge de baja por impago para delegate en módulo de equipos
+
+**Contexto:** En el módulo de Equipos (`Teams/Index.vue`), el delegate (dueño de equipo) debe ver su equipo resaltado en verde cuando está activo y pagado normal, pero en rojo con leyenda "Baja por impago" si fue dado de baja por impago en algún torneo.
+
+**Archivos modificados:**
+
+- `app/Http/Controllers/TeamController.php` — en `index()`, agregado `withCount` para contar inscripciones con estado `baja_por_impago` por equipo (`inscripciones_baja_por_impago_count`).
+- `resources/js/Pages/Teams/Index.vue`:
+  - El resaltado del equipo del delegate cambia dinámicamente: verde (`bg-primary/5 ring-2 ring-primary/30`) si está normal, rojo (`bg-red-100 ring-2 ring-red-400/50`) si tiene `baja_por_impago_count > 0`.
+  - Badge rojo "Baja por impago" visible solo si el usuario es `delegate`, es su equipo (`delegado_id === currentUserId`), y el equipo tiene `baja_por_impago_count > 0`.
+
+**Comportamiento:**
+
+| Estado | Fondo del equipo | Badge |
+|--------|-----------------|-------|
+| Activo/normal | Verde (primary) | No |
+| Baja por impago | Rojo | "Baja por impago" |
+| Otros equipos (no del delegate) | Sin resaltado | No |
+
+**Nota:** El `MatchSchedulingService.php` tuvo un fix de parseo doble de Carbon (fecha + hora) que estaba causando error al concatenar directamente un objeto Carbon en string.
+
 ## Code Style
 
 - 4-space indent, LF line endings (`.editorconfig`)
