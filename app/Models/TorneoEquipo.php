@@ -95,6 +95,11 @@ class TorneoEquipo extends Model
         return $this->hasMany(Partido::class, 'equipo_visitante_id');
     }
 
+    public function pagos(): HasMany
+    {
+        return $this->hasMany(InscripcionPago::class, 'torneo_equipo_id');
+    }
+
     // ── Helpers ─────────────────────────────────────
 
     public function ocupaCupo(): bool

@@ -248,13 +248,29 @@ return [
         'otro' => 'Otro',
     ],
 
-    /*
-    |--------------------------------------------------------------------------
-    | Tipos de Resolución de Sustitución
-    |--------------------------------------------------------------------------
-    */
     'tipos_resolucion_sustitucion' => [
         'reprogramado' => 'Reprogramar Partido',
         'doble_jornada' => 'Doble Jornada',
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Métodos de Pago
+    |--------------------------------------------------------------------------
+    */
+    'metodos_pago' => [
+        'efectivo' => 'Efectivo',
+        'transferencia' => 'Transferencia',
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Estados de Pago (inscripcion_pagos)
+    |--------------------------------------------------------------------------
+    */
+    'estados_pago' => [
+        'pendiente' => 'Pendiente',
+        'confirmado' => 'Confirmado',
+        'rechazado' => 'Rechazado',
     ],
 ];

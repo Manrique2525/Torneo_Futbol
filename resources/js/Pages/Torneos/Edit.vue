@@ -42,6 +42,8 @@ const form = useForm({
     playoff_ida_vuelta: props.torneo.playoff_ida_vuelta ?? false,
     hora_inicio: props.torneo.hora_inicio ?? '12:00',
     duracion_minutos: props.torneo.duracion_minutos ?? 90,
+    precio_inscripcion: props.torneo.precio_inscripcion ?? null,
+    pago_requerido: props.torneo.pago_requerido ?? false,
 });
 
 const formatoRelampagoOptions = [
@@ -355,6 +357,59 @@ const submit = () => {
                             </div>
 
                         </div>
+            </div>
+
+            <!-- SECCIÓN PAGO DE INSCRIPCIÓN -->
+            <div class="border-t border-slate-100 dark:border-slate-800 pt-5 mb-7">
+                <h3 class="text-sm font-black uppercase tracking-tight text-slate-900 dark:text-white mb-4 flex items-center gap-2">
+                    <span class="material-symbols-outlined text-primary !text-lg">payments</span>
+                    Pago de Inscripción
+                </h3>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <div class="md:col-span-2">
+                        <label class="flex items-center gap-3 cursor-pointer select-none group">
+                            <div class="relative">
+                                <input type="checkbox" v-model="form.pago_requerido" class="peer sr-only">
+                                <div class="h-6 w-11 rounded-full bg-slate-200 dark:bg-slate-700 peer-checked:bg-primary transition-all"></div>
+                                <div class="absolute left-1 top-1 h-4 w-4 rounded-full bg-white transition-all peer-checked:translate-x-5"></div>
+                            </div>
+                            <div>
+                                <span class="text-sm font-bold text-slate-800 dark:text-white group-hover:text-primary transition-colors">
+                                    Requerir pago de inscripción
+                                </span>
+                                <p class="text-xs text-slate-400">Los equipos deberán pagar para confirmar su inscripción</p>
+                            </div>
+                        </label>
+                        <InputError :message="form.errors.pago_requerido" class="mt-1.5 ml-14" />
+                    </div>
+
+                    <div v-if="form.pago_requerido">
+                        <label class="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2 ml-1">
+                            Precio de Inscripción
+                        </label>
+                        <div class="flex gap-2 items-start">
+                            <div class="flex-1">
+                                <input
+                                    type="number"
+                                    v-model="form.precio_inscripcion"
+                                    min="0"
+                                    max="999999.99"
+                                    step="0.01"
+                                    class="w-full bg-slate-50 dark:bg-white/5 border border-transparent
+                                           focus:border-primary focus:ring-2 focus:ring-primary/20
+                                           rounded-xl py-3 px-4 text-sm text-slate-800 dark:text-white
+                                           transition-all outline-none"
+                                    placeholder="0.00"
+                                >
+                            </div>
+                            <div class="shrink-0 mt-1">
+                                <span class="inline-flex items-center px-3 py-2.5 rounded-xl bg-slate-100 dark:bg-white/5 text-sm font-bold text-slate-500">MXN</span>
+                            </div>
+                        </div>
+                        <InputError :message="form.errors.precio_inscripcion" class="mt-1.5" />
+                    </div>
+                </div>
             </div>
 
             <!-- SECCIÓN CONFIGURACIÓN DE PARTIDOS -->

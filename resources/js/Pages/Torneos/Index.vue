@@ -221,6 +221,15 @@ const getEstadoBadge = (estado) => {
                                 </Link>
 
                                 <Link
+                                    v-if="can('payments.view')"
+                                    :href="route('pagos.index', t.id)"
+                                    class="p-2.5 rounded-xl bg-amber-500/10 text-amber-600 hover:bg-amber-600 hover:text-white transition-all"
+                                    title="Pagos de inscripción"
+                                >
+                                    <span class="material-symbols-outlined !text-lg">payments</span>
+                                </Link>
+
+                                <Link
                                     v-if="!hasRole('delegate')"
                                     :href="route('torneos.edit', t.id)"
                                     class="p-2.5 rounded-xl bg-primary/10 text-primary hover:bg-primary hover:text-white transition-all"

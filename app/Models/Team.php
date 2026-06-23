@@ -57,6 +57,11 @@ class Team extends Model
         return $this->hasMany(TorneoEquipo::class, 'team_id');
     }
 
+    public function pagos(): HasMany
+    {
+        return $this->hasMany(InscripcionPago::class, 'team_id');
+    }
+
     public function torneos(): BelongsToMany
     {
         return $this->belongsToMany(Torneo::class, 'torneo_equipos', 'team_id', 'torneo_id')

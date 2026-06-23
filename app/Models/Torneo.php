@@ -23,6 +23,9 @@ class Torneo extends Model
         'estado',
         'max_equipos',
         'inscripcion_abierta',
+        'precio_inscripcion',
+        'moneda',
+        'pago_requerido',
         'configuracion_asistencia_delegado',
         'fair_play_automatico',
         'ida_y_vuelta',
@@ -42,6 +45,8 @@ class Torneo extends Model
             'fecha_fin' => 'date',
             'max_equipos' => 'integer',
             'inscripcion_abierta' => 'boolean',
+            'precio_inscripcion' => 'decimal:2',
+            'pago_requerido' => 'boolean',
             'configuracion_asistencia_delegado' => 'boolean',
             'fair_play_automatico' => 'boolean',
             'ida_y_vuelta' => 'boolean',
@@ -76,6 +81,11 @@ class Torneo extends Model
     public function inscripciones(): HasMany
     {
         return $this->hasMany(TorneoEquipo::class);
+    }
+
+    public function pagos(): HasMany
+    {
+        return $this->hasMany(InscripcionPago::class);
     }
 
     public function equipos(): BelongsToMany

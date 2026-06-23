@@ -326,6 +326,45 @@ Route naming uses Spanish convention for domain modules: `torneos`, `arbitros`, 
 2. **Inscribir en torneo** (`TorneoInscripcionService@inscribir`, si auto-aprobado) → `EquipoInscritoTorneo`
 3. **Aprobar inscripción** (`TorneoInscripcionService@aprobar`) → `EquipoInscritoTorneo`
 
+### 2026-06-23 — Módulo Pagos de Inscripción a Torneos
+
+**Contexto:** Se implementó un módulo de pagos para inscripciones a torneos. Los administradores pueden configurar un precio de inscripción por torneo, y los delegados (dueños de equipo) pueden registrar pagos por transferencia (subiendo comprobante) o en efectivo. Los administradores confirman o rechazan los pagos.
+
+**Archivos creados:**
+- `database/migrations/2026_06_22_163818_add_precio_inscripcion_to_torneos.php` — agrega columnas: `precio_inscripcion` (decimal 10,2), `moneda` (varchar 3, default MXN), `pago_requerido` (boolean).
+- `database/migrations/2026_06_22_163819_create_inscripcion_pagos_table.php` — tabla de pagos con: `tenant_id`, `torneo_equipo_id`, `torneo_id`, `team_id`, `monto`, `moneda`, `metodo_pago` (efectivo/transferencia), `comprobante_path`, `comprobante_original`, `referencia`, `estado` (pendiente/confirmado/rechazado), `confirmado_por`, `confirmado_at`, `notas`, soft deletes.
+- `app/Models/InscripcionPago.php` — modelo con `BelongsToTenant`, relaciones a `TorneoEquipo`, `Torneo`, `Team`, `confirmadoPor` (User). Constantes `METODO_EFECTIVO`, `METODO_TRANSFERENCIA`, `ESTADO_PENDIENTE`, `ESTADO_CONFIRMADO`, `ESTADO_RECHAZADO`.
+- `app/Services/InscripcionPagoService.php` — métodos: `pagosDelTorneo()` (filtra por delegate), `registrarTransferencia()`, `registrarEfectivo()`, `confirmarPago()`, `rechazarPago()`, `assertNoPagoPendiente()`.
+- `app/Http/Controllers/InscripcionPagoController.php` — controlador con métodos: `index()`, `store()`, `confirmar()`, `rechazar()`. Filtra inscripciones por rol delegate. Store exige rol delegate + permisos.
+- `app/Http/Requests/StoreInscripcionPagoRequest.php` — validación con reglas para comprobante (required_if transferencia, max 5MB, jpg/jpeg/png/pdf), referencia, notas.
+- `routes/pagos.php` — rutas: `pagos.index`, `pagos.store`, `pagos.confirmar`, `pagos.rechazar`.
+- `resources/js/Pages/Pagos/Index.vue` — página con tabla de inscripciones/pagos, modal de registro de pago (transferencia con upload o efectivo), botones confirmar/rechazar con SweetAlert2, banner flash messages.
+
+**Archivos modificados:**
+- `app/Models/Torneo.php` — relación `pagos()` HasMany via `torneo_id`. Nuevos campos en `$fillable` y `$casts`.
+- `app/Models/TorneoEquipo.php` — relación `pagos()` HasMany via `torneo_equipo_id`.
+- `app/Models/Team.php` — relación `pagos()` HasMany via `team_id`.
+- `app/Http/Controllers/TorneoController.php` — validación de `precio_inscripcion` y `pago_requerido` en store/update.
+- `app/Http/Controllers/InscripcionPagoController.php` — filtro por delegate en `index()`, guard de rol delegate en `store()`, comprobante_url en respuesta.
+- `config/constants.php` — agregados `metodos_pago` y `estados_pago`.
+- `routes/web.php` — agregado `require __DIR__.'/pagos.php'`.
+- `resources/js/Pages/Torneos/Index.vue` — botón "Pagos" por torneo (ícono ámbar), gateado por `can('payments.view')`.
+- `resources/js/Pages/Torneos/Create.vue` — sección "Pago de Inscripción" con toggle pago_requerido + input precio_inscripcion.
+- `resources/js/Pages/Torneos/Edit.vue` — misma sección de pago.
+
+**Comportamiento por rol:**
+
+| Rol | Ve en tabla | Puede hacer |
+|-----|-------------|-------------|
+| **Admin/Manager** | Todos los equipos y sus pagos | Confirmar efectivo, ver/descargar comprobante, confirmar o rechazar pagos |
+| **Delegate** | Solo su(s) equipo(s) | Pagar (transferencia con comprobante o marcar efectivo) |
+
+**Notas:**
+- Admin tiene `PermissionEnum::all()` que incluye `upload_receipt`, por eso el frontend usa `upload_receipt && !create_payments` para identificar delegates.
+- Backend de store() exige `hasRole('delegate')` adicional al permiso.
+- Pagos usa `Storage::url()` para servir comprobantes (requiere `php artisan storage:link` ya ejecutado).
+- Build exitoso. Pendiente de pruebas funcionales en navegador.
+
 ## Code Style
 
 - 4-space indent, LF line endings (`.editorconfig`)
