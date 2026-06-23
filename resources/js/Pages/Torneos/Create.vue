@@ -426,6 +426,56 @@ const submit = () => {
                 </div>
             </div>
 
+            <!-- SECCIÓN BAJA POR IMPAGO -->
+            <div v-if="form.pago_requerido" class="border-t border-slate-100 dark:border-slate-800 pt-5 mb-7">
+                <h3 class="text-sm font-black uppercase tracking-tight text-slate-900 dark:text-white mb-4 flex items-center gap-2">
+                    <span class="material-symbols-outlined text-primary !text-lg">block</span>
+                    Baja por Impago
+                </h3>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <div class="md:col-span-2">
+                        <label class="flex items-center gap-3 cursor-pointer select-none group">
+                            <div class="relative">
+                                <input type="checkbox" v-model="form.baja_por_impago_automatica" class="peer sr-only">
+                                <div class="h-6 w-11 rounded-full bg-slate-200 dark:bg-slate-700 peer-checked:bg-primary transition-all"></div>
+                                <div class="absolute left-1 top-1 h-4 w-4 rounded-full bg-white transition-all peer-checked:translate-x-5"></div>
+                            </div>
+                            <div>
+                                <span class="text-sm font-bold text-slate-800 dark:text-white group-hover:text-primary transition-colors">
+                                    Baja automática por impago
+                                </span>
+                                <p class="text-[11px] text-slate-400 font-medium">
+                                    Dar de baja automáticamente a equipos que no paguen después de cierto número de jornadas
+                                </p>
+                            </div>
+                        </label>
+                        <InputError :message="form.errors.baja_por_impago_automatica" class="mt-1.5 ml-14" />
+                    </div>
+
+                    <div v-if="form.baja_por_impago_automatica">
+                        <label class="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2 ml-1">
+                            Jornadas máximas sin pago
+                        </label>
+                        <input
+                            type="number"
+                            v-model="form.max_jornadas_sin_pago"
+                            min="1"
+                            max="99"
+                            class="w-full bg-slate-50 dark:bg-white/5 border border-transparent
+                                   focus:border-primary focus:ring-2 focus:ring-primary/20
+                                   rounded-xl py-3 px-4 text-sm text-slate-800 dark:text-white
+                                   transition-all outline-none"
+                            placeholder="Ej: 3"
+                        >
+                        <p class="text-[11px] text-slate-400 font-medium mt-1 ml-1">
+                            Si un equipo no ha pagado después de este número de jornadas, será dado de baja automáticamente
+                        </p>
+                        <InputError :message="form.errors.max_jornadas_sin_pago" class="mt-1.5" />
+                    </div>
+                </div>
+            </div>
+
             <!-- SECCIÓN CONFIGURACIÓN DE PARTIDOS -->
             <div class="border-t border-slate-100 dark:border-slate-800 pt-5 mb-7">
                 <h3 class="text-sm font-black uppercase tracking-tight text-slate-900 dark:text-white mb-4 flex items-center gap-2">

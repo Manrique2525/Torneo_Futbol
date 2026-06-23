@@ -151,6 +151,7 @@ return [
         'rechazado' => 'Rechazado',
         'retirado' => 'Retirado',
         'descalificado' => 'Descalificado',
+        'baja_por_impago' => 'Baja por Impago',
     ],
 
     /*

@@ -4,20 +4,22 @@ namespace App\Enums;
 
 enum TorneoEquipoEstadoEnum: string
 {
-    case PENDIENTE      = 'pendiente';
-    case APROBADO       = 'aprobado';
-    case RECHAZADO      = 'rechazado';
-    case RETIRADO       = 'retirado';
-    case DESCALIFICADO  = 'descalificado';
+    case PENDIENTE = 'pendiente';
+    case APROBADO = 'aprobado';
+    case RECHAZADO = 'rechazado';
+    case RETIRADO = 'retirado';
+    case DESCALIFICADO = 'descalificado';
+    case BAJA_POR_IMPAGO = 'baja_por_impago';
 
     public function label(): string
     {
         return match ($this) {
-            self::PENDIENTE     => 'Pendiente',
-            self::APROBADO      => 'Aprobado',
-            self::RECHAZADO     => 'Rechazado',
-            self::RETIRADO      => 'Retirado',
+            self::PENDIENTE => 'Pendiente',
+            self::APROBADO => 'Aprobado',
+            self::RECHAZADO => 'Rechazado',
+            self::RETIRADO => 'Retirado',
             self::DESCALIFICADO => 'Descalificado',
+            self::BAJA_POR_IMPAGO => 'Baja por Impago',
         };
     }
 

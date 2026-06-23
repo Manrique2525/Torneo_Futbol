@@ -365,6 +365,33 @@ Route naming uses Spanish convention for domain modules: `torneos`, `arbitros`, 
 - Pagos usa `Storage::url()` para servir comprobantes (requiere `php artisan storage:link` ya ejecutado).
 - Build exitoso. Pendiente de pruebas funcionales en navegador.
 
+### 2026-06-23 — Baja automática por impago
+
+**Contexto:** Se implementó un sistema de baja automática para equipos que no pagan la inscripción después de X jornadas. Configurable por torneo, con notificación por correo.
+
+**Archivos creados:**
+- `database/migrations/2026_06_23_000001_add_baja_por_impago_to_torneos.php` — agrega `baja_por_impago_automatica` (boolean) y `max_jornadas_sin_pago` (integer, nullable) a `torneos`.
+- `database/migrations/2026_06_23_000002_add_baja_por_impago_to_torneo_equipos_estado.php` — agrega estado `baja_por_impago` al ENUM de `torneo_equipos.estado`.
+- `app/Console/Commands/BajaPorImpago.php` — comando Artisan `torneos:baja-por-impago` que recorre torneos activos con la configuración activa, detecta equipos aprobados sin pago confirmado que hayan superado el máximo de jornadas, los da de baja y notifica por correo.
+- `app/Mail/EquipoBajaImpago.php` — Mailable con `Queueable`, notifica al equipo que fue dado de baja por impago.
+- `resources/views/emails/equipo-baja-impago.blade.php` — Template HTML con diseño rojo/deportivo, resumen de datos y motivo.
+
+**Archivos modificados:**
+- `app/Enums/TorneoEquipoEstadoEnum.php` — agregado `case BAJA_POR_IMPAGO = 'baja_por_impago'`.
+- `app/Models/Torneo.php` — `baja_por_impago_automatica` y `max_jornadas_sin_pago` en `$fillable` y `$casts`.
+- `app/Http/Controllers/TorneoController.php` — validación de `baja_por_impago_automatica` (boolean) y `max_jornadas_sin_pago` (integer 1-99) en store/update. En update, `boolean()` explícito.
+- `config/constants.php` — agregado `baja_por_impago` a `estados_inscripcion`.
+- `routes/console.php` — agregado `Schedule::command('torneos:baja-por-impago')->dailyAt('03:00')`.
+- `resources/js/Pages/Torneos/Create.vue` — sección "Baja por Impago" (toggle + input jornadas), visible solo si `pago_requerido` está activo.
+- `resources/js/Pages/Torneos/Edit.vue` — misma sección.
+
+**Comportamiento:**
+- Solo visible si `pago_requerido = true`.
+- El comando se ejecuta diariamente a las 03:00 AM.
+- Compara jornadas totales del torneo vs `max_jornadas_sin_pago`.
+- Si un equipo no tiene ningún pago confirmado y las jornadas transcurridas >= máximo → cambia estado a `baja_por_impago` y envía correo.
+- `baja_por_impago` NO ocupa cupo en el torneo (no está en `cupoOcupante()`).
+
 ## Code Style
 
 - 4-space indent, LF line endings (`.editorconfig`)
