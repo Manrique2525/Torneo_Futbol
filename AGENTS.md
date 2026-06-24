@@ -450,6 +450,28 @@ Route naming uses Spanish convention for domain modules: `torneos`, `arbitros`, 
 | **auto** | Oculto | Bloqueado (UI + backend) | Bloqueado (backend) | Bloqueado (backend) | Permitido (editar calendario) |
 | **manual** | Visible | Normal (con permisos) | Normal | Normal | Normal |
 
+### 2026-06-23 — Delegate: partidos resaltados en verde, filtro por jornada, selector solo sus torneos
+
+**Contexto:** Mejoras en el módulo de Partidos para la experiencia del delegado (dueño de equipo).
+
+**Archivos modificados:**
+
+- `app/Http/Controllers/PartidoController.php`:
+  - `index()`: carga `delegado_id` en `equipoLocal.equipo` y `equipoVisitante.equipo` para identificar partidos del delegado. Filtra `$torneos` para delegate: solo aparecen torneos donde tiene al menos un equipo aprobado. Carga `$jornadas` del torneo seleccionado para el filtro de jornada. Agrega filtro por `jornada_id` en la query de partidos. Pasa `jornadas` prop a la vista.
+  - Nuevo import: `use App\Models\Team;`.
+- `resources/js/Pages/Partidos/Index.vue`:
+  - **Partidos en verde**: función `esPartidoDelDelegate()` que compara `delegado_id` del equipo local/visitante con el usuario actual. El `tr` del partido se resalta en verde (`bg-primary/5 ring-2 ring-primary/30`) cuando coincide.
+  - **Filtro por jornada**: nuevo ref `filterJornada`, computed `jornadaOptions` que se pobla según las jornadas del torneo seleccionado. `VSelectCustom` de jornada visible solo cuando hay torneo seleccionado. Al cambiar de torneo se reinicia el filtro de jornada.
+  - **Nuevas props aceptadas**: `jornadas` (Array).
+
+**Comportamiento:**
+
+| Funcionalidad | Delegate |
+|--------------|----------|
+| Partidos propios en listado | Resaltados en verde |
+| Filtro por jornada | Visible al seleccionar un torneo |
+| Selector de torneos | Solo muestra torneos donde tiene equipos inscritos |
+
 ## Code Style
 
 - 4-space indent, LF line endings (`.editorconfig`)

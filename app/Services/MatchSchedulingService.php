@@ -193,7 +193,7 @@ class MatchSchedulingService
         }
     }
 
-    protected function assertCanchaDisponible(int $canchaId, string $fecha, string $hora, int $duracionMinutos): void
+    public function assertCanchaDisponible(int $canchaId, string $fecha, string $hora, int $duracionMinutos): void
     {
         $diaSemana = Carbon::parse($fecha)->dayOfWeek;
 
@@ -223,7 +223,7 @@ class MatchSchedulingService
         }
     }
 
-    protected function assertSinConflictoCancha(
+    public function assertSinConflictoCancha(
         int $canchaId,
         string $fecha,
         string $hora,

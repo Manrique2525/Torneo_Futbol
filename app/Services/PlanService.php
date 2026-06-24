@@ -38,7 +38,7 @@ class PlanService
 
     public function getLimit(string $field): ?int
     {
-        if (!$this->hasActivePlan()) {
+        if (! $this->hasActivePlan()) {
             return null;
         }
 
@@ -73,7 +73,7 @@ class PlanService
 
     public function hasFeature(string $feature): bool
     {
-        if (!$this->hasActivePlan()) {
+        if (! $this->hasActivePlan()) {
             return false;
         }
 

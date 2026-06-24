@@ -17,10 +17,16 @@ class CalendarioService
 
     protected BracketGenerator $bracket;
 
-    public function __construct(RoundRobinGenerator $roundRobin, BracketGenerator $bracket)
-    {
+    protected MatchSchedulingService $schedulingService;
+
+    public function __construct(
+        RoundRobinGenerator $roundRobin,
+        BracketGenerator $bracket,
+        MatchSchedulingService $schedulingService
+    ) {
         $this->roundRobin = $roundRobin;
         $this->bracket = $bracket;
+        $this->schedulingService = $schedulingService;
     }
 
     public function preview(Torneo $torneo): array
@@ -71,8 +77,10 @@ class CalendarioService
 
     public function confirmar(Torneo $torneo, array $ajustes): void
     {
-        DB::transaction(function () use ($torneo, $ajustes) {
-            $preview = $this->preview($torneo);
+        $preview = $this->preview($torneo);
+        $this->validarCanchas($torneo, $ajustes, $preview);
+
+        DB::transaction(function () use ($torneo, $ajustes, $preview) {
 
             foreach ($preview['jornadas'] as $jornadaData) {
                 $ajusteJornada = $ajustes['jornadas'][$jornadaData['numero']] ?? [];
@@ -162,6 +170,88 @@ class CalendarioService
                 throw ValidationException::withMessages([
                     'playoff_equipos' => 'El número de equipos en playoff debe ser potencia de 2 (2, 4, 8, 16).',
                 ]);
+            }
+        }
+    }
+
+    protected function validarCanchas(Torneo $torneo, array $ajustes, array $preview): void
+    {
+        $slots = [];
+
+        foreach ($preview['jornadas'] as $jornadaData) {
+            $ajusteJornada = $ajustes['jornadas'][$jornadaData['numero']] ?? [];
+            $fechaJornada = $ajusteJornada['fecha'] ?? $jornadaData['fecha'];
+
+            foreach ($jornadaData['partidos'] as $idx => $partidoData) {
+                $ajuste = $ajustes['partidos'][$jornadaData['numero']][$idx] ?? [];
+                $canchaId = $ajuste['cancha_id'] ?? null;
+
+                if ($canchaId) {
+                    $slots[] = [
+                        'cancha_id' => (int) $canchaId,
+                        'fecha' => $ajuste['fecha'] ?? $fechaJornada,
+                        'hora' => $ajuste['hora'] ?? $torneo->hora_inicio,
+                        'duracion_minutos' => (int) ($ajuste['duracion_minutos'] ?? $torneo->duracion_minutos),
+                    ];
+                }
+            }
+        }
+
+        foreach ($preview['bracket'] as $faseData) {
+            foreach ($faseData['partidos'] as $idx => $partidoData) {
+                $ajuste = $ajustes['bracket'][$faseData['fase']][$idx] ?? [];
+                $canchaId = $ajuste['cancha_id'] ?? null;
+
+                if ($canchaId) {
+                    $slots[] = [
+                        'cancha_id' => (int) $canchaId,
+                        'fecha' => $ajuste['fecha'] ?? null,
+                        'hora' => $ajuste['hora'] ?? $torneo->hora_inicio,
+                        'duracion_minutos' => (int) ($ajuste['duracion_minutos'] ?? $torneo->duracion_minutos),
+                    ];
+                }
+            }
+        }
+
+        foreach ($slots as $i => $slot) {
+            $fechaHora = $slot['fecha'].' '.$slot['hora'];
+
+            $this->schedulingService->assertCanchaDisponible(
+                $slot['cancha_id'],
+                $slot['fecha'],
+                $slot['hora'],
+                $slot['duracion_minutos']
+            );
+
+            $this->schedulingService->assertSinConflictoCancha(
+                $slot['cancha_id'],
+                $slot['fecha'],
+                $slot['hora'],
+                $slot['duracion_minutos']
+            );
+
+            $inicioA = Carbon::parse($fechaHora);
+            $finA = $inicioA->copy()->addMinutes($slot['duracion_minutos']);
+
+            for ($j = $i + 1; $j < count($slots); $j++) {
+                $other = $slots[$j];
+
+                if ($slot['cancha_id'] !== $other['cancha_id']) {
+                    continue;
+                }
+
+                if ($slot['fecha'] !== $other['fecha']) {
+                    continue;
+                }
+
+                $inicioB = Carbon::parse($other['fecha'].' '.$other['hora']);
+                $finB = $inicioB->copy()->addMinutes($other['duracion_minutos']);
+
+                if ($inicioA->lt($finB) && $finA->gt($inicioB)) {
+                    throw ValidationException::withMessages([
+                        'cancha_id' => 'Conflicto de horario: dos partidos asignados a la misma cancha al mismo tiempo.',
+                    ]);
+                }
             }
         }
     }

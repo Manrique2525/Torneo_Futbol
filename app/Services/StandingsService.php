@@ -2,12 +2,12 @@
 
 namespace App\Services;
 
+use App\Enums\PartidoEventoTipoEnum;
 use App\Models\Partido;
 use App\Models\PartidoEvento;
 use App\Models\Torneo;
 use App\Models\TorneoEquipo;
 use App\Models\TorneoStanding;
-use App\Enums\PartidoEventoTipoEnum;
 use Illuminate\Support\Facades\DB;
 
 class StandingsService
@@ -39,7 +39,7 @@ class StandingsService
             foreach ($equipos as $te) {
                 $stats[$te->id] = [
                     'torneo_equipo_id' => $te->id,
-                    'torneo_grupo_id'  => $te->torneo_grupo_id,
+                    'torneo_grupo_id' => $te->torneo_grupo_id,
                     'pj' => 0, 'pg' => 0, 'pe' => 0, 'pp' => 0,
                     'gf' => 0, 'gc' => 0, 'dg' => 0, 'pts' => 0,
                     'fair_play' => (float) $te->fair_play_points,
@@ -63,20 +63,20 @@ class StandingsService
                 }
 
                 TorneoStanding::create([
-                    'tenant_id'         => $torneo->tenant_id,
-                    'torneo_id'         => $torneo->id,
-                    'torneo_grupo_id'   => $row['torneo_grupo_id'],
-                    'torneo_equipo_id'  => $row['torneo_equipo_id'],
-                    'pj'                => $row['pj'],
-                    'pg'                => $row['pg'],
-                    'pe'                => $row['pe'],
-                    'pp'                => $row['pp'],
-                    'gf'                => $row['gf'],
-                    'gc'                => $row['gc'],
-                    'dg'                => $row['dg'],
-                    'pts'               => $row['pts'],
-                    'fair_play'         => $row['fair_play'],
-                    'posicion_posiciones'  => null,
+                    'tenant_id' => $torneo->tenant_id,
+                    'torneo_id' => $torneo->id,
+                    'torneo_grupo_id' => $row['torneo_grupo_id'],
+                    'torneo_equipo_id' => $row['torneo_equipo_id'],
+                    'pj' => $row['pj'],
+                    'pg' => $row['pg'],
+                    'pe' => $row['pe'],
+                    'pp' => $row['pp'],
+                    'gf' => $row['gf'],
+                    'gc' => $row['gc'],
+                    'dg' => $row['dg'],
+                    'pts' => $row['pts'],
+                    'fair_play' => $row['fair_play'],
+                    'posicion_posiciones' => null,
                     'posicion_rendimiento' => null,
                 ]);
             }
@@ -138,9 +138,9 @@ class StandingsService
 
         $descuento = match ($evento->tipo) {
             PartidoEventoTipoEnum::TARJETA_AMARILLA => 0.5,
-            PartidoEventoTipoEnum::TARJETA_ROJA    => 1.5,
-            PartidoEventoTipoEnum::FALTA            => 0.1,
-            default                                 => 0,
+            PartidoEventoTipoEnum::TARJETA_ROJA => 1.5,
+            PartidoEventoTipoEnum::FALTA => 0.1,
+            default => 0,
         };
 
         if ($descuento <= 0) {

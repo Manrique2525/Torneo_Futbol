@@ -1,8 +1,8 @@
 <?php
 
+use App\DTOs\TenantDTO;
 use App\Models\Tenant;
 use App\Services\RolePermissionService;
-use App\DTOs\TenantDTO;
 
 class TenantService
 {
@@ -13,9 +13,9 @@ class TenantService
     public function create(TenantDTO $dto): Tenant
     {
         $tenant = Tenant::create([
-            'name'   => $dto->name,
-            'slug'   => $dto->slug,
-            'plan'   => $dto->plan,
+            'name' => $dto->name,
+            'slug' => $dto->slug,
+            'plan' => $dto->plan,
             'status' => 'trial',
         ]);
 
