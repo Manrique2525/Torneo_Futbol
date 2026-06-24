@@ -28,6 +28,8 @@ class Partido extends Model
         'es_vuelta',
         'llave_bracket',
         'orden_bracket',
+        'goles_penales_local',
+        'goles_penales_visitante',
     ];
 
     protected function casts(): array
@@ -40,6 +42,8 @@ class Partido extends Model
             'goles_visitante' => 'integer',
             'es_vuelta' => 'boolean',
             'orden_bracket' => 'integer',
+            'goles_penales_local' => 'integer',
+            'goles_penales_visitante' => 'integer',
         ];
     }
 

@@ -193,6 +193,10 @@ class PartidoEnVivoService
 
         if ($nuevoEstado === 'finalizado' && $partido->torneo) {
             $this->standingsService->recalcular($partido->torneo);
+
+            if ($partido->fase !== 'regular') {
+                app(PartidoPlayoffService::class)->avanzarGanador($partido);
+            }
         }
     }
 

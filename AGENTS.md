@@ -502,6 +502,43 @@ Route naming uses Spanish convention for domain modules: `torneos`, `arbitros`, 
   - `$fechaStr` y `$horaStr` se normalizan antes de enviar a `assertCanchaDisponible()`, `assertSinConflictoCancha()` y `Carbon::parse()`
   - En el batch loop también se normalizan las fechas/horas del otro slot antes de comparar
 
+### 2026-06-24 — Escudos de equipos en listado de Partidos
+
+**Contexto:** Se agregaron los escudos de los equipos (imagen subida al crear el equipo) en la tabla de Partidos, al lado de cada nombre de equipo.
+
+**Archivos modificados:**
+- `resources/js/Pages/Partidos/Index.vue` — cada nombre de equipo ahora muestra su escudo como un círculo de 32px (`h-8 w-8 rounded-full`). Si el equipo no tiene escudo, se muestran las iniciales con el gradiente verde del sistema (`bg-gradient-to-br from-primary to-green-600`).
+
+**Diseño:**
+```
+[escudo] Equipo Local vs Equipo Visitante [escudo]
+```
+Los escudos tienen un ring sutil (`ring-2 ring-slate-100`) para separarlos visualmente del fondo.
+
+### 2026-06-24 — PartidoPlayoffService: avance automático de ganadores en liguilla
+
+**Contexto:** Se creó el servicio `PartidoPlayoffService` que avanza automáticamente al ganador de cada llave de playoff a la siguiente ronda cuando el partido se finaliza. Integrado mediante un hook minimal en `PartidoEnVivoService::cambiarEstado()`.
+
+**Archivos creados:**
+- `app/Services/PartidoPlayoffService.php` — servicio con métodos: `avanzarGanador()`, `determinarGanador()`, `buscarSiguientePartido()`, `esLocal()`, y helpers privados `ganadorPartidoUnico()` y `ganadorIdaVuelta()`.
+  - **Partido único**: gana el que tiene más goles. Empate → penales (campo `goles_penales_local`/`goles_penales_visitante`).
+  - **Ida y vuelta**: se suma el agregado. Empate → gol de visitante. Sigue empate → penales.
+  - Si no se puede determinar ganador (empate sin penales), retorna null y no avanza.
+  - `avanzarGanador()`: verifica que todos los partidos de la llave estén finalizados, determina ganador, busca el siguiente partido vía mapeo de llaves (SF1→F1 local, SF2→F1 visitante), y asigna el `torneo_equipo_id` correspondiente. No sobreescribe si ya hay equipo asignado.
+  - Mapeo de fases: `octavos→cuartos→semifinal→final`. Llave impar → local, llave par → visitante.
+- `database/migrations/2026_06_24_000002_nullable_equipos_partidos.php` — hace `equipo_local_id` y `equipo_visitante_id` nullable en `partidos` (necesario para partidos placeholder de playoff).
+- `tests/Unit/PartidoPlayoffServiceTest.php` — 9 tests (21 assertions) que cubren: determinar ganador por goles, penales, agregado ida/vuelta, visitante ganando, empate sin penales, no avanzar si hay partidos sin finalizar, avance a siguiente ronda, mapping de llaves, y no-hacer-nada en fase regular/final.
+
+**Archivos modificados:**
+- `app/Services/PartidoEnVivoService.php` — agregado import `PartidoPlayoffService`. Hook de una línea en `cambiarEstado()`: cuando `$nuevoEstado === 'finalizado' && $partido->fase !== 'regular'`, llama a `app(PartidoPlayoffService::class)->avanzarGanador($partido)`.
+- `database/migrations/2026_06_23_000002_add_baja_por_impago_to_torneo_equipos_estado.php` — pre-existing bug fix: envuelto en `if (DB::getDriverName() === 'mysql')` para evitar error SQLite `near "MODIFY"`.
+
+**Diseño del bracket:**
+- `octavos` → `OF1..OF8`, `cuartos` → `QF1..QF4`, `semifinal` → `SF1..SF2`, `final` → `F1`
+- Mapping: `ceil(llaveNum/2)` para la siguiente fase. Ej: `SF1` (llaveNum=1, odd) → `F1` como local; `SF2` (llaveNum=2, even) → `F1` como visitante.
+
+**Tests unitarios:** 28 pases, 101 assertions en total (9 nuevos + 19 existentes). Feature tests continúan fallando por problemas pre-existentes (driver SQLite, tenant context).
+
 ## Code Style
 
 - 4-space indent, LF line endings (`.editorconfig`)
