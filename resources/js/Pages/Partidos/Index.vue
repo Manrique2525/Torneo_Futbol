@@ -237,14 +237,28 @@ const formatHora = (hora) => {
                     >
                         <td class="p-6">
                             <div class="flex items-center gap-3">
-                                <div class="flex items-center gap-2">
+                                <div class="flex items-center gap-2.5">
+                                    <!-- Local -->
+                                    <div v-if="p.equipo_local?.equipo?.shield" class="shrink-0 h-8 w-8 rounded-full overflow-hidden ring-2 ring-slate-100 dark:ring-slate-700">
+                                        <img :src="'/storage/' + p.equipo_local.equipo.shield" :alt="p.equipo_local.equipo.name" class="h-full w-full object-cover">
+                                    </div>
+                                    <div v-else class="shrink-0 h-8 w-8 rounded-full bg-gradient-to-br from-primary to-green-600 flex items-center justify-center text-white text-[10px] font-black uppercase">
+                                        {{ (p.equipo_local?.equipo?.name || 'L').substring(0, 2) }}
+                                    </div>
                                     <span class="text-sm font-black text-slate-900 dark:text-white">
                                         {{ p.equipo_local?.equipo?.name || 'Local' }}
                                     </span>
                                     <span class="text-[10px] font-bold text-slate-400 uppercase">vs</span>
+                                    <!-- Visitante -->
                                     <span class="text-sm font-black text-slate-900 dark:text-white">
                                         {{ p.equipo_visitante?.equipo?.name || 'Visitante' }}
                                     </span>
+                                    <div v-if="p.equipo_visitante?.equipo?.shield" class="shrink-0 h-8 w-8 rounded-full overflow-hidden ring-2 ring-slate-100 dark:ring-slate-700">
+                                        <img :src="'/storage/' + p.equipo_visitante.equipo.shield" :alt="p.equipo_visitante.equipo.name" class="h-full w-full object-cover">
+                                    </div>
+                                    <div v-else class="shrink-0 h-8 w-8 rounded-full bg-gradient-to-br from-primary to-green-600 flex items-center justify-center text-white text-[10px] font-black uppercase">
+                                        {{ (p.equipo_visitante?.equipo?.name || 'V').substring(0, 2) }}
+                                    </div>
                                 </div>
                             </div>
                         </td>

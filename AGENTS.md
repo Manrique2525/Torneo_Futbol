@@ -492,6 +492,16 @@ Route naming uses Spanish convention for domain modules: `torneos`, `arbitros`, 
 - Si no asigna canchas (todas quedan en null), no se valida y los partidos se crean sin cancha (el admin las asigna después).
 - Los árbitros no se validan automáticamente — se asignan manualmente partido por partido.
 
+### 2026-06-23 — Fix Carbon parse error en validarCanchas
+
+**Contexto:** El método `validarCanchas()` lanzaba `InvalidFormatException` porque `$torneo->hora_inicio` es un objeto Carbon (cast `datetime:H:i` en el modelo), y al concatenarlo con `$slot['fecha']` generaba doble fecha: `2026-06-15 2026-06-24T12:00:00.000000Z`.
+
+**Archivos modificados:**
+- `app/Services/CalendarioService.php` — se normalizan todos los valores Carbon a string antes de concatenar:
+  - `$horaDefecto` se obtiene al inicio del método con `->format('H:i')`
+  - `$fechaStr` y `$horaStr` se normalizan antes de enviar a `assertCanchaDisponible()`, `assertSinConflictoCancha()` y `Carbon::parse()`
+  - En el batch loop también se normalizan las fechas/horas del otro slot antes de comparar
+
 ## Code Style
 
 - 4-space indent, LF line endings (`.editorconfig`)
