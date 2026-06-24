@@ -416,6 +416,40 @@ Route naming uses Spanish convention for domain modules: `torneos`, `arbitros`, 
 
 **Nota:** El `MatchSchedulingService.php` tuvo un fix de parseo doble de Carbon (fecha + hora) que estaba causando error al concatenar directamente un objeto Carbon en string.
 
+### 2026-06-23 — Tipo de gestión de torneo: auto (Calendario) vs manual
+
+**Contexto:** Se agregó el campo `tipo_gestion` a `torneos` para distinguir entre torneos gestionados automáticamente vía Calendario (`auto`) y torneos con gestión manual tradicional (`manual`). Todos los torneos nuevos se crean como `auto`. Los existentes se migran como `manual` para no romper la compatibilidad.
+
+**Archivos creados:**
+
+- `database/migrations/2026_06_23_000003_add_tipo_gestion_to_torneos.php` — agrega columna `tipo_gestion` (varchar 10, nullable), setea `manual` a todos los torneos existentes.
+
+**Archivos modificados:**
+
+- `app/Models/Torneo.php` — `tipo_gestion` en `$fillable` y `$casts`. Nuevo helper `esAuto(): bool`.
+- `config/constants.php` — agregado `tipos_gestion` con `auto` y `manual`.
+- `app/Http/Controllers/TorneoController.php` — en `store()`, se setea `tipo_gestion = 'auto'` en todos los torneos nuevos.
+- `app/Http/Controllers/PartidoController.php`:
+  - `create()`: filtra torneos, solo muestra los manuales en el selector.
+  - `store()`: aborta 403 si el torneo es auto.
+  - `index()`: pasa `tipo_gestion` en la lista de torneos.
+  - `edit()`: permite editar partidos de torneos auto (para editar calendario).
+- `app/Http/Controllers/JornadaController.php`:
+  - `create()`: pasa `tipo_gestion` en lista de torneos.
+  - `store()`: aborta 403 si el torneo es auto.
+  - `edit()` / `update()` / `destroy()`: aborta 403 si la jornada pertenece a un torneo auto.
+- `resources/js/Pages/Partidos/Index.vue`:
+  - Nuevo computado `torneoSeleccionadoEsAuto` basado en filtro activo.
+  - Botón "Nuevo Partido" oculto cuando el torneo seleccionado es auto.
+- `resources/js/Layouts/AuthenticatedLayout.vue` — enlace de Jornadas eliminado del sidebar.
+
+**Comportamiento:**
+
+| Tipo | Sidebar Jornadas | Nuevo Partido | Nuevo Partido En Vivo | Nueva Jornada | Editar/Eliminar Partido |
+|------|-----------------|---------------|----------------------|---------------|------------------------|
+| **auto** | Oculto | Bloqueado (UI + backend) | Bloqueado (backend) | Bloqueado (backend) | Permitido (editar calendario) |
+| **manual** | Visible | Normal (con permisos) | Normal | Normal | Normal |
+
 ## Code Style
 
 - 4-space indent, LF line endings (`.editorconfig`)

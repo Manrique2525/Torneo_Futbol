@@ -4,10 +4,11 @@ import Modal from '@/Components/Modal.vue';
 import Pagination from '@/Components/Pagination.vue';
 import VSelectCustom from '@/Components/VSelectCustom.vue';
 import { ref, watch, computed } from 'vue';
-import { Head, router, Link } from '@inertiajs/vue3';
+import { Head, router, Link, usePage } from '@inertiajs/vue3';
 import { useCan } from '@/Shared/Composables/useCan.js';
 
 const { can, hasRole } = useCan();
+const currentUserId = usePage().props?.auth?.user?.id;
 
 const props = defineProps({
     partidos: Object,
@@ -63,6 +64,13 @@ const search = debounce(() => {
 }, 300);
 
 watch([searchQuery, filterTorneo, filterEstado], search);
+
+const esPartidoDelDelegate = (partido) => {
+    if (!hasRole('delegate')) return false;
+    const localDelegadoId = partido.equipo_local?.equipo?.delegado_id;
+    const visitDelegadoId = partido.equipo_visitante?.equipo?.delegado_id;
+    return localDelegadoId === currentUserId || visitDelegadoId === currentUserId;
+};
 
 const confirmModal = ref({ show: false });
 
@@ -195,7 +203,7 @@ const formatHora = (hora) => {
                     <tr
                         v-for="p in partidos?.data || []"
                         :key="p.id"
-                        class="group hover:bg-slate-50/80 dark:hover:bg-white/5 transition-all"
+                        :class="['group hover:bg-slate-50/80 dark:hover:bg-white/5 transition-all', esPartidoDelDelegate(p) ? 'bg-primary/5 ring-2 ring-primary/30 rounded-2xl' : '']"
                     >
                         <td class="p-6">
                             <div class="flex items-center gap-3">

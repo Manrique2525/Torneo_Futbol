@@ -38,8 +38,8 @@ class PartidoController extends Controller
                 ->with([
                     'torneo:id,nombre',
                     'jornada:id,nombre',
-                    'equipoLocal.equipo:id,name,shield',
-                    'equipoVisitante.equipo:id,name,shield',
+                    'equipoLocal.equipo:id,name,shield,delegado_id',
+                    'equipoVisitante.equipo:id,name,shield,delegado_id',
                     'cancha:id,nombre',
                     'arbitro:id,nombre',
                 ])
