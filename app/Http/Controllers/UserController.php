@@ -144,6 +144,7 @@ class UserController extends Controller
             'password' => ['nullable', Password::defaults()],
         ]);
 
+
         $user->update([
             'name'   => $validated['name'],
             'email'  => $validated['email'],

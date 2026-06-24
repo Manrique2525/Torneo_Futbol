@@ -31,7 +31,7 @@ class UserSeeder extends Seeder
             'status'   => Tenant::STATUS_ACTIVE,
         ]);
 
-        // 🔴 CONTEXTO DEL TENANT (OBLIGATORIO)
+        //  CONTEXTO DEL TENANT (OBLIGATORIO)
         app(\Spatie\Permission\PermissionRegistrar::class)
     ->setPermissionsTeamId($tenant->id);
 
