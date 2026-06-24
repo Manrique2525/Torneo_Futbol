@@ -9,6 +9,7 @@ use App\Models\Arbitro;
 use App\Models\Cancha;
 use App\Models\Jornada;
 use App\Models\Partido;
+use App\Models\Team;
 use App\Models\Torneo;
 use App\Models\TorneoEquipo;
 use App\Services\MatchSchedulingService;
@@ -28,8 +29,16 @@ class PartidoController extends Controller
 
         $constants = config('constants');
 
+        $user = auth()->user();
+
         $torneos = Torneo::query()
             ->select('id', 'nombre', 'tipo_gestion')
+            ->when($user->hasRole('delegate'), function ($q) use ($user) {
+                $q->whereHas('inscripciones', function ($sq) use ($user) {
+                    $sq->where('estado', 'aprobado')
+                        ->whereIn('team_id', Team::where('delegado_id', $user->id)->pluck('id'));
+                });
+            })
             ->orderBy('nombre')
             ->get();
 
