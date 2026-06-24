@@ -33,6 +33,15 @@ class PartidoController extends Controller
             ->orderBy('nombre')
             ->get();
 
+        $jornadas = collect();
+        if ($request->torneo_id && $request->torneo_id !== 'todos') {
+            $jornadas = Jornada::query()
+                ->where('torneo_id', $request->torneo_id)
+                ->select('id', 'numero', 'nombre')
+                ->orderBy('numero')
+                ->get();
+        }
+
         return Inertia::render('Partidos/Index', [
             'partidos' => Partido::query()
                 ->with([
@@ -52,6 +61,9 @@ class PartidoController extends Controller
                 ->when($request->torneo_id && $request->torneo_id !== 'todos', function ($q) use ($request) {
                     $q->where('torneo_id', $request->torneo_id);
                 })
+                ->when($request->jornada_id && $request->jornada_id !== 'todos', function ($q) use ($request) {
+                    $q->where('jornada_id', $request->jornada_id);
+                })
                 ->when($request->estado && $request->estado !== 'todos', function ($q) use ($request) {
                     $q->where('estado', $request->estado);
                 })
@@ -59,13 +71,14 @@ class PartidoController extends Controller
                 ->paginate(10)
                 ->withQueryString(),
 
-            'filters' => $request->only(['search', 'torneo_id', 'estado']),
+            'filters' => $request->only(['search', 'torneo_id', 'jornada_id', 'estado']),
             'flash' => [
                 'success' => session('success'),
                 'error' => session('error'),
             ],
             'constantes' => $constants ?? [],
             'torneos' => $torneos,
+            'jornadas' => $jornadas,
         ]);
     }
 

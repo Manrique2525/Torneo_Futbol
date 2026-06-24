@@ -16,12 +16,14 @@ const props = defineProps({
     constantes: Object,
     filters: Object,
     flash: Object,
+    jornadas: Array,
 });
 
 const constantes = props.constantes || {};
 
 const searchQuery = ref(props.filters?.search || '');
 const filterTorneo = ref(props.filters?.torneo_id || 'todos');
+const filterJornada = ref(props.filters?.jornada_id || 'todos');
 const filterEstado = ref(props.filters?.estado || 'todos');
 
 const torneosData = props.torneos || [];
@@ -29,6 +31,22 @@ const torneosAuto = new Set(torneosData.filter((t) => t.tipo_gestion === 'auto')
 
 const torneoSeleccionadoEsAuto = computed(() => {
     return filterTorneo.value !== 'todos' && torneosAuto.has(filterTorneo.value);
+});
+
+const jornadaOptions = computed(() => {
+    if (filterTorneo.value === 'todos') return [];
+    const jornadasData = props.jornadas || [];
+    return [
+        { label: 'Todas las Jornadas', value: 'todos' },
+        ...jornadasData.map((j) => ({
+            label: j.nombre || `Jornada ${j.numero}`,
+            value: String(j.id),
+        })),
+    ];
+});
+
+watch(filterTorneo, () => {
+    filterJornada.value = 'todos';
 });
 
 const torneoOptions = [
@@ -59,11 +77,12 @@ const search = debounce(() => {
     router.get(route('partidos.index'), {
         search: searchQuery.value,
         torneo_id: filterTorneo.value === 'todos' ? undefined : filterTorneo.value,
+        jornada_id: filterJornada.value === 'todos' ? undefined : filterJornada.value,
         estado: filterEstado.value === 'todos' ? undefined : filterEstado.value,
     }, { preserveState: true, replace: true });
 }, 300);
 
-watch([searchQuery, filterTorneo, filterEstado], search);
+watch([searchQuery, filterTorneo, filterJornada, filterEstado], search);
 
 const esPartidoDelDelegate = (partido) => {
     if (!hasRole('delegate')) return false;
@@ -137,7 +156,7 @@ const formatHora = (hora) => {
     </div>
 
     <!-- FILTROS -->
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 bg-white dark:bg-[#1A2C26] p-4 rounded-[2rem] border border-slate-100 dark:border-slate-800 shadow-sm">
+    <div class="grid grid-cols-1 md:grid-cols-5 gap-4 bg-white dark:bg-[#1A2C26] p-4 rounded-[2rem] border border-slate-100 dark:border-slate-800 shadow-sm">
 
         <div class="md:col-span-2 relative">
             <span class="absolute inset-y-0 left-4 flex items-center text-slate-400">
@@ -159,6 +178,17 @@ const formatHora = (hora) => {
                 :reduce="opt => opt.value"
                 :clearable="false"
                 placeholder="Torneo..."
+            />
+        </div>
+
+        <div v-if="filterTorneo !== 'todos'">
+            <VSelectCustom
+                v-model="filterJornada"
+                :options="jornadaOptions"
+                label="label"
+                :reduce="opt => opt.value"
+                :clearable="false"
+                placeholder="Jornada..."
             />
         </div>
 
