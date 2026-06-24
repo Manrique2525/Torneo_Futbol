@@ -472,6 +472,26 @@ Route naming uses Spanish convention for domain modules: `torneos`, `arbitros`, 
 | Filtro por jornada | Visible al seleccionar un torneo |
 | Selector de torneos | Solo muestra torneos donde tiene equipos inscritos |
 
+### 2026-06-23 — Validación de canchas al confirmar calendario automático
+
+**Contexto:** Al generar el calendario automático, si el admin asigna canchas a los partidos en el preview, ahora se valida que la cancha esté disponible para el día/horario y que no haya conflictos entre partidos.
+
+**Archivos modificados:**
+
+- `app/Services/MatchSchedulingService.php` — métodos `assertCanchaDisponible()` y `assertSinConflictoCancha()` cambiados de `protected` a `public` para ser reusados desde `CalendarioService`.
+- `app/Services/CalendarioService.php`:
+  - Inyectado `MatchSchedulingService` en el constructor.
+  - Nuevo método `validarCanchas()` que recorre todos los partidos del preview con cancha asignada y ejecuta tres validaciones:
+    1. `assertCanchaDisponible()` — la cancha tiene disponibilidad configurada para ese día de la semana y el horario está dentro del rango.
+    2. `assertSinConflictoCancha()` — no hay otro partido existente en la misma cancha/fecha/horario.
+    3. Validación batch — no hay dos partidos del mismo calendario en la misma cancha/fecha con horarios traslapados.
+  - `confirmar()` llama a `validarCanchas()` antes de la transacción, pasando el preview ya calculado como argumento a la closure.
+
+**Comportamiento:**
+- Si el admin asigna canchas en el preview y hay conflictos, se muestra error y no se crea nada.
+- Si no asigna canchas (todas quedan en null), no se valida y los partidos se crean sin cancha (el admin las asigna después).
+- Los árbitros no se validan automáticamente — se asignan manualmente partido por partido.
+
 ## Code Style
 
 - 4-space indent, LF line endings (`.editorconfig`)

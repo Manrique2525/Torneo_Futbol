@@ -176,6 +176,10 @@ class CalendarioService
 
     protected function validarCanchas(Torneo $torneo, array $ajustes, array $preview): void
     {
+        $horaDefecto = $torneo->hora_inicio instanceof Carbon
+            ? $torneo->hora_inicio->format('H:i')
+            : (string) $torneo->hora_inicio;
+
         $slots = [];
 
         foreach ($preview['jornadas'] as $jornadaData) {
@@ -190,7 +194,7 @@ class CalendarioService
                     $slots[] = [
                         'cancha_id' => (int) $canchaId,
                         'fecha' => $ajuste['fecha'] ?? $fechaJornada,
-                        'hora' => $ajuste['hora'] ?? $torneo->hora_inicio,
+                        'hora' => $ajuste['hora'] ?? $horaDefecto,
                         'duracion_minutos' => (int) ($ajuste['duracion_minutos'] ?? $torneo->duracion_minutos),
                     ];
                 }
@@ -206,7 +210,7 @@ class CalendarioService
                     $slots[] = [
                         'cancha_id' => (int) $canchaId,
                         'fecha' => $ajuste['fecha'] ?? null,
-                        'hora' => $ajuste['hora'] ?? $torneo->hora_inicio,
+                        'hora' => $ajuste['hora'] ?? $horaDefecto,
                         'duracion_minutos' => (int) ($ajuste['duracion_minutos'] ?? $torneo->duracion_minutos),
                     ];
                 }
@@ -214,23 +218,28 @@ class CalendarioService
         }
 
         foreach ($slots as $i => $slot) {
-            $fechaHora = $slot['fecha'].' '.$slot['hora'];
+            $fechaStr = $slot['fecha'] instanceof Carbon
+                ? $slot['fecha']->format('Y-m-d')
+                : (string) $slot['fecha'];
+            $horaStr = $slot['hora'] instanceof Carbon
+                ? $slot['hora']->format('H:i')
+                : (string) $slot['hora'];
 
             $this->schedulingService->assertCanchaDisponible(
                 $slot['cancha_id'],
-                $slot['fecha'],
-                $slot['hora'],
+                $fechaStr,
+                $horaStr,
                 $slot['duracion_minutos']
             );
 
             $this->schedulingService->assertSinConflictoCancha(
                 $slot['cancha_id'],
-                $slot['fecha'],
-                $slot['hora'],
+                $fechaStr,
+                $horaStr,
                 $slot['duracion_minutos']
             );
 
-            $inicioA = Carbon::parse($fechaHora);
+            $inicioA = Carbon::parse($fechaStr.' '.$horaStr);
             $finA = $inicioA->copy()->addMinutes($slot['duracion_minutos']);
 
             for ($j = $i + 1; $j < count($slots); $j++) {
@@ -240,11 +249,18 @@ class CalendarioService
                     continue;
                 }
 
-                if ($slot['fecha'] !== $other['fecha']) {
+                $otherFechaStr = $other['fecha'] instanceof Carbon
+                    ? $other['fecha']->format('Y-m-d')
+                    : (string) $other['fecha'];
+                $otherHoraStr = $other['hora'] instanceof Carbon
+                    ? $other['hora']->format('H:i')
+                    : (string) $other['hora'];
+
+                if ($fechaStr !== $otherFechaStr) {
                     continue;
                 }
 
-                $inicioB = Carbon::parse($other['fecha'].' '.$other['hora']);
+                $inicioB = Carbon::parse($otherFechaStr.' '.$otherHoraStr);
                 $finB = $inicioB->copy()->addMinutes($other['duracion_minutos']);
 
                 if ($inicioA->lt($finB) && $finA->gt($inicioB)) {
