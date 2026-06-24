@@ -21,7 +21,7 @@ class PlanController extends Controller
      */
     public function index(Request $request): Response
     {
-        if (!auth()->user()?->isSuperAdmin()) {
+        if (! auth()->user()?->isSuperAdmin()) {
             abort(403, 'Only SaaS administrators can manage plans.');
         }
 
@@ -39,8 +39,12 @@ class PlanController extends Controller
 
             // 3. Filtro de estado
             ->when($request->input('status'), function ($query, $status) {
-                if ($status === 'active') $query->where('is_active', true);
-                if ($status === 'inactive') $query->where('is_active', false);
+                if ($status === 'active') {
+                    $query->where('is_active', true);
+                }
+                if ($status === 'inactive') {
+                    $query->where('is_active', false);
+                }
             })
 
             // 4. Otros filtros (Soporte, Destacado)
@@ -55,56 +59,54 @@ class PlanController extends Controller
             ->get()
             ->map(function ($plan) {
                 return [
-                    'id'                 => $plan->id,
-                    'name'               => $plan->name,
-                    'slug'               => $plan->slug,
-                    'description'        => $plan->description,
-                    'monthly_price'      => $plan->monthly_price,
-                    'annual_price'       => $plan->annual_price,
-                    'currency'           => $plan->currency,
-                    'max_tournaments'    => $plan->max_tournaments,
-                    'max_teams'          => $plan->max_teams,
-                    'max_players'        => $plan->max_players,
-                    'max_users'          => $plan->max_users,
-                    'max_fields'         => $plan->max_fields,
-                    'max_referees'       => $plan->max_referees,
-                    'storage_mb'         => $plan->storage_mb,
-                    'has_mobile_app'     => $plan->has_mobile_app,
-                    'has_streaming'      => $plan->has_streaming,
+                    'id' => $plan->id,
+                    'name' => $plan->name,
+                    'slug' => $plan->slug,
+                    'description' => $plan->description,
+                    'monthly_price' => $plan->monthly_price,
+                    'annual_price' => $plan->annual_price,
+                    'currency' => $plan->currency,
+                    'max_tournaments' => $plan->max_tournaments,
+                    'max_teams' => $plan->max_teams,
+                    'max_players' => $plan->max_players,
+                    'max_users' => $plan->max_users,
+                    'max_fields' => $plan->max_fields,
+                    'max_referees' => $plan->max_referees,
+                    'storage_mb' => $plan->storage_mb,
+                    'has_mobile_app' => $plan->has_mobile_app,
+                    'has_streaming' => $plan->has_streaming,
                     'has_advanced_stats' => $plan->has_advanced_stats,
-                    'has_api_access'     => $plan->has_api_access,
-                    'has_whatsapp'       => $plan->has_whatsapp,
-                    'has_reports'        => $plan->has_reports,
-                    'has_custom_domain'  => $plan->has_custom_domain,
-                    'support_level'      => $plan->support_level,
-                    'sort_order'         => $plan->sort_order,
-                    'is_active'          => (bool) $plan->is_active,
-                    'is_featured'        => (bool) $plan->is_featured,
+                    'has_api_access' => $plan->has_api_access,
+                    'has_whatsapp' => $plan->has_whatsapp,
+                    'has_reports' => $plan->has_reports,
+                    'has_custom_domain' => $plan->has_custom_domain,
+                    'support_level' => $plan->support_level,
+                    'sort_order' => $plan->sort_order,
+                    'is_active' => (bool) $plan->is_active,
+                    'is_featured' => (bool) $plan->is_featured,
                     // Usamos el resultado de withCount()
-                    'tenants_count'      => $plan->tenants_count,
+                    'tenants_count' => $plan->tenants_count,
                 ];
             });
 
         return Inertia::render('Plans/Index', [
-            'plans'   => $plans,
+            'plans' => $plans,
             // Devolvemos todos los filtros para que los inputs en Vue no se limpien
             'filters' => $request->only(['search', 'status', 'support', 'featured']),
         ]);
     }
 
-
-        public function create(): Response
+    public function create(): Response
     {
         return Inertia::render('Plans/Create');
     }
-
 
     /**
      * Store a new plan.
      */
     public function store(Request $request): RedirectResponse
     {
-        if (!auth()->user()?->isSuperAdmin()) {
+        if (! auth()->user()?->isSuperAdmin()) {
             abort(403, 'Only SaaS administrators can manage plans.');
         }
         $validated = $request->validate($this->rules());
@@ -114,39 +116,38 @@ class PlanController extends Controller
         return back()->with('success', 'Plan created successfully.');
     }
 
-
-        /**
+    /**
      * Show form to edit a plan.
      */
     public function edit(Plan $plan): Response
     {
         return Inertia::render('Plans/Edit', [
             'plan' => [
-                'id'                 => $plan->id,
-                'name'               => $plan->name,
-                'slug'               => $plan->slug,
-                'description'        => $plan->description,
-                'monthly_price'      => $plan->monthly_price,
-                'annual_price'       => $plan->annual_price,
-                'currency'           => $plan->currency,
-                'max_tournaments'    => $plan->max_tournaments,
-                'max_teams'          => $plan->max_teams,
-                'max_players'        => $plan->max_players,
-                'max_users'          => $plan->max_users,
-                'max_fields'         => $plan->max_fields,
-                'max_referees'       => $plan->max_referees,
-                'storage_mb'         => $plan->storage_mb,
-                'has_mobile_app'     => $plan->has_mobile_app,
-                'has_streaming'      => $plan->has_streaming,
+                'id' => $plan->id,
+                'name' => $plan->name,
+                'slug' => $plan->slug,
+                'description' => $plan->description,
+                'monthly_price' => $plan->monthly_price,
+                'annual_price' => $plan->annual_price,
+                'currency' => $plan->currency,
+                'max_tournaments' => $plan->max_tournaments,
+                'max_teams' => $plan->max_teams,
+                'max_players' => $plan->max_players,
+                'max_users' => $plan->max_users,
+                'max_fields' => $plan->max_fields,
+                'max_referees' => $plan->max_referees,
+                'storage_mb' => $plan->storage_mb,
+                'has_mobile_app' => $plan->has_mobile_app,
+                'has_streaming' => $plan->has_streaming,
                 'has_advanced_stats' => $plan->has_advanced_stats,
-                'has_api_access'     => $plan->has_api_access,
-                'has_whatsapp'       => $plan->has_whatsapp,
-                'has_reports'        => $plan->has_reports,
-                'has_custom_domain'  => $plan->has_custom_domain,
-                'support_level'      => $plan->support_level,
-                'sort_order'         => $plan->sort_order,
-                'is_active'          => (bool) $plan->is_active,
-                'is_featured'        => (bool) $plan->is_featured,
+                'has_api_access' => $plan->has_api_access,
+                'has_whatsapp' => $plan->has_whatsapp,
+                'has_reports' => $plan->has_reports,
+                'has_custom_domain' => $plan->has_custom_domain,
+                'support_level' => $plan->support_level,
+                'sort_order' => $plan->sort_order,
+                'is_active' => (bool) $plan->is_active,
+                'is_featured' => (bool) $plan->is_featured,
             ],
         ]);
     }
@@ -156,7 +157,7 @@ class PlanController extends Controller
      */
     public function update(Request $request, Plan $plan): RedirectResponse
     {
-        if (!auth()->user()?->isSuperAdmin()) {
+        if (! auth()->user()?->isSuperAdmin()) {
             abort(403, 'Only SaaS administrators can manage plans.');
         }
         $rules = $this->rules($plan->id);
@@ -172,7 +173,7 @@ class PlanController extends Controller
      */
     public function destroy(Plan $plan): RedirectResponse
     {
-        if (!auth()->user()?->isSuperAdmin()) {
+        if (! auth()->user()?->isSuperAdmin()) {
             abort(403, 'Only SaaS administrators can manage plans.');
         }
         if ($plan->tenantsCount() > 0) {
@@ -190,34 +191,35 @@ class PlanController extends Controller
     private function rules(?int $ignoreId = null): array
     {
 
-        if (!auth()->user()?->isSuperAdmin()) {
+        if (! auth()->user()?->isSuperAdmin()) {
             abort(403, 'Only SaaS administrators can manage plans.');
         }
+
         return [
-            'name'              => ['required', 'string', 'max:80'],
-            'slug'              => ['required', 'string', 'max:80', 'regex:/^[a-z0-9_-]+$/', Rule::unique('plans')->ignore($ignoreId)],
-            'description'       => ['nullable', 'string', 'max:500'],
-            'monthly_price'     => ['required', 'numeric', 'min:0'],
-            'annual_price'      => ['required', 'numeric', 'min:0'],
-            'currency'          => ['required', 'string', 'size:3'],
-            'max_tournaments'   => ['required', 'integer', 'min:-1'],
-            'max_teams'         => ['required', 'integer', 'min:-1'],
-            'max_players'       => ['required', 'integer', 'min:-1'],
-            'max_users'         => ['required', 'integer', 'min:-1'],
-            'max_fields'        => ['required', 'integer', 'min:-1'],
-            'max_referees'      => ['required', 'integer', 'min:-1'],
-            'storage_mb'        => ['required', 'integer', 'min:0'],
-            'has_mobile_app'    => ['boolean'],
-            'has_streaming'     => ['boolean'],
+            'name' => ['required', 'string', 'max:80'],
+            'slug' => ['required', 'string', 'max:80', 'regex:/^[a-z0-9_-]+$/', Rule::unique('plans')->ignore($ignoreId)],
+            'description' => ['nullable', 'string', 'max:500'],
+            'monthly_price' => ['required', 'numeric', 'min:0'],
+            'annual_price' => ['required', 'numeric', 'min:0'],
+            'currency' => ['required', 'string', 'size:3'],
+            'max_tournaments' => ['required', 'integer', 'min:-1'],
+            'max_teams' => ['required', 'integer', 'min:-1'],
+            'max_players' => ['required', 'integer', 'min:-1'],
+            'max_users' => ['required', 'integer', 'min:-1'],
+            'max_fields' => ['required', 'integer', 'min:-1'],
+            'max_referees' => ['required', 'integer', 'min:-1'],
+            'storage_mb' => ['required', 'integer', 'min:0'],
+            'has_mobile_app' => ['boolean'],
+            'has_streaming' => ['boolean'],
             'has_advanced_stats' => ['boolean'],
-            'has_api_access'    => ['boolean'],
-            'has_whatsapp'      => ['boolean'],
-            'has_reports'       => ['boolean'],
+            'has_api_access' => ['boolean'],
+            'has_whatsapp' => ['boolean'],
+            'has_reports' => ['boolean'],
             'has_custom_domain' => ['boolean'],
-            'support_level'     => ['required', Rule::in(['basic', 'priority', 'dedicated'])],
-            'sort_order'        => ['required', 'integer', 'min:0'],
-            'is_active'         => ['boolean'],
-            'is_featured'       => ['boolean'],
+            'support_level' => ['required', Rule::in(['basic', 'priority', 'dedicated'])],
+            'sort_order' => ['required', 'integer', 'min:0'],
+            'is_active' => ['boolean'],
+            'is_featured' => ['boolean'],
         ];
     }
 }

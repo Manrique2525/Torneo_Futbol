@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers\Auth;
 
-use App\Http\Controllers\Controller;
 use App\Enums\RoleEnum;
+use App\Http\Controllers\Controller;
 use App\Models\Plan;
 use App\Models\Subscription;
 use App\Models\Tenant;
@@ -48,9 +48,9 @@ class RegisteredUserController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $request->validate([
-            'name'              => ['required', 'string', 'max:150'],
-            'email'             => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:users'],
-            'password'          => ['required', 'confirmed', Rules\Password::defaults()],
+            'name' => ['required', 'string', 'max:150'],
+            'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:users'],
+            'password' => ['required', 'confirmed', Rules\Password::defaults()],
             'organization_name' => ['required', 'string', 'max:150'],
         ]);
 
@@ -58,21 +58,21 @@ class RegisteredUserController extends Controller
 
             // 1. Create tenant
             $tenant = Tenant::create([
-                'uuid'   => (string) Str::uuid(),
-                'name'   => $request->organization_name,
-                'slug'   => Str::slug($request->organization_name) . '-' . Str::random(4),
-                'email'  => $request->email,
+                'uuid' => (string) Str::uuid(),
+                'name' => $request->organization_name,
+                'slug' => Str::slug($request->organization_name).'-'.Str::random(4),
+                'email' => $request->email,
                 'status' => Tenant::STATUS_TRIAL,
-                'plan'   => 'basic',
+                'plan' => 'basic',
             ]);
 
             // 2. Create user
             $user = User::withoutGlobalScopes()->create([
                 'tenant_id' => $tenant->id,
-                'name'      => $request->name,
-                'email'     => $request->email,
-                'password'  => Hash::make($request->password),
-                'status'    => User::STATUS_ACTIVE,
+                'name' => $request->name,
+                'email' => $request->email,
+                'password' => Hash::make($request->password),
+                'status' => User::STATUS_ACTIVE,
             ]);
 
             // 3. Setup roles & permissions for this tenant
@@ -82,21 +82,20 @@ class RegisteredUserController extends Controller
             setPermissionsTeamId($tenant->id);
             $user->assignRole(RoleEnum::ADMIN);
 
-
             // 5. Create trial subscription
             $plan = Plan::where('slug', 'basic')->first();
 
             Subscription::create([
-                'tenant_id'      => $tenant->id,
-                'plan_id'        => $plan->id,
-                'status'         => Subscription::STATUS_TRIAL,
-                'billing_cycle'  => Subscription::BILLING_MONTHLY,
-                'price_paid'     => 0,
+                'tenant_id' => $tenant->id,
+                'plan_id' => $plan->id,
+                'status' => Subscription::STATUS_TRIAL,
+                'billing_cycle' => Subscription::BILLING_MONTHLY,
+                'price_paid' => 0,
                 'discount_amount' => 0,
-                'starts_at'      => now(),
-                'trial_ends_at'  => now()->addDays(14),
-                'ends_at'        => now()->addDays(14),
-                'auto_renew'     => true,
+                'starts_at' => now(),
+                'trial_ends_at' => now()->addDays(14),
+                'ends_at' => now()->addDays(14),
+                'auto_renew' => true,
             ]);
 
             return [$tenant, $user];

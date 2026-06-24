@@ -3,7 +3,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import Modal from '@/Components/Modal.vue';
 import Pagination from '@/Components/Pagination.vue';
 import VSelectCustom from '@/Components/VSelectCustom.vue';
-import { ref, watch } from 'vue';
+import { ref, watch, computed } from 'vue';
 import { Head, router, Link } from '@inertiajs/vue3';
 import { useCan } from '@/Shared/Composables/useCan.js';
 
@@ -23,9 +23,16 @@ const searchQuery = ref(props.filters?.search || '');
 const filterTorneo = ref(props.filters?.torneo_id || 'todos');
 const filterEstado = ref(props.filters?.estado || 'todos');
 
+const torneosData = props.torneos || [];
+const torneosAuto = new Set(torneosData.filter((t) => t.tipo_gestion === 'auto').map((t) => String(t.id)));
+
+const torneoSeleccionadoEsAuto = computed(() => {
+    return filterTorneo.value !== 'todos' && torneosAuto.has(filterTorneo.value);
+});
+
 const torneoOptions = [
     { label: 'Todos los Torneos', value: 'todos' },
-    ...(props.torneos || []).map((t) => ({
+    ...torneosData.map((t) => ({
         label: t.nombre,
         value: String(t.id),
     })),
@@ -112,7 +119,7 @@ const formatHora = (hora) => {
         </div>
 
         <Link
-            v-if="!hasRole('delegate')"
+            v-if="!hasRole('delegate') && !torneoSeleccionadoEsAuto"
             :href="route('partidos.create')"
             class="flex items-center px-3 py-3 bg-primary text-white font-black uppercase text-[11px] tracking-[0.15em] rounded-2xl shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-95 transition-all"
         >

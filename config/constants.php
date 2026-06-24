@@ -274,4 +274,13 @@ return [
         'confirmado' => 'Confirmado',
         'rechazado' => 'Rechazado',
     ],
+    /*
+    |--------------------------------------------------------------------------
+    | Tipos de Gestión de Torneo
+    |--------------------------------------------------------------------------
+    */
+    'tipos_gestion' => [
+        'auto' => 'Automático (Calendario)',
+        'manual' => 'Manual',
+    ],
 ];

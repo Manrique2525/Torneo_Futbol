@@ -3,9 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\Arbitro;
+use App\Services\PlanService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
-use App\Services\PlanService;
 
 class ArbitroController extends Controller
 {
@@ -30,7 +30,7 @@ class ArbitroController extends Controller
             'filters' => $request->only(['search', 'nivel', 'disponible']),
             'flash' => [
                 'success' => session('success'),
-                'error' => session('error')
+                'error' => session('error'),
             ],
             'constantes' => [
                 'niveles_arbitro' => config('constants.niveles_arbitro', []),
@@ -42,7 +42,7 @@ class ArbitroController extends Controller
     {
         $tenant = auth()->user()->tenant;
         $planService = new PlanService($tenant);
-        
+
         // Obtener información del plan
         $arbitrosCount = Arbitro::where('tenant_id', $tenant->id)->count();
         $canCreate = $planService->canCreate('max_referees', $arbitrosCount);
@@ -70,13 +70,13 @@ class ArbitroController extends Controller
 
         // Validar límite del plan
         $arbitrosCount = Arbitro::where('tenant_id', $tenant->id)->count();
-        
-        if (!$planService->canCreate('max_referees', $arbitrosCount)) {
+
+        if (! $planService->canCreate('max_referees', $arbitrosCount)) {
             $limit = $planService->getLimit('max_referees');
-            $message = $limit === -1 
-                ? 'No puedes crear más árbitros' 
+            $message = $limit === -1
+                ? 'No puedes crear más árbitros'
                 : "Has alcanzado el límite de {$limit} árbitros de tu plan";
-            
+
             return back()->with('error', $message);
         }
 

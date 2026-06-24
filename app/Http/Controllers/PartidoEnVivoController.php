@@ -2,15 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\PartidoEventoTipoEnum;
 use App\Enums\PermissionEnum;
-use App\Http\Requests\CambiarEstadoPartidoRequest;
 use App\Http\Requests\StorePartidoAsistenciaRequest;
 use App\Http\Requests\StorePartidoEventoRequest;
 use App\Models\Partido;
 use App\Models\PartidoEvento;
 use App\Services\PartidoEnVivoService;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Request;
 use Inertia\Inertia;
 
 class PartidoEnVivoController extends Controller
@@ -54,7 +53,7 @@ class PartidoEnVivoController extends Controller
             'puede_cambiar_estado' => $esArbitro || $esAdmin,
             'puede_registrar_asistencia_local' => $esArbitro || $esAdmin || ($esDelegadoLocal && $delegadoPuedeAsistir),
             'puede_registrar_asistencia_visitante' => $esArbitro || $esAdmin || ($esDelegadoVisitante && $delegadoPuedeAsistir),
-            'tipos_evento' => \App\Enums\PartidoEventoTipoEnum::all(),
+            'tipos_evento' => PartidoEventoTipoEnum::all(),
             'flash' => [
                 'success' => session('success'),
                 'error' => session('error'),

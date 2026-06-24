@@ -39,13 +39,13 @@ class JornadaController extends Controller
                 ->paginate(10)
                 ->withQueryString(),
 
-            'filters'   => $request->only(['search', 'torneo_id', 'estado']),
-            'flash'     => [
+            'filters' => $request->only(['search', 'torneo_id', 'estado']),
+            'flash' => [
                 'success' => session('success'),
-                'error'   => session('error'),
+                'error' => session('error'),
             ],
             'constantes' => $constants ?? [],
-            'torneos'    => $torneos,
+            'torneos' => $torneos,
         ]);
     }
 
@@ -54,12 +54,12 @@ class JornadaController extends Controller
         $this->authorize(PermissionEnum::MATCH_DAYS_CREATE);
 
         $torneos = Torneo::query()
-            ->select('id', 'nombre')
+            ->select('id', 'nombre', 'tipo_gestion')
             ->orderBy('nombre')
             ->get();
 
         return Inertia::render('Jornadas/Create', [
-            'torneos'    => $torneos,
+            'torneos' => $torneos,
             'constantes' => [
                 'estados_jornada' => config('constants.estados_jornada', []),
             ],
@@ -70,17 +70,22 @@ class JornadaController extends Controller
     {
         $this->authorize(PermissionEnum::MATCH_DAYS_CREATE);
 
+        $torneo = Torneo::findOrFail($request->torneo_id);
+        if ($torneo->esAuto()) {
+            abort(403, 'No puedes crear jornadas en torneos con gestión automática de calendario.');
+        }
+
         $tenantId = auth()->user()->tenant_id;
         $constants = config('constants');
 
         $validated = $request->validate([
-            'torneo_id'   => [
+            'torneo_id' => [
                 'required',
                 'integer',
                 Rule::exists('torneos', 'id')->where('tenant_id', $tenantId),
             ],
-            'nombre'      => 'required|string|max:255',
-            'numero'      => [
+            'nombre' => 'required|string|max:255',
+            'numero' => [
                 'required',
                 'integer',
                 'min:1',
@@ -88,17 +93,17 @@ class JornadaController extends Controller
                 Rule::unique('jornadas')->where('torneo_id', $request->torneo_id),
             ],
             'fecha_inicio' => 'required|date',
-            'fecha_fin'    => 'nullable|date|after_or_equal:fecha_inicio',
-            'estado'       => 'required|in:'.implode(',', array_keys($constants['estados_jornada'] ?? [])),
-            'descripcion'  => 'nullable|string|max:2000',
+            'fecha_fin' => 'nullable|date|after_or_equal:fecha_inicio',
+            'estado' => 'required|in:'.implode(',', array_keys($constants['estados_jornada'] ?? [])),
+            'descripcion' => 'nullable|string|max:2000',
         ], [], [
-            'torneo_id'    => 'torneo',
-            'nombre'       => 'nombre',
-            'numero'       => 'número',
+            'torneo_id' => 'torneo',
+            'nombre' => 'nombre',
+            'numero' => 'número',
             'fecha_inicio' => 'fecha de inicio',
-            'fecha_fin'    => 'fecha de fin',
-            'estado'       => 'estado',
-            'descripcion'  => 'descripción',
+            'fecha_fin' => 'fecha de fin',
+            'estado' => 'estado',
+            'descripcion' => 'descripción',
         ]);
 
         Jornada::create($validated);
@@ -111,14 +116,18 @@ class JornadaController extends Controller
     {
         $this->authorize(PermissionEnum::MATCH_DAYS_UPDATE);
 
+        if ($jornada->torneo?->esAuto()) {
+            abort(403, 'No puedes editar jornadas en torneos con gestión automática de calendario.');
+        }
+
         $torneos = Torneo::query()
-            ->select('id', 'nombre')
+            ->select('id', 'nombre', 'tipo_gestion')
             ->orderBy('nombre')
             ->get();
 
         return Inertia::render('Jornadas/Edit', [
-            'jornada'    => $jornada,
-            'torneos'    => $torneos,
+            'jornada' => $jornada,
+            'torneos' => $torneos,
             'constantes' => [
                 'estados_jornada' => config('constants.estados_jornada', []),
             ],
@@ -129,17 +138,21 @@ class JornadaController extends Controller
     {
         $this->authorize(PermissionEnum::MATCH_DAYS_UPDATE);
 
+        if ($jornada->torneo?->esAuto()) {
+            abort(403, 'No puedes editar jornadas en torneos con gestión automática de calendario.');
+        }
+
         $tenantId = auth()->user()->tenant_id;
         $constants = config('constants');
 
         $validated = $request->validate([
-            'torneo_id'   => [
+            'torneo_id' => [
                 'required',
                 'integer',
                 Rule::exists('torneos', 'id')->where('tenant_id', $tenantId),
             ],
-            'nombre'      => 'required|string|max:255',
-            'numero'      => [
+            'nombre' => 'required|string|max:255',
+            'numero' => [
                 'required',
                 'integer',
                 'min:1',
@@ -147,17 +160,17 @@ class JornadaController extends Controller
                 Rule::unique('jornadas')->where('torneo_id', $request->torneo_id)->ignore($jornada->id),
             ],
             'fecha_inicio' => 'required|date',
-            'fecha_fin'    => 'nullable|date|after_or_equal:fecha_inicio',
-            'estado'       => 'required|in:'.implode(',', array_keys($constants['estados_jornada'] ?? [])),
-            'descripcion'  => 'nullable|string|max:2000',
+            'fecha_fin' => 'nullable|date|after_or_equal:fecha_inicio',
+            'estado' => 'required|in:'.implode(',', array_keys($constants['estados_jornada'] ?? [])),
+            'descripcion' => 'nullable|string|max:2000',
         ], [], [
-            'torneo_id'    => 'torneo',
-            'nombre'       => 'nombre',
-            'numero'       => 'número',
+            'torneo_id' => 'torneo',
+            'nombre' => 'nombre',
+            'numero' => 'número',
             'fecha_inicio' => 'fecha de inicio',
-            'fecha_fin'    => 'fecha de fin',
-            'estado'       => 'estado',
-            'descripcion'  => 'descripción',
+            'fecha_fin' => 'fecha de fin',
+            'estado' => 'estado',
+            'descripcion' => 'descripción',
         ]);
 
         $jornada->update($validated);
@@ -169,6 +182,10 @@ class JornadaController extends Controller
     public function destroy(Jornada $jornada): RedirectResponse
     {
         $this->authorize(PermissionEnum::MATCH_DAYS_DELETE);
+
+        if ($jornada->torneo?->esAuto()) {
+            abort(403, 'No puedes eliminar jornadas en torneos con gestión automática de calendario.');
+        }
 
         $jornada->delete();
 

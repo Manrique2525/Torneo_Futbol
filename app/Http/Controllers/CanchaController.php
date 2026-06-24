@@ -4,10 +4,10 @@ namespace App\Http\Controllers;
 
 use App\Enums\PermissionEnum;
 use App\Models\Cancha;
-use App\Models\DisponibilidadCancha;
 use App\Services\PlanService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Inertia\Inertia;
 
 class CanchaController extends Controller
@@ -36,7 +36,7 @@ class CanchaController extends Controller
             'filters' => $request->only(['search', 'tipo', 'estado']),
             'flash' => [
                 'success' => session('success'),
-                'error'   => session('error'),
+                'error' => session('error'),
             ],
             'constantes' => $constants ?? [],
         ]);
@@ -56,14 +56,14 @@ class CanchaController extends Controller
 
         return Inertia::render('Canchas/Create', [
             'planInfo' => [
-                'canCreate'     => $canCreate,
-                'remaining'     => $remaining,
-                'limit'         => $limit,
-                'currentCount'  => $canchasCount,
-                'isUnlimited'   => $planService->isUnlimited('max_fields'),
+                'canCreate' => $canCreate,
+                'remaining' => $remaining,
+                'limit' => $limit,
+                'currentCount' => $canchasCount,
+                'isUnlimited' => $planService->isUnlimited('max_fields'),
             ],
             'constantes' => [
-                'tipos_cancha'   => config('constants.tipos_cancha', []),
+                'tipos_cancha' => config('constants.tipos_cancha', []),
                 'estados_cancha' => config('constants.estados_cancha', []),
             ],
         ]);
@@ -90,21 +90,21 @@ class CanchaController extends Controller
         $constants = config('constants');
 
         $validated = $request->validate([
-            'nombre'     => 'required|string|max:255',
-            'direccion'  => 'nullable|string|max:1000',
-            'tipo'       => 'required|in:'.implode(',', array_keys($constants['tipos_cancha'] ?? [])),
-            'capacidad'  => 'nullable|integer|min:0|max:999999',
-            'latitud'    => 'nullable|numeric|between:-90,90',
-            'longitud'   => 'nullable|numeric|between:-180,180',
-            'estado'     => 'required|in:'.implode(',', array_keys($constants['estados_cancha'] ?? [])),
+            'nombre' => 'required|string|max:255',
+            'direccion' => 'nullable|string|max:1000',
+            'tipo' => 'required|in:'.implode(',', array_keys($constants['tipos_cancha'] ?? [])),
+            'capacidad' => 'nullable|integer|min:0|max:999999',
+            'latitud' => 'nullable|numeric|between:-90,90',
+            'longitud' => 'nullable|numeric|between:-180,180',
+            'estado' => 'required|in:'.implode(',', array_keys($constants['estados_cancha'] ?? [])),
         ], [], [
-            'nombre'     => 'nombre',
-            'direccion'  => 'dirección',
-            'tipo'       => 'tipo',
-            'capacidad'  => 'capacidad',
-            'latitud'    => 'latitud',
-            'longitud'   => 'longitud',
-            'estado'     => 'estado',
+            'nombre' => 'nombre',
+            'direccion' => 'dirección',
+            'tipo' => 'tipo',
+            'capacidad' => 'capacidad',
+            'latitud' => 'latitud',
+            'longitud' => 'longitud',
+            'estado' => 'estado',
         ]);
 
         $cancha = Cancha::create($validated);
@@ -123,20 +123,20 @@ class CanchaController extends Controller
             ->select('id', 'cancha_id', 'dia_semana', 'hora_inicio', 'hora_fin')
             ->get()
             ->map(fn ($d) => [
-                'dia_semana'  => $d->dia_semana,
-                'hora_inicio' => $d->hora_inicio instanceof \Illuminate\Support\Carbon
+                'dia_semana' => $d->dia_semana,
+                'hora_inicio' => $d->hora_inicio instanceof Carbon
                     ? $d->hora_inicio->format('H:i')
                     : substr((string) $d->hora_inicio, 0, 5),
-                'hora_fin'    => $d->hora_fin instanceof \Illuminate\Support\Carbon
+                'hora_fin' => $d->hora_fin instanceof Carbon
                     ? $d->hora_fin->format('H:i')
                     : substr((string) $d->hora_fin, 0, 5),
             ]);
 
         return Inertia::render('Canchas/Edit', [
-            'cancha'           => $cancha,
+            'cancha' => $cancha,
             'disponibilidades' => $disponibilidades,
             'constantes' => [
-                'tipos_cancha'   => config('constants.tipos_cancha', []),
+                'tipos_cancha' => config('constants.tipos_cancha', []),
                 'estados_cancha' => config('constants.estados_cancha', []),
             ],
         ]);
@@ -149,21 +149,21 @@ class CanchaController extends Controller
         $constants = config('constants');
 
         $validated = $request->validate([
-            'nombre'     => 'required|string|max:255',
-            'direccion'  => 'nullable|string|max:1000',
-            'tipo'       => 'required|in:'.implode(',', array_keys($constants['tipos_cancha'] ?? [])),
-            'capacidad'  => 'nullable|integer|min:0|max:999999',
-            'latitud'    => 'nullable|numeric|between:-90,90',
-            'longitud'   => 'nullable|numeric|between:-180,180',
-            'estado'     => 'required|in:'.implode(',', array_keys($constants['estados_cancha'] ?? [])),
+            'nombre' => 'required|string|max:255',
+            'direccion' => 'nullable|string|max:1000',
+            'tipo' => 'required|in:'.implode(',', array_keys($constants['tipos_cancha'] ?? [])),
+            'capacidad' => 'nullable|integer|min:0|max:999999',
+            'latitud' => 'nullable|numeric|between:-90,90',
+            'longitud' => 'nullable|numeric|between:-180,180',
+            'estado' => 'required|in:'.implode(',', array_keys($constants['estados_cancha'] ?? [])),
         ], [], [
-            'nombre'     => 'nombre',
-            'direccion'  => 'dirección',
-            'tipo'       => 'tipo',
-            'capacidad'  => 'capacidad',
-            'latitud'    => 'latitud',
-            'longitud'   => 'longitud',
-            'estado'     => 'estado',
+            'nombre' => 'nombre',
+            'direccion' => 'dirección',
+            'tipo' => 'tipo',
+            'capacidad' => 'capacidad',
+            'latitud' => 'latitud',
+            'longitud' => 'longitud',
+            'estado' => 'estado',
         ]);
 
         $cancha->update($validated);
@@ -194,9 +194,9 @@ class CanchaController extends Controller
             }
 
             $cancha->disponibilidades()->create([
-                'dia_semana'  => (int) $item['dia_semana'],
+                'dia_semana' => (int) $item['dia_semana'],
                 'hora_inicio' => $item['hora_inicio'],
-                'hora_fin'    => $item['hora_fin'],
+                'hora_fin' => $item['hora_fin'],
             ]);
         }
     }

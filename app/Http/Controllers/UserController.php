@@ -25,7 +25,7 @@ class UserController extends Controller
             ->when($request->search, function ($query, $search) {
                 $query->where(function ($q) use ($search) {
                     $q->where('name', 'like', "%{$search}%")
-                      ->orWhere('email', 'like', "%{$search}%");
+                        ->orWhere('email', 'like', "%{$search}%");
                 });
             })
             ->when($request->role && $request->role !== 'all', function ($query) use ($request) {
@@ -39,19 +39,19 @@ class UserController extends Controller
             ->withQueryString()
             ->through(function ($user) {
                 return [
-                    'id'     => $user->id,
-                    'name'   => $user->name,
-                    'email'  => $user->email,
-                    'phone'  => $user->phone,
+                    'id' => $user->id,
+                    'name' => $user->name,
+                    'email' => $user->email,
+                    'phone' => $user->phone,
                     'avatar' => $user->avatar,
                     'status' => $user->status,
-                    'roles'  => $user->getRoleNames(),
+                    'roles' => $user->getRoleNames(),
                     'created_at' => $user->created_at->format('d/m/Y'),
                 ];
             });
 
         return Inertia::render('Users/Index', [
-            'users'   => $users,
+            'users' => $users,
             'roles' => collect(RoleEnum::assignable())->map(fn ($roleValue) => [
                 'value' => $roleValue,
                 'label' => RoleEnum::labels()[$roleValue] ?? $roleValue,
@@ -83,19 +83,19 @@ class UserController extends Controller
         $this->authorize('users.create');
 
         $validated = $request->validate([
-            'name'     => ['required', 'string', 'max:150'],
-            'email'    => ['required', 'email', 'max:255', 'unique:users,email'],
-            'phone'    => ['nullable', 'string', 'max:20'],
+            'name' => ['required', 'string', 'max:150'],
+            'email' => ['required', 'email', 'max:255', 'unique:users,email'],
+            'phone' => ['nullable', 'string', 'max:20'],
             'role' => ['required', 'string', Rule::in(RoleEnum::assignable())],
             'password' => ['required', Password::defaults()],
         ]);
 
         $user = User::create([
-            'name'     => $validated['name'],
-            'email'    => $validated['email'],
-            'phone'    => $validated['phone'] ?? null,
+            'name' => $validated['name'],
+            'email' => $validated['email'],
+            'phone' => $validated['phone'] ?? null,
             'password' => Hash::make($validated['password']),
-            'status'   => User::STATUS_ACTIVE,
+            'status' => User::STATUS_ACTIVE,
             // tenant_id is auto-filled by BelongsToTenant trait
         ]);
 
@@ -114,12 +114,12 @@ class UserController extends Controller
 
         return Inertia::render('Users/Edit', [
             'user' => [
-                'id'     => $user->id,
-                'name'   => $user->name,
-                'email'  => $user->email,
-                'phone'  => $user->phone,
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'phone' => $user->phone,
                 'status' => $user->status,
-                'role'   => $user->getRoleNames()->first() ?? '',
+                'role' => $user->getRoleNames()->first() ?? '',
             ],
             'roles' => collect(RoleEnum::assignable())->map(fn ($roleValue) => [
                 'value' => $roleValue,
@@ -136,22 +136,22 @@ class UserController extends Controller
         $this->authorize('users.update');
 
         $validated = $request->validate([
-            'name'     => ['required', 'string', 'max:150'],
-            'email'    => ['required', 'email', 'max:255', Rule::unique('users')->ignore($user->id)],
-            'phone'    => ['nullable', 'string', 'max:20'],
+            'name' => ['required', 'string', 'max:150'],
+            'email' => ['required', 'email', 'max:255', Rule::unique('users')->ignore($user->id)],
+            'phone' => ['nullable', 'string', 'max:20'],
             'role' => ['required', 'string', Rule::in(RoleEnum::assignable())],
-            'status'   => ['required', 'string', Rule::in(['active', 'inactive', 'suspended'])],
+            'status' => ['required', 'string', Rule::in(['active', 'inactive', 'suspended'])],
             'password' => ['nullable', Password::defaults()],
         ]);
 
         $user->update([
-            'name'   => $validated['name'],
-            'email'  => $validated['email'],
-            'phone'  => $validated['phone'] ?? null,
+            'name' => $validated['name'],
+            'email' => $validated['email'],
+            'phone' => $validated['phone'] ?? null,
             'status' => $validated['status'],
         ]);
 
-        if (!empty($validated['password'])) {
+        if (! empty($validated['password'])) {
             $user->update(['password' => Hash::make($validated['password'])]);
         }
 

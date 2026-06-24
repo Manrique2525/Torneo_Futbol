@@ -26,9 +26,9 @@ class UserRoleController extends Controller
         $this->authorize('users.view');
 
         return Inertia::render('Roles/UserPermissions', [
-            'targetUser'  => $user->only('id', 'name', 'email', 'avatar', 'status'),
+            'targetUser' => $user->only('id', 'name', 'email', 'avatar', 'status'),
             'permissions' => $this->service->getUserPermissions($user),
-            'allRoles'    => $this->service->getTenantRoles(),
+            'allRoles' => $this->service->getTenantRoles(),
             'allPermissions' => $this->service->getPermissionsGrouped(),
         ]);
     }

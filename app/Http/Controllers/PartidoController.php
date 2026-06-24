@@ -29,7 +29,7 @@ class PartidoController extends Controller
         $constants = config('constants');
 
         $torneos = Torneo::query()
-            ->select('id', 'nombre')
+            ->select('id', 'nombre', 'tipo_gestion')
             ->orderBy('nombre')
             ->get();
 
@@ -46,7 +46,7 @@ class PartidoController extends Controller
                 ->when($request->search, function ($q) use ($request) {
                     $q->where(function ($sq) use ($request) {
                         $sq->whereHas('equipoLocal.equipo', fn ($eq) => $eq->where('name', 'like', "%{$request->search}%"))
-                           ->orWhereHas('equipoVisitante.equipo', fn ($eq) => $eq->where('name', 'like', "%{$request->search}%"));
+                            ->orWhereHas('equipoVisitante.equipo', fn ($eq) => $eq->where('name', 'like', "%{$request->search}%"));
                     });
                 })
                 ->when($request->torneo_id && $request->torneo_id !== 'todos', function ($q) use ($request) {
@@ -59,13 +59,13 @@ class PartidoController extends Controller
                 ->paginate(10)
                 ->withQueryString(),
 
-            'filters'   => $request->only(['search', 'torneo_id', 'estado']),
-            'flash'     => [
+            'filters' => $request->only(['search', 'torneo_id', 'estado']),
+            'flash' => [
                 'success' => session('success'),
-                'error'   => session('error'),
+                'error' => session('error'),
             ],
             'constantes' => $constants ?? [],
-            'torneos'    => $torneos,
+            'torneos' => $torneos,
         ]);
     }
 
@@ -74,9 +74,11 @@ class PartidoController extends Controller
         $this->authorize(PermissionEnum::MATCHES_CREATE);
 
         $torneos = Torneo::query()
-            ->select('id', 'nombre')
+            ->select('id', 'nombre', 'tipo_gestion')
             ->orderBy('nombre')
-            ->get();
+            ->get()
+            ->filter(fn ($t) => ! $t->esAuto())
+            ->values();
 
         $canchas = Cancha::query()
             ->select('id', 'nombre')
@@ -95,16 +97,16 @@ class PartidoController extends Controller
             ->where('estado', 'aprobado')
             ->get()
             ->map(fn ($te) => [
-                'id'        => $te->id,
-                'nombre'    => ($te->equipo?->name ?? 'Equipo #'.$te->id) . ' — ' . ($te->torneo?->nombre ?? 'Sin torneo'),
+                'id' => $te->id,
+                'nombre' => ($te->equipo?->name ?? 'Equipo #'.$te->id).' — '.($te->torneo?->nombre ?? 'Sin torneo'),
                 'torneo_id' => $te->torneo_id,
             ]);
 
         return Inertia::render('Partidos/Create', [
-            'torneos'    => $torneos,
-            'canchas'    => $canchas,
-            'arbitros'   => $arbitros,
-            'equipos'    => $equipos,
+            'torneos' => $torneos,
+            'canchas' => $canchas,
+            'arbitros' => $arbitros,
+            'equipos' => $equipos,
             'constantes' => [
                 'estados_partido' => config('constants.estados_partido', []),
             ],
@@ -113,6 +115,11 @@ class PartidoController extends Controller
 
     public function store(StorePartidoRequest $request): RedirectResponse
     {
+        $torneo = Torneo::findOrFail($request->torneo_id);
+        if ($torneo->esAuto()) {
+            abort(403, 'No puedes crear partidos manuales en torneos con gestión automática de calendario.');
+        }
+
         $this->schedulingService->programar($request->validated());
 
         return redirect()->route('partidos.index')
@@ -124,9 +131,11 @@ class PartidoController extends Controller
         $this->authorize(PermissionEnum::MATCHES_UPDATE);
 
         $torneos = Torneo::query()
-            ->select('id', 'nombre')
+            ->select('id', 'nombre', 'tipo_gestion')
             ->orderBy('nombre')
-            ->get();
+            ->get()
+            ->filter(fn ($t) => ! $t->esAuto() || $t->id === $partido->torneo_id)
+            ->values();
 
         $canchas = Cancha::query()
             ->select('id', 'nombre')
@@ -151,19 +160,19 @@ class PartidoController extends Controller
             ->where('estado', 'aprobado')
             ->get()
             ->map(fn ($te) => [
-                'id'     => $te->id,
+                'id' => $te->id,
                 'nombre' => $te->equipo?->name ?? 'Equipo #'.$te->id,
             ]);
 
         $partido->load(['equipoLocal.equipo:id,name', 'equipoVisitante.equipo:id,name']);
 
         return Inertia::render('Partidos/Edit', [
-            'partido'    => $partido,
-            'torneos'    => $torneos,
-            'canchas'    => $canchas,
-            'arbitros'   => $arbitros,
-            'jornadas'   => $jornadas,
-            'equipos'    => $equipos,
+            'partido' => $partido,
+            'torneos' => $torneos,
+            'canchas' => $canchas,
+            'arbitros' => $arbitros,
+            'jornadas' => $jornadas,
+            'equipos' => $equipos,
             'constantes' => [
                 'estados_partido' => config('constants.estados_partido', []),
             ],

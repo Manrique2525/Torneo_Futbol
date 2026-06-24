@@ -27,9 +27,9 @@ class PermissionController extends Controller
                 ->orderBy('name')
                 ->paginate(5) // 10 registros por página
                 ->withQueryString() // Mantiene los filtros en los enlaces de paginación
-                ->through(fn($p) => [
-                    'id'         => $p->id,
-                    'name'       => $p->name,
+                ->through(fn ($p) => [
+                    'id' => $p->id,
+                    'name' => $p->name,
                     'guard_name' => $p->guard_name,
                     'created_at' => $p->created_at->format('d/m/Y'),
                 ]),

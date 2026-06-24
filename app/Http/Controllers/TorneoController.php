@@ -92,6 +92,7 @@ class TorneoController extends Controller
 
         $torneo = Torneo::create([
             ...$validated,
+            'tipo_gestion' => 'auto',
             'created_by' => auth()->id(),
             'inscripcion_abierta' => $request->boolean('inscripcion_abierta', true),
             'fair_play_automatico' => $request->boolean('fair_play_automatico', false),

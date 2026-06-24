@@ -26,6 +26,7 @@ class Torneo extends Model
         'precio_inscripcion',
         'moneda',
         'pago_requerido',
+        'tipo_gestion',
         'baja_por_impago_automatica',
         'max_jornadas_sin_pago',
         'configuracion_asistencia_delegado',
@@ -49,6 +50,7 @@ class Torneo extends Model
             'inscripcion_abierta' => 'boolean',
             'precio_inscripcion' => 'decimal:2',
             'pago_requerido' => 'boolean',
+            'tipo_gestion' => 'string',
             'baja_por_impago_automatica' => 'boolean',
             'max_jornadas_sin_pago' => 'integer',
             'configuracion_asistencia_delegado' => 'boolean',
@@ -151,6 +153,11 @@ class Torneo extends Model
     public function tienePlayoff(): bool
     {
         return $this->tiene_playoff && $this->playoff_equipos > 0;
+    }
+
+    public function esAuto(): bool
+    {
+        return $this->tipo_gestion === 'auto';
     }
 
     public static function esPotenciaDe2(int $n): bool
